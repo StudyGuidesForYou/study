@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat App</title>
+    <style>
+      body { font-family: Arial; }
+      #messages { list-style-type: none; padding: 0; }
+      #messages li { padding: 5px 10px; }
+    </style>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <input id="input" autocomplete="off" /><button onclick="sendMsg()">Send</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const input = document.getElementById("input");
+      const messages = document.getElementById("messages");
+
+      socket.on("chat message", function(msg){
+        const li = document.createElement("li");
+        li.textContent = msg;
+        messages.appendChild(li);
+      });
+
+      function sendMsg() {
+        const msg = input.value;
+        if(msg) {
+          socket.emit("chat message", msg);
+          input.value = "";
+        }
+      }
+    </script>
+  </body>
+</html>
