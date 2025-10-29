@@ -1,83 +1,91 @@
-// server.js
+// server.js - Express + Socket.IO + LowDB (JSON file storage)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 
-const DB_PATH = path.join(__dirname, 'db.json');
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-this';
+const { Low } = require('lowdb');
+const { JSONFile } = require('lowdb/node');
+
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-this';
+const DB_PATH = path.join(__dirname, 'db.json');
 
-// --- Load/Save JSON DB ---
-function loadDb() {
-  if (!fs.existsSync(DB_PATH)) {
-    const base = { users: {}, usernames: {}, nextGuest: 1, chat: [] };
-    fs.writeFileSync(DB_PATH, JSON.stringify(base, null, 2));
-    return base;
-  }
-  return JSON.parse(fs.readFileSync(DB_PATH));
+// LowDB setup
+const adapter = new JSONFile(DB_PATH);
+const db = new Low(adapter);
+
+async function initDb() {
+  await db.read();
+  db.data = db.data || { users: {}, usernames: {}, nextGuest: 1, chat: [] };
+  await db.write();
 }
-function saveDb(db) { fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2)); }
-let db = loadDb();
+initDb();
 
-// --- Express ---
+// Express setup
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- JWT Helpers ---
+// JWT helpers
 function createToken(user) {
   return jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
 }
-function authMiddleware(req, res, next) {
+function verifyToken(token) {
+  try { return jwt.verify(token, JWT_SECRET); }
+  catch(e) { return null; }
+}
+async function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
   if (!header) return res.status(401).json({ error: 'Missing Authorization' });
   const parts = header.split(' ');
   if (parts.length !== 2) return res.status(401).json({ error: 'Invalid Authorization' });
-  try {
-    const payload = jwt.verify(parts[1], JWT_SECRET);
-    const user = db.users[payload.id];
-    if (!user) return res.status(401).json({ error: 'Invalid user' });
-    req.user = user;
-    next();
-  } catch (e) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
+  const payload = verifyToken(parts[1]);
+  if (!payload) return res.status(401).json({ error: 'Invalid token' });
+  await db.read();
+  const user = db.data.users[payload.id];
+  if (!user) return res.status(401).json({ error: 'Invalid user' });
+  req.user = user;
+  next();
 }
 
 // --- API Endpoints ---
-// Sign Up
-app.post('/api/signup', (req, res) => {
+
+// Signup
+app.post('/api/signup', async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
-  if (db.usernames[username]) return res.status(409).json({ error: 'Username taken' });
+
+  await db.read();
+  if (db.data.usernames[username]) return res.status(409).json({ error: 'Username taken' });
 
   const id = uuidv4();
   const passwordHash = bcrypt.hashSync(password, 10);
   const user = { id, username, passwordHash, data: {}, createdAt: Date.now() };
-  db.users[id] = user;
-  db.usernames[username] = id;
-  saveDb(db);
+
+  db.data.users[id] = user;
+  db.data.usernames[username] = id;
+  await db.write();
 
   const token = createToken(user);
   res.json({ token, user: { id: user.id, username: user.username, data: user.data } });
 });
 
-// Log In
-app.post('/api/login', (req, res) => {
+// Login
+app.post('/api/login', async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
 
-  const id = db.usernames[username];
+  await db.read();
+  const id = db.data.usernames[username];
   if (!id) return res.status(401).json({ error: 'Invalid credentials' });
 
-  const user = db.users[id];
+  const user = db.data.users[id];
   if (!bcrypt.compareSync(password, user.passwordHash)) return res.status(401).json({ error: 'Invalid credentials' });
 
   const token = createToken(user);
@@ -85,68 +93,83 @@ app.post('/api/login', (req, res) => {
 });
 
 // Get current user
-app.get('/api/me', authMiddleware, (req, res) => {
-  const user = req.user;
-  res.json({ id: user.id, username: user.username, data: user.data });
+app.get('/api/me', authMiddleware, async (req, res) => {
+  res.json({ id: req.user.id, username: req.user.username, data: req.user.data });
 });
 
-// Save game data
-app.post('/api/save-game', authMiddleware, (req, res) => {
+// Save game data (protected)
+app.post('/api/save-game', authMiddleware, async (req, res) => {
   const { gameId, payload } = req.body || {};
   if (!gameId) return res.status(400).json({ error: 'Missing gameId' });
-  req.user.data[gameId] = payload;
-  db.users[req.user.id] = req.user;
-  saveDb(db);
+
+  await db.read();
+  db.data.users[req.user.id].data = db.data.users[req.user.id].data || {};
+  db.data.users[req.user.id].data[gameId] = payload;
+  await db.write();
   res.json({ ok: true });
 });
 
-// Chat history
-app.get('/api/chat-history', (req, res) => {
-  res.json({ chat: db.chat.slice(-200) });
+// Chat history (last 200)
+app.get('/api/chat-history', async (req, res) => {
+  await db.read();
+  const slice = db.data.chat.slice(-200);
+  res.json({ chat: slice });
+});
+
+// Serve index.html for all other routes (SPA)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
 // --- Start HTTP + Socket.IO ---
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*", methods: ["GET","POST"] } });
 
-function verifyToken(token) {
-  try { return jwt.verify(token, JWT_SECRET); }
-  catch(e){ return null; }
-}
-
-// --- Socket.IO connection ---
-io.on('connection', (socket) => {
-  let token = socket.handshake.auth?.token;
-  let user = null;
-
+io.use(async (socket, next) => {
+  // Token can be in handshake auth
+  const token = socket.handshake.auth?.token;
   if (token) {
     const payload = verifyToken(token);
-    if (payload && db.users[payload.id]) user = { id: payload.id, username: payload.username, logged:true };
+    if (payload) {
+      await db.read();
+      const user = db.data.users[payload.id];
+      if (user) {
+        socket.data.user = { id: user.id, username: user.username, logged: true };
+        return next();
+      }
+    }
   }
-  if (!user) {
-    // Guest
-    const guestNum = db.nextGuest++;
-    user = { id:`guest_${guestNum}`, username:`User_${guestNum}`, logged:false };
-    saveDb(db);
-  }
+  // Allow guests if no valid token
+  await db.read();
+  const guestNum = db.data.nextGuest++;
+  const guest = { id: `guest_${guestNum}`, username: `User_${guestNum}`, logged: false };
+  db.data.nextGuest = db.data.nextGuest;
+  await db.write();
+  socket.data.user = guest;
+  next();
+});
 
-  socket.data.user = user;
-  io.emit('user-joined', { id:user.id, username:user.username });
-  socket.emit('chat-history', db.chat.slice(-200));
+io.on('connection', async (socket) => {
+  const user = socket.data.user;
+  io.emit('user-joined', { id: user.id, username: user.username });
+  // Send chat history
+  await db.read();
+  socket.emit('chat-history', db.data.chat.slice(-200));
 
-  socket.on('chat-message', (payload) => {
-    const text = String(payload?.text||'').trim();
+  socket.on('chat-message', async (payload) => {
+    const text = String(payload?.text || '').trim();
     if (!text) return;
-    const msg = { id: uuidv4(), userId:user.id, username:user.username, text, ts:Date.now() };
-    db.chat.push(msg);
-    if (db.chat.length > 1000) db.chat.splice(0, db.chat.length - 1000);
-    saveDb(db);
+    const msg = { id: uuidv4(), userId: user.id, username: user.username, text, ts: Date.now() };
+    await db.read();
+    db.data.chat.push(msg);
+    if (db.data.chat.length > 1000) db.data.chat.splice(0, db.data.chat.length - 1000);
+    await db.write();
     io.emit('chat-message', msg);
   });
 
-  socket.on('disconnect', ()=>{
-    io.emit('user-left', { id:user.id, username:user.username });
+  socket.on('disconnect', () => {
+    io.emit('user-left', { id: user.id, username: user.username });
   });
 });
 
-server.listen(PORT, ()=>console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
