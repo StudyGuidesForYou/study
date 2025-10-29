@@ -3,39 +3,76 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Realtime Chat</title>
+  <title>Realtime Chat — Display Name</title>
 
-  <!-- Load Supabase library FIRST -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <!-- Load Supabase from CDN first. If an extension blocks it, a local fallback is attempted in inline script. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
 
   <link rel="stylesheet" href="style.css" />
+  <script>
+    // If CDN blocked, load local ./libs/supabase.js after a short delay
+    (function tryLocalFallback(){
+      setTimeout(()=> {
+        if (!window.supabase) {
+          const s = document.createElement('script');
+          s.src = './libs/supabase.js';
+          s.onload = () => console.info('Loaded local supabase.js fallback');
+          s.onerror = () => console.warn('Failed to load local supabase.js fallback');
+          document.head.appendChild(s);
+        }
+      }, 300);
+    })();
+  </script>
 </head>
 <body>
-  <div id="status-bar" class="status">Starting...</div>
-
-  <main class="app">
-    <header class="header">
-      <div class="brand">
-        <h1>Realtime Chat</h1>
-        <div class="subtitle">Auto users • Realtime • Dark UI</div>
+  <!-- Display-name modal -->
+  <div id="name-modal" class="modal">
+    <div class="modal-card">
+      <h2>Pick a display name</h2>
+      <input id="display-name" placeholder="e.g. CoolCat" maxlength="30" />
+      <div class="row">
+        <label><input id="remember-name" type="checkbox" checked /> Remember me</label>
+        <button id="enter-chat">Enter Chat</button>
       </div>
-      <div class="userbox">
-        <div id="user-label" class="user-label">user_?</div>
-        <button id="reset-user" title="Reset assigned name">Reset</button>
+      <p class="hint">No passwords — your display name is stored locally only.</p>
+    </div>
+  </div>
+
+  <!-- Main app -->
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">💬</div>
+        <div>
+          <div class="title">Realtime Chat</div>
+          <div class="subtitle">Display-name • Realtime • Dark</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div id="typing-indicator" class="typing muted"></div>
+        <div class="userbox">
+          <span id="my-name" class="my-name">You</span>
+          <button id="change-name" class="small">Change</button>
+        </div>
       </div>
     </header>
 
-    <ul id="messages" class="messages" aria-live="polite"></ul>
+    <main class="chat-area">
+      <section class="chat-panel">
+        <ul id="messages" class="messages" aria-live="polite"></ul>
 
-    <div id="typing-indicator" class="typing muted"></div>
+        <form id="message-form" class="composer">
+          <input id="message-input" placeholder="Type a message and press Enter" autocomplete="off" maxlength="1000" />
+          <button type="submit">Send</button>
+        </form>
+      </section>
+    </main>
 
-    <form id="chat-form" class="composer">
-      <input id="input" autocomplete="off" placeholder="Type a message (Enter to send)..." />
-      <button type="submit">Send</button>
-    </form>
-  </main>
+    <footer class="footer muted">Messages stored in Supabase</footer>
+  </div>
 
-  <!-- App script (after supabase lib) -->
-  <script src="script.js"></script>
+  <!-- App JS (deferred) -->
+  <script defer src="script.js"></script>
 </body>
 </html>
