@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Code</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f0f0f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: #1a1a1a;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      width: 350px;
+      border: 1px solid #2e2e2e;
+    }
+
+    h1 {
+      margin-bottom: 25px;
+      font-size: 24px;
+      color: #e6e6e6;
+      font-weight: 600;
+    }
+
+    .code-boxes {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 25px;
+    }
+
+    .code-input {
+      width: 50px;
+      height: 60px;
+      font-size: 28px;
+      text-align: center;
+      border: 2px solid #3a3a3a;
+      border-radius: 10px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    .code-input:focus {
+      border-color: #4a6cf7;
+      box-shadow: 0 0 5px rgba(74, 108, 247, 0.5);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      background: #3a7afe;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #2f4ac7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Class Code?</h1>
+    <div class="code-boxes">
+      <input maxlength="1" class="code-input" id="c1" />
+      <input maxlength="1" class="code-input" id="c2" />
+      <input maxlength="1" class="code-input" id="c3" />
+      <input maxlength="1" class="code-input" id="c4" />
+      <input maxlength="1" class="code-input" id="c5" />
+    </div>
+    <button onclick="submitCode()">Continue</button>
+  </div>
+
+  <script>
+    const inputs = document.querySelectorAll('.code-input');
+
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', () => {
+        if (input.value.length === 1 && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && input.value === '' && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+    });
+
+    function submitCode() {
+      let code = '';
+      inputs.forEach(i => code += i.value);
+
+      if (code.length !== 5 || !/^[0-9A-Za-z]{5}$/.test(code)) {
+        alert('Please enter all 5 characters.');
+        return;
+      }
+
+      alert('Code entered: ' + code);
+    }
+  </script>
+</body>
+</html>
