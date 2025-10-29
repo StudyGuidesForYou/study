@@ -1,73 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Realtime Chat — Display Name Only</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <script defer src="script.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <!-- Display-name prompt modal -->
-  <div id="name-modal" class="modal">
-    <div class="modal-card">
-      <h2>Pick a display name</h2>
-      <input id="display-name" placeholder="e.g. CoolDude42" maxlength="30" />
-      <div class="row">
-        <label class="small"><input id="remember-name" type="checkbox" checked /> Remember me</label>
-        <button id="enter-chat">Enter Chat</button>
-      </div>
-      <p class="hint">No password — just a display name. Your name is stored locally only.</p>
+
+  <!-- DISPLAY NAME SCREEN -->
+  <div id="name-screen" class="center-screen fade-in">
+    <div class="card">
+      <h2>Enter Display Name</h2>
+      <input id="display-name" placeholder="Your name...">
+      <button id="enter-chat">Continue</button>
     </div>
   </div>
 
-  <!-- Main chat UI -->
-  <div id="app" class="app hidden">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo">💬</div>
-        <div>
-          <div class="title">Realtime Chat</div>
-          <div class="subtitle">Display-name only • Realtime • Dark mode</div>
-        </div>
-      </div>
+  <!-- CHAT SCREEN -->
+  <div id="chat-screen" class="hidden fade-in">
+    
+    <div id="chat-header">
+      <h2>Chat Room</h2>
+      <span id="user-label"></span>
+      <button id="logout-btn">Change Name</button>
+    </div>
 
-      <div class="controls">
-        <div id="typing-indicator" class="typing"></div>
-        <button id="theme-toggle" class="icon-btn" title="Toggle dark/light">🌓</button>
-        <button id="leave-btn" class="small">Leave</button>
-      </div>
-    </header>
+    <ul id="messages"></ul>
 
-    <main class="chat-area">
-      <aside class="sidebar">
-        <div class="me">
-          <div id="my-avatar" class="avatar"></div>
-          <div>
-            <div id="my-name" class="my-name">You</div>
-            <div class="muted">Display name stored locally</div>
-          </div>
-        </div>
-        <hr />
-        <div class="moderation">
-          <h4>Moderation</h4>
-          <button id="clear-local" class="small">Clear local name</button>
-          <p class="muted">You can delete messages you sent. Report messages to moderators.</p>
-        </div>
-      </aside>
+    <div id="typing-indicator"></div>
 
-      <section class="chat-panel">
-        <ul id="messages" class="messages" aria-live="polite"></ul>
-
-        <form id="message-form" class="composer">
-          <input id="message-input" placeholder="Type a message..." autocomplete="off" maxlength="1000" />
-          <button type="submit">Send</button>
-        </form>
-      </section>
-    </main>
-
-    <footer class="footer muted">Built with Supabase • Messages are persistent</footer>
+    <form id="chat-form">
+      <input id="input" autocomplete="off" placeholder="Write a message...">
+      <button>Send</button>
+    </form>
   </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
