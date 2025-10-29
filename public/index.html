@@ -3,65 +3,67 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Class Code</title>
+<title>Class Code Dashboard</title>
 <style>
-  /* General Reset & Theme */
+  /* --- General Reset & Theme --- */
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Roboto", Arial, sans-serif; background: #0f1116; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  body { font-family: "Roboto", Arial, sans-serif; background: #0f1116; color: #e0e0e0; overflow: hidden; height: 100vh; }
 
-  /* --- LOGIN SCREEN --- */
-  .container { background: #181a21; padding: 40px; border-radius: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); text-align: center; width: 350px; border: 1px solid #23262f; transition: opacity 0.6s ease; }
+  /* --- CLASS CODE SCREEN --- */
+  .container { background: #181a21; padding: 40px; border-radius: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); width: 350px; text-align: center; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); transition: opacity 0.5s ease; }
   h1 { margin-bottom: 25px; font-size: 24px; color: #e8eaf0; font-weight: 600; }
   .code-boxes { display: flex; justify-content: space-between; margin-bottom: 15px; }
-  .code-input { width: 50px; height: 60px; font-size: 28px; text-align: center; border: 2px solid #30333b; border-radius: 10px; outline: none; color: #f0f0f0; background: #111319; transition: all 0.2s; cursor: pointer; }
+  .code-input { width: 50px; height: 60px; font-size: 28px; text-align: center; border: 2px solid #30333b; border-radius: 10px; outline: none; background:#111319; color: #f0f0f0; cursor: pointer; transition: 0.2s; }
   .code-input:hover { border-color: #4b75ff; }
-  .code-input:focus { border-color: #4b75ff; box-shadow: 0 0 8px rgba(75,117,255,0.6); background: #161820; }
-  button { width: 100%; padding: 12px; font-size: 16px; border: none; border-radius: 10px; background: #3a7afe; color: white; cursor: pointer; transition: 0.2s; font-weight: 500; }
-  button:hover { background: #2f4ac7; }
-  .spinner { margin-top: 20px; width: 40px; height: 40px; border: 4px solid #444; border-top-color: #4a6cf7; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; margin-left:auto;margin-right:auto; }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  #loadedMsg { margin-top: 20px; color: #7bff99; font-size: 18px; font-weight: 600; opacity: 0; transition: opacity 0.5s ease; }
-  #errorMsg { color: #ff4d4d; font-weight: 600; margin-top: 15px; opacity: 0; transition: opacity 0.3s ease; }
-  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);} }
+  .code-input:focus { border-color: #4b75ff; box-shadow: 0 0 8px rgba(75,117,255,0.6); background:#161820; }
+  button { width:100%; padding:12px; font-size:16px; border:none; border-radius:10px; background:#3a7afe; color:white; cursor:pointer; transition:0.2s; font-weight:500; }
+  button:hover { background:#2f4ac7; }
+  #errorMsg { color: #ff4d4d; font-weight: 600; margin-top: 10px; opacity:0; transition: opacity 0.3s ease; }
   .shake { animation: shake 0.3s; }
+  @keyframes shake { 0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);} }
 
   /* --- DASHBOARD --- */
-  #gamesScreen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f1116; color: white; opacity: 0; pointer-events: none; transition: opacity 0.8s ease; padding: 20px 40px 40px 40px; overflow-y: auto; }
-  #gamesScreen h2 { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 20px; color: #f0f0f0; }
-  .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; justify-items: center; }
-  .game-card { background: #181b22; border: 1px solid #252933; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.25s ease; width: 180px; }
-  .game-card:hover { transform: translateY(-5px); border-color: #4b75ff; box-shadow: 0 4px 15px rgba(75,117,255,0.3); }
-  .game-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
-  .game-card p { font-size: 15px; color: #e0e0e0; font-weight: 500; }
+  #gamesScreen { position: absolute; top:0; left:0; width:100vw; height:100vh; background:#0f1116; padding:20px; display:flex; flex-direction:column; opacity:0; pointer-events:none; transition: opacity 0.5s ease; }
+  #gamesScreen h2 { text-align:center; font-size:28px; margin-bottom:20px; }
+  .games-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:20px; justify-items:center; flex:1; overflow-y:auto; padding-right:10px; }
+  .game-card { background:#181b22; border-radius:12px; border:1px solid #252933; width:180px; padding:10px; text-align:center; cursor:pointer; transition:all 0.25s ease; }
+  .game-card:hover { transform: translateY(-5px); border-color:#4b75ff; box-shadow:0 4px 15px rgba(75,117,255,0.3); }
+  .game-card img { width:100%; height:110px; object-fit:cover; border-radius:10px; margin-bottom:8px; }
+  .game-card p { font-size:15px; font-weight:500; }
 
   /* --- SETTINGS --- */
-  #settingsBtn { position: fixed; top: 20px; right: 20px; background:#3a7afe; color:white; border:none; border-radius:10px; padding:10px 16px; cursor:pointer; font-weight:500; transition:0.2s; z-index:1100; }
-  #settingsBtn:hover { background:#2f4ac7; }
-  #settingsMenu { position: fixed; top:60px; right:20px; background:#181b22; border:1px solid #252933; border-radius:12px; width:200px; padding:10px; display:none; flex-direction:column; gap:10px; z-index:1100; animation:fadeIn 0.3s ease; }
-  #settingsMenu.show { display:flex; }
-  #settingsMenu input, #settingsMenu button { width: 100%; padding: 8px; border-radius:8px; border:none; outline:none; }
-  #settingsMenu button { background:#3a7afe; color:white; cursor:pointer; transition:0.2s; }
-  #settingsMenu button:hover { background:#2f4ac7; }
-  @keyframes fadeIn { from {opacity:0; transform:translateY(-5px);} to {opacity:1; transform:translateY(0);} }
+  #settingsBtn { position:absolute; top:20px; right:20px; background:#3a7afe; border:none; border-radius:8px; padding:8px 14px; cursor:pointer; font-weight:500; transition:0.3s; display:none; z-index:1100; }
+  #settingsBtn:hover { background:#2f4ac7; transform: scale(1.05); }
+  #settingsPanel { position:absolute; top:60px; right:20px; width:250px; background:#181a21; border-radius:12px; border:1px solid #252933; padding:15px; display:none; flex-direction:column; gap:10px; z-index:1100; box-shadow:0 5px 20px rgba(0,0,0,0.6); }
+  #settingsPanel button { width:100%; background:#3a7afe; border:none; border-radius:8px; padding:8px 10px; font-weight:500; cursor:pointer; transition:0.2s; }
+  #settingsPanel button:hover { background:#2f4ac7; transform: scale(1.05); }
+
+  /* --- CHAT PANEL --- */
+  #chatPanel { position:absolute; top:0; right:-350px; width:350px; height:100%; background:#181b22; border-left:1px solid #252933; display:flex; flex-direction:column; transition:right 0.4s ease; z-index:1050; }
+  #chatPanel.open { right:0; }
+  #chatMessages { flex:1; overflow-y:auto; padding:10px; }
+  #chatMessages p { margin-bottom:6px; font-size:14px; }
+  #chatInput { display:flex; padding:10px; border-top:1px solid #252933; }
+  #chatInput input { flex:1; padding:6px 10px; border-radius:6px; border:none; background:#111319; color:white; outline:none; }
+  #chatInput button { margin-left:6px; padding:6px 10px; border-radius:6px; border:none; background:#3a7afe; color:white; cursor:pointer; transition:0.2s; }
+  #chatInput button:hover { background:#2f4ac7; }
 
   /* --- GAME MODAL --- */
-  #gameModal { position: fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); background:#101217; border-radius:15px; width:94vw; height:88vh; z-index:1000; display:flex; flex-direction:column; transition:transform 0.3s ease; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.7);}
+  #gameModal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); width:94vw; max-width:900px; height:88vh; background:#101217; border-radius:15px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.7); z-index:1000; transition:transform 0.3s ease; }
   #gameModal.active { transform:translate(-50%,-50%) scale(1); }
-  #gameFrameContainer { flex:1; position:relative; overflow:auto; }
-  #gameFrame { width:100%; height:100%; border:none; background:#000; transform:scale(0.98); transform-origin:top center; }
-  .game-controls { display:flex; justify-content:space-between; padding:10px 20px; background:#181b22; border-top:1px solid #252933; position:relative; bottom:0; }
-  .game-controls button { width:auto; padding:8px 14px; font-size:14px; background:#3a7afe; color:white; border:none; border-radius:8px; cursor:pointer; transition:0.2s; }
-  .game-controls button:hover { background:#2f4ac7; }
+  #gameFrame { flex:1; width:100%; border:none; background:#000; }
+  .game-controls { display:flex; justify-content:space-between; padding:10px; background:#181b22; border-top:1px solid #252933; }
+  .game-controls button { padding:6px 12px; border:none; border-radius:6px; background:#3a7afe; color:white; cursor:pointer; transition:0.2s; }
+  .game-controls button:hover { background:#2f4ac7; transform:scale(1.05); }
 
-  /* --- OVERLAY --- */
-  #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); opacity:0; pointer-events:none; transition:opacity 0.3s ease; z-index:900; }
+  #overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); opacity:0; pointer-events:none; transition:opacity 0.3s ease; z-index:900; }
   #overlay.active { opacity:1; pointer-events:all; }
 </style>
 </head>
 <body>
-  <!-- CLASS CODE SCREEN -->
+  <!-- CLASS CODE -->
   <div class="container" id="codeBox">
-    <h1>Class Code?</h1>
+    <h1>Enter Class Code</h1>
     <div class="code-boxes">
       <input maxlength="1" class="code-input" id="c1" />
       <input maxlength="1" class="code-input" id="c2" />
@@ -71,14 +73,20 @@
     </div>
     <button onclick="submitCode()">Continue</button>
     <div id="errorMsg">Incorrect code. Try again.</div>
-    <div class="spinner" id="spinner"></div>
-    <div id="loadedMsg">Loaded!</div>
   </div>
 
   <!-- DASHBOARD -->
   <div id="gamesScreen">
+    <button id="settingsBtn">⚙️ Settings</button>
+    <div id="settingsPanel">
+      <button id="signUpBtn">Sign Up</button>
+      <button id="logInBtn">Log In</button>
+      <button id="hiddenToggleBtn">Hidden Mode</button>
+      <button id="chatToggleBtn">Chat</button>
+    </div>
     <h2>Browser Game Dashboard</h2>
-    <div class="games-grid">
+    <div class="games-grid" id="gamesGrid">
+      <!-- Sample game cards -->
       <div class="game-card" data-url="https://play2048.co/">
         <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/2048_logo.png" alt="2048">
         <p>2048</p>
@@ -99,105 +107,78 @@
         <img src="https://i.imgur.com/rzITyRG.png" alt="Sandboxels">
         <p>Sandboxels</p>
       </div>
-      <div class="game-card" data-url="https://jellymar.io/">
-        <img src="https://i.imgur.com/VbPwcMB.png" alt="Jellymar.io">
-        <p>Jellymar.io</p>
-      </div>
-      <div class="game-card" data-url="https://www.chess.com/play">
-        <img src="https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/ChessComStaff/phpR9T4kO.png" alt="Chess.com">
-        <p>Chess.com</p>
-      </div>
-      <div class="game-card" data-url="https://inv.nadeko.net/">
-        <img src="https://i.imgur.com/2Vq6HPO.png" alt="Invaders">
-        <p>Invaders</p>
-      </div>
-      <div class="game-card" data-url="https://gamesnacks.com/">
-        <img src="https://i.imgur.com/JkBzCKp.png" alt="GameSnacks">
-        <p>GameSnacks</p>
-      </div>
     </div>
   </div>
 
-  <!-- SETTINGS BUTTON -->
-  <button id="settingsBtn">⚙ Settings</button>
-  <div id="settingsMenu">
-    <input type="text" id="signupUsername" placeholder="Username" />
-    <input type="password" id="signupPassword" placeholder="Password" />
-    <button id="signupBtn">Sign Up</button>
-    <button id="loginBtn">Log In</button>
-    <button id="chatBtn">Chat</button>
+  <!-- CHAT PANEL -->
+  <div id="chatPanel">
+    <div id="chatMessages"></div>
+    <div id="chatInput">
+      <input type="text" id="chatText" placeholder="Type a message..." />
+      <button id="sendChatBtn">Send</button>
+    </div>
   </div>
 
-  <!-- OVERLAY & MODAL -->
+  <!-- GAME MODAL -->
   <div id="overlay"></div>
   <div id="gameModal">
-    <div id="gameFrameContainer">
-      <iframe id="gameFrame" src="" allowfullscreen></iframe>
-      <div class="game-controls">
-        <button id="fullscreenBtn">⛶ Fullscreen</button>
-        <button id="closeBtn">✕ Close</button>
-      </div>
+    <iframe id="gameFrame" src=""></iframe>
+    <div class="game-controls">
+      <button id="fullscreenBtn">⛶ Fullscreen</button>
+      <button id="closeBtn">✕ Close</button>
     </div>
   </div>
 
 <script>
-  // --- CLASS CODE ---
+  // --- CLASS CODE LOGIC ---
   const inputs = document.querySelectorAll('.code-input');
-  const spinner = document.getElementById("spinner");
-  const loadedMsg = document.getElementById("loadedMsg");
-  const codeBox = document.getElementById("codeBox");
-  const gamesScreen = document.getElementById("gamesScreen");
-  const errorMsg = document.getElementById("errorMsg");
-
+  const codeBox = document.getElementById('codeBox');
+  const gamesScreen = document.getElementById('gamesScreen');
+  const errorMsg = document.getElementById('errorMsg');
   const validCodes = ["44157","82693","90210"];
-
-  inputs.forEach((input, index) => {
+  inputs.forEach((input,index)=>{
     input.addEventListener('input',()=>{ if(input.value.length===1 && index<inputs.length-1) inputs[index+1].focus(); });
-    input.addEventListener('keydown',(e)=>{ if(e.key==='Backspace'&&input.value===''&&index>0) inputs[index-1].focus(); if(e.key==='Enter') submitCode(); });
+    input.addEventListener('keydown', e=>{ if(e.key==='Backspace' && input.value==='' && index>0) inputs[index-1].focus(); if(e.key==='Enter') submitCode(); });
   });
   inputs[0].focus();
-
   function submitCode(){
-    let code=Array.from(inputs).map(i=>i.value).join('');
+    let code = Array.from(inputs).map(i=>i.value).join('');
     if(!validCodes.includes(code)){ errorMsg.style.opacity=1; codeBox.classList.add('shake'); setTimeout(()=>codeBox.classList.remove('shake'),300); inputs.forEach(i=>i.value=''); inputs[0].focus(); return; }
     errorMsg.style.opacity=0;
-    spinner.style.display="block";
-    setTimeout(()=>{
-      spinner.style.display="none";
-      loadedMsg.style.opacity=1;
-      setTimeout(()=>{
-        codeBox.style.opacity=0;
-        setTimeout(()=>{ codeBox.style.display="none"; gamesScreen.style.opacity=1; gamesScreen.style.pointerEvents="auto"; },600);
-      },1200);
-    },1500);
+    codeBox.style.opacity=0;
+    setTimeout(()=>{ codeBox.style.display='none'; gamesScreen.style.opacity=1; gamesScreen.style.pointerEvents='auto'; document.getElementById('settingsBtn').style.display='block'; },400);
   }
 
+  // --- SETTINGS PANEL ---
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+  settingsBtn.addEventListener('click',()=>{ settingsPanel.style.display = settingsPanel.style.display==='flex' ? 'none' : 'flex'; });
+
+  // --- CHAT PANEL ---
+  const chatPanel = document.getElementById('chatPanel');
+  const chatToggleBtn = document.getElementById('chatToggleBtn');
+  chatToggleBtn.addEventListener('click', ()=>{ chatPanel.classList.toggle('open'); });
+
   // --- GAME MODAL ---
-  const modal = document.getElementById('gameModal');
-  const overlay = document.getElementById('overlay');
+  const gameModal = document.getElementById('gameModal');
   const gameFrame = document.getElementById('gameFrame');
-  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const overlay = document.getElementById('overlay');
   const closeBtn = document.getElementById('closeBtn');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
 
   document.querySelectorAll('.game-card').forEach(card=>{
-    card.addEventListener('click',()=>{
-      const url=card.dataset.url;
+    card.addEventListener('click', ()=>{
+      const url = card.dataset.url;
       gameFrame.src=url;
-      modal.classList.add('active');
+      gameModal.classList.add('active');
       overlay.classList.add('active');
-      setTimeout(()=>{ if(gameFrame.contentWindow===null){ window.open(url,'_blank'); closeModal(); } },2000);
     });
   });
 
-  function closeModal(){ modal.classList.remove('active'); overlay.classList.remove('active'); gameFrame.src=''; if(document.fullscreenElement) document.exitFullscreen(); }
-  closeBtn.addEventListener('click', closeModal);
-  overlay.addEventListener('click', closeModal);
-  fullscreenBtn.addEventListener('click',()=>{ if(!document.fullscreenElement) modal.requestFullscreen(); else document.exitFullscreen(); });
-
-  // --- SETTINGS ---
-  const settingsBtn = document.getElementById('settingsBtn');
-  const settingsMenu = document.getElementById('settingsMenu');
-  settingsBtn.addEventListener('click',()=>settingsMenu.classList.toggle('show'));
+  function closeModal(){ gameModal.classList.remove('active'); overlay.classList.remove('active'); gameFrame.src=''; if(document.fullscreenElement) document.exitFullscreen(); }
+  closeBtn.addEventListener('click',closeModal);
+  overlay.addEventListener('click',closeModal);
+  fullscreenBtn.addEventListener('click', ()=>{ if(!document.fullscreenElement) gameModal.requestFullscreen(); else document.exitFullscreen(); });
 </script>
 </body>
 </html>
