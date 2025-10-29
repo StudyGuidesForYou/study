@@ -17,6 +17,18 @@ const messages = document.getElementById("messages");
 const form = document.getElementById("chat-form");
 const input = document.getElementById("input");
 
+// ===== CHECK SESSION ON LOAD =====
+window.addEventListener('load', async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    currentUser = session.user.email;
+    authContainer.style.display = "none";
+    chatContainer.style.display = "flex";
+    loadMessages();
+    subscribeMessages();
+  }
+});
+
 // ===== REGISTER =====
 document.getElementById("register").onclick = async () => {
   const email = emailInput.value;
@@ -61,7 +73,7 @@ async function loadMessages() {
     .from('messages')
     .select('*')
     .order('created_at', { ascending: true })
-    .limit(500); // last 500 messages
+    .limit(500);
 
   messages.innerHTML = "";
   data.forEach(m => {
