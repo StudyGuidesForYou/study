@@ -2,32 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Realtime Chat — Debug Ready</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Realtime Chat</title>
+
+  <!-- Load Supabase library FIRST -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="status-bar" class="status">Starting...</div>
 
-  <div id="chat-screen" class="app">
-    <header id="chat-header">
-      <h2>Realtime Chat</h2>
-      <div>
-        <span id="user-label"></span>
+  <main class="app">
+    <header class="header">
+      <div class="brand">
+        <h1>Realtime Chat</h1>
+        <div class="subtitle">Auto users • Realtime • Dark UI</div>
+      </div>
+      <div class="userbox">
+        <div id="user-label" class="user-label">user_?</div>
+        <button id="reset-user" title="Reset assigned name">Reset</button>
       </div>
     </header>
 
-    <main style="flex:1; display:flex; flex-direction:column; gap:8px; padding:12px;">
-      <ul id="messages" class="messages" aria-live="polite"></ul>
-      <div id="typing-indicator" style="color:#aaa; height:18px;"></div>
-      <form id="chat-form" class="composer">
-        <input id="input" autocomplete="off" placeholder="Type something..." />
-        <button type="submit">Send</button>
-      </form>
-    </main>
-  </div>
+    <ul id="messages" class="messages" aria-live="polite"></ul>
 
-  <script defer src="script.js"></script>
+    <div id="typing-indicator" class="typing muted"></div>
+
+    <form id="chat-form" class="composer">
+      <input id="input" autocomplete="off" placeholder="Type a message (Enter to send)..." />
+      <button type="submit">Send</button>
+    </form>
+  </main>
+
+  <!-- App script (after supabase lib) -->
+  <script src="script.js"></script>
 </body>
 </html>
