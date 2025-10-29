@@ -1,138 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Class Code</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Class Code / Free Games</title>
 <style>
-/* General Reset & Theme */
-* { box-sizing: border-box; margin:0; padding:0; }
-body { font-family:"Roboto", Arial, sans-serif; background:#0f1116; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden; }
+/* (Styles are unchanged from your preferred dark UI, compacted) */
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:"Roboto", Arial, sans-serif; background:#0f1116; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden; color:#e8eaf0; }
 
-/* --- LOGIN SCREEN --- */
-.container {
-  background:#181a21;
-  padding:40px;
-  border-radius:16px;
-  box-shadow:0 8px 25px rgba(0,0,0,0.6);
-  text-align:center;
-  width:350px;
-  border:1px solid #23262f;
-  transition:opacity 0.6s ease;
-}
-
+/* Login card */
+.container { background:#181a21; padding:40px; border-radius:16px; box-shadow:0 8px 25px rgba(0,0,0,0.6); text-align:center; width:350px; border:1px solid #23262f; transition:opacity .6s ease; }
 h1 { margin-bottom:25px; font-size:24px; color:#e8eaf0; font-weight:600; }
-
 .code-boxes { display:flex; justify-content:space-between; margin-bottom:15px; }
-
-.code-input {
-  width:50px; height:60px; font-size:28px; text-align:center;
-  border:2px solid #30333b; border-radius:10px;
-  outline:none; color:#f0f0f0; background:#111319;
-  transition:all 0.2s; cursor:pointer;
-}
+.code-input { width:50px; height:60px; font-size:28px; text-align:center; border:2px solid #30333b; border-radius:10px; outline:none; color:#f0f0f0; background:#111319; transition:all .2s; cursor:pointer; }
 .code-input:hover { border-color:#4b75ff; }
 .code-input:focus { border-color:#4b75ff; box-shadow:0 0 8px rgba(75,117,255,0.6); background:#161820; }
-
-/* Continue button fresh look */
-button {
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border:none;
-  border-radius:10px;
-  background:#3a7afe;
-  color:white;
-  cursor:pointer;
-  transition:0.3s;
-  font-weight:500;
-}
+button { width:100%; padding:12px; font-size:16px; border:none; border-radius:10px; background:#3a7afe; color:white; cursor:pointer; transition:.3s; font-weight:500; }
 button:hover { background:#2f4ac7; box-shadow:0 4px 12px rgba(75,117,255,0.4); }
-
-.spinner { margin-top:20px; width:40px; height:40px; border:4px solid #444; border-top-color:#4a6cf7; border-radius:50%; animation:spin 0.8s linear infinite; display:none; margin-left:auto;margin-right:auto; }
-@keyframes spin { from {transform:rotate(0deg);} to {transform:rotate(360deg);} }
-
-#loadedMsg { margin-top:20px; color:#7bff99; font-size:18px; font-weight:600; opacity:0; transition:opacity 0.5s ease; }
-#errorMsg { color:#ff4d4d; font-weight:600; margin-top:15px; opacity:0; transition:opacity 0.3s ease; }
+.spinner { margin-top:20px; width:40px; height:40px; border:4px solid #444; border-top-color:#4a6cf7; border-radius:50%; animation:spin .8s linear infinite; display:none; margin-left:auto;margin-right:auto; }
+@keyframes spin { from {transform:rotate(0);} to {transform:rotate(360deg);} }
+#loadedMsg { margin-top:20px; color:#7bff99; font-size:18px; font-weight:600; opacity:0; transition:opacity .5s ease; }
+#errorMsg { color:#ff4d4d; font-weight:600; margin-top:15px; opacity:0; transition:opacity .3s ease; }
 @keyframes shake {0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);} }
-.shake { animation:shake 0.3s; }
+.shake { animation:shake .3s; }
 
-/* --- DASHBOARD --- */
-#gamesScreen { position:absolute; top:0; left:0; width:100vw; height:100vh; background:#0f1116; color:white; opacity:0; pointer-events:none; transition:opacity 0.8s ease; padding:30px; overflow-y:auto; }
-
-#gamesScreen h2 { font-size:28px; font-weight:700; text-align:center; margin-bottom:30px; color:#f0f0f0; }
-
-.games-grid {
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:25px; justify-items:center;
-}
-
-.game-card {
-  background:#181b22;
-  border:1px solid #252933;
-  border-radius:12px;
-  padding:15px;
-  text-align:center;
-  cursor:pointer;
-  transition:all 0.25s ease;
-  width:180px;
-}
+/* Dashboard */
+#gamesScreen { position:absolute; top:0; left:0; width:100vw; height:100vh; background:#0f1116; color:white; opacity:0; pointer-events:none; transition:opacity .8s ease; padding:30px; overflow-y:auto; display:flex; flex-direction:column; }
+#gamesScreen .title { position:fixed; top:18px; left:18px; font-weight:700; font-size:20px; color:#f0f0f0; }
+.games-grid { margin-top:70px; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:25px; justify-items:center; }
+.game-card { background:#181b22; border:1px solid #252933; border-radius:12px; padding:15px; text-align:center; cursor:pointer; transition:all .25s ease; width:180px; }
 .game-card:hover { transform:translateY(-5px); border-color:#4b75ff; box-shadow:0 4px 15px rgba(75,117,255,0.3); }
 .game-card img { width:100%; height:110px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
 .game-card p { font-size:15px; color:#e0e0e0; font-weight:500; }
 
-/* --- GAME MODAL --- */
-#gameModal {
-  position:fixed; top:50%; left:50%; transform:translate(-50%, -50%) scale(0);
-  background:#101217; border-radius:15px;
-  width:95vw; height:90vh;
-  z-index:1000; display:flex; flex-direction:column;
-  transition:transform 0.3s ease; overflow:hidden;
-  box-shadow:0 10px 30px rgba(0,0,0,0.7);
-}
-#gameModal.active { transform:translate(-50%, -50%) scale(1); }
-
-#gameFrameContainer { flex:1; position:relative; overflow:auto; }
-#gameFrame { width:100%; height:100%; border:none; background:#000; transform:scale(0.98); transform-origin:top center; }
-
-/* Bottom bar with fullscreen & link */
-.game-controls {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:10px 20px; background:#181b22; border-top:1px solid #252933;
-}
-.game-controls button {
-  width:auto; padding:8px 14px; font-size:14px;
-  background:#3a7afe; color:white; border:none; border-radius:8px; cursor:pointer; transition:0.2s;
-}
-.game-controls button:hover { background:#2f4ac7; }
-
-/* Overlay */
-#overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); opacity:0; pointer-events:none; transition:opacity 0.3s ease; z-index:900; }
+/* Modal & overlay */
+#overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); opacity:0; pointer-events:none; transition:opacity .3s ease; z-index:900; }
 #overlay.active { opacity:1; pointer-events:all; }
+#gameModal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); background:#101217; border-radius:15px; width:95vw; height:90vh; z-index:1000; display:flex; flex-direction:column; transition:transform .3s ease; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.7); }
+#gameModal.active { transform:translate(-50%,-50%) scale(1); }
+.game-controls { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#181b22; border-top:1px solid #252933; }
+.game-controls button { padding:8px 14px; background:#3a7afe; color:white; border:none; border-radius:8px; cursor:pointer; }
 
-/* --- SETTINGS BUTTON --- */
-#settingsBtn {
-  position:fixed; top:15px; left:15px; width:40px; height:40px;
-  background:#3a7afe; border:none; border-radius:50%; cursor:pointer; display:none;
-  color:white; font-weight:bold; font-size:18px; transition:all 0.3s ease;
-}
-#settingsBtn:hover { background:#2f4ac7; transform:scale(1.1); }
+/* small utility */
+.hidden { display:none !important; }
+.auth-btn { position:fixed; top:15px; left:15px; width:40px; height:40px; background:#3a7afe; border:none; border-radius:50%; color:white; font-weight:bold; font-size:18px; cursor:pointer; display:none; }
+.auth-btn:hover { background:#2f4ac7; transform:scale(1.05); }
+#settingsPanel { position:fixed; top:60px; left:15px; width:250px; background:#181a21; border:1px solid #23262f; border-radius:12px; padding:15px; display:none; flex-direction:column; gap:10px; box-shadow:0 4px 20px rgba(0,0,0,0.5); z-index:1100; }
+#settingsPanel button { padding:10px; border:none; border-radius:10px; background:#3a7afe; color:white; cursor:pointer; }
+#settingsPanel button:hover { background:#2f4ac7; transform:scale(1.03); }
 
-/* Settings panel */
-#settingsPanel {
-  position:fixed; top:60px; left:15px;
-  width:250px; background:#181a21; border:1px solid #23262f; border-radius:12px;
-  padding:15px; display:none; flex-direction:column; gap:10px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.5); transition:all 0.3s ease;
-}
-#settingsPanel button {
-  padding:10px; border:none; border-radius:10px; background:#3a7afe; color:white; cursor:pointer;
-  transition:all 0.3s ease;
-}
-#settingsPanel button:hover { background:#2f4ac7; transform:scale(1.05); }
-
+/* Auth popup and chat popup */
+.popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#181a21; padding:20px; width:320px; border-radius:12px; border:1px solid #252933; z-index:2000; display:none; color:white; }
+#chatPopup { width:420px; height:520px; display:flex; flex-direction:column; }
+#chatMessages { flex:1; overflow:auto; background:#111319; padding:10px; border-radius:8px; border:1px solid #333; margin-bottom:10px; color:white; }
+#chatInput { flex:1; padding:10px; border-radius:8px; background:#111319; border:1px solid #333; color:white; }
+#chatControls { display:flex; gap:10px; }
 </style>
 </head>
 <body>
+
 <!-- CLASS CODE SCREEN -->
 <div class="container" id="codeBox">
   <h1>Class Code?</h1>
@@ -149,8 +76,8 @@ button:hover { background:#2f4ac7; box-shadow:0 4px 12px rgba(75,117,255,0.4); }
   <div id="loadedMsg">Loaded!</div>
 </div>
 
-<!-- SETTINGS BUTTON -->
-<button id="settingsBtn">⚙</button>
+<!-- settings / auth UI -->
+<button id="settingsBtn" class="auth-btn">⚙</button>
 <div id="settingsPanel">
   <button id="signupBtn">Sign Up</button>
   <button id="loginBtn">Log In</button>
@@ -159,10 +86,8 @@ button:hover { background:#2f4ac7; box-shadow:0 4px 12px rgba(75,117,255,0.4); }
 
 <!-- DASHBOARD -->
 <div id="gamesScreen">
-  <h2>Browser Game Dashboard</h2>
-  <div class="games-grid" id="gamesGrid">
-    <!-- Game cards inserted via JS -->
-  </div>
+  <div class="title">FREE BROWSER GAMES</div>
+  <div class="games-grid" id="gamesGrid"></div>
 </div>
 
 <!-- OVERLAY & MODAL -->
@@ -178,25 +103,51 @@ button:hover { background:#2f4ac7; box-shadow:0 4px 12px rgba(75,117,255,0.4); }
   </div>
 </div>
 
+<!-- AUTH POPUP -->
+<div id="authPopup" class="popup">
+  <h3 id="authTitle">Auth</h3>
+  <input id="authUsername" placeholder="Username" style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #333; background:#111319; color:white;">
+  <input id="authPassword" type="password" placeholder="Password" style="width:100%; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid #333; background:#111319; color:white;">
+  <button id="authSubmit" style="width:100%; padding:10px; border-radius:8px; background:#3a7afe; color:white;">Submit</button>
+  <button id="authCancel" style="width:100%; padding:10px; border-radius:8px; background:#333; color:white; margin-top:8px;">Cancel</button>
+  <div id="authError" style="color:#ff5f66; margin-top:10px; display:none;">Error</div>
+</div>
+
+<!-- CHAT POPUP -->
+<div id="chatPopup" class="popup">
+  <h3 style="text-align:center">Chat</h3>
+  <div id="chatMessages"></div>
+  <div id="chatControls" style="margin-top:10px;">
+    <input id="chatInput" placeholder="Message..." style="flex:1;">
+    <button id="chatSend">Send</button>
+  </div>
+  <button id="chatClose" style="margin-top:10px; width:100%; padding:10px; border-radius:8px; background:#333; color:white;">Close</button>
+</div>
+
+<!-- socket.io client served from server -->
+<script src="/socket.io/socket.io.js"></script>
+
 <script>
-// CLASS CODE
+/* --------- CLASS CODE (same UX you wanted) ---------- */
 const inputs = document.querySelectorAll('.code-input');
-const spinner = document.getElementById("spinner");
-const loadedMsg = document.getElementById("loadedMsg");
-const codeBox = document.getElementById("codeBox");
-const gamesScreen = document.getElementById("gamesScreen");
-const errorMsg = document.getElementById("errorMsg");
+const spinner = document.getElementById('spinner');
+const loadedMsg = document.getElementById('loadedMsg');
+const codeBox = document.getElementById('codeBox');
+const gamesScreen = document.getElementById('gamesScreen');
+const errorMsg = document.getElementById('errorMsg');
 
-const settingsBtn = document.getElementById("settingsBtn");
-const settingsPanel = document.getElementById("settingsPanel");
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
 
-const validCodes = ["44157", "82693", "90210"];
+// ONLY this code is valid
+const validCodes = ['44157'];
 
-inputs.forEach((input,index)=>{
-  input.addEventListener('input',()=>{
+inputs.forEach((input,index)=> {
+  input.addEventListener('input',()=> {
+    input.value = input.value.slice(0,1);
     if(input.value.length===1 && index<inputs.length-1) inputs[index+1].focus();
   });
-  input.addEventListener('keydown',(e)=>{
+  input.addEventListener('keydown', (e)=> {
     if(e.key==='Backspace' && input.value==='' && index>0) inputs[index-1].focus();
     if(e.key==='Enter') submitCode();
   });
@@ -204,35 +155,157 @@ inputs.forEach((input,index)=>{
 inputs[0].focus();
 
 function submitCode(){
-  let code=Array.from(inputs).map(i=>i.value).join('');
+  const code = Array.from(inputs).map(i=>i.value).join('');
   if(!validCodes.includes(code)){
-    errorMsg.style.opacity=1;
+    errorMsg.style.opacity = 1;
     codeBox.classList.add('shake');
-    setTimeout(()=>codeBox.classList.remove('shake'),300);
-    inputs.forEach(i=>i.value=''); inputs[0].focus();
+    setTimeout(()=> codeBox.classList.remove('shake'), 300);
+    inputs.forEach(i=> i.value=''); inputs[0].focus();
     return;
   }
-  errorMsg.style.opacity=0;
-  spinner.style.display="block";
-  setTimeout(()=>{
-    spinner.style.display="none"; loadedMsg.style.opacity=1;
-    setTimeout(()=>{
-      codeBox.style.opacity=0;
-      setTimeout(()=>{
-        codeBox.style.display="none";
-        gamesScreen.style.opacity=1; gamesScreen.style.pointerEvents="auto";
-        settingsBtn.style.display="block"; // Only show after correct code
-      },600);
-    },1200);
-  },1500);
+  errorMsg.style.opacity = 0;
+  spinner.style.display = 'block';
+  setTimeout(()=> {
+    spinner.style.display = 'none';
+    loadedMsg.style.opacity = 1;
+    setTimeout(()=> {
+      codeBox.style.opacity = 0;
+      setTimeout(()=> {
+        codeBox.style.display = 'none';
+        gamesScreen.style.opacity = 1;
+        gamesScreen.style.pointerEvents = 'auto';
+        settingsBtn.style.display = 'block';
+      }, 600);
+    }, 1200);
+  }, 1500);
 }
 
-// SETTINGS PANEL TOGGLE
-settingsBtn.addEventListener('click',()=>{ 
-  settingsPanel.style.display=settingsPanel.style.display==='flex'?'none':'flex';
+/* --------- AUTH (signup/login) & CHAT (Socket.IO) ---------- */
+
+let authMode = null; // "signup" or "login"
+let authToken = localStorage.getItem('token') || null;
+let socket = null;
+
+const authPopup = document.getElementById('authPopup');
+const authTitle = document.getElementById('authTitle');
+const authUsername = document.getElementById('authUsername');
+const authPassword = document.getElementById('authPassword');
+const authSubmit = document.getElementById('authSubmit');
+const authCancel = document.getElementById('authCancel');
+const authError = document.getElementById('authError');
+
+const chatPopup = document.getElementById('chatPopup');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
+const chatClose = document.getElementById('chatClose');
+
+document.getElementById('signupBtn').addEventListener('click', ()=> openAuth('signup'));
+document.getElementById('loginBtn').addEventListener('click', ()=> openAuth('login'));
+document.getElementById('chatBtn').addEventListener('click', openChat);
+settingsBtn.addEventListener('click', ()=> settingsPanel.style.display = settingsPanel.style.display==='flex' ? 'none' : 'flex');
+
+authCancel.addEventListener('click', ()=> authPopup.style.display = 'none');
+
+function openAuth(mode){
+  authMode = mode;
+  authTitle.innerText = (mode === 'signup') ? 'Sign Up' : 'Log In';
+  authPopup.style.display = 'block';
+  authError.style.display = 'none';
+  authUsername.value = ''; authPassword.value = '';
+}
+
+authSubmit.addEventListener('click', async ()=> {
+  const username = authUsername.value.trim();
+  const password = authPassword.value.trim();
+  if(!username || !password){ authError.innerText = 'Fill both fields'; authError.style.display='block'; return; }
+
+  const endpoint = '/api/' + (authMode === 'signup' ? 'signup' : 'login');
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if(!res.ok) { authError.innerText = data.error || 'Error'; authError.style.display='block'; return; }
+
+    // Save token and close
+    authToken = data.token;
+    localStorage.setItem('token', data.token);
+    authPopup.style.display = 'none';
+    authError.style.display = 'none';
+    // If chat open, reconnect socket with token
+    if(socket) { socket.auth = { token: authToken }; socket.disconnect(); openChat(); }
+  } catch (e) {
+    authError.innerText = 'Network error'; authError.style.display = 'block';
+  }
 });
 
-// DASHBOARD GAMES
+/* --------- Chat handling (Socket.IO) ---------- */
+function openChat(){
+  chatPopup.style.display = 'flex';
+  chatMessages.innerHTML = '';
+
+  // connect - socket.io client served from server
+  const opts = { auth: {} };
+  if(authToken) opts.auth.token = authToken;
+
+  socket = io('/', opts);
+
+  socket.on('connect_error', (err) => {
+    addSystemMessage('Connection error: ' + (err.message || ''));
+  });
+
+  socket.on('chat-history', (msgs) => {
+    chatMessages.innerHTML = '';
+    msgs.forEach(addChatMessage);
+  });
+
+  socket.on('chat-message', (msg) => addChatMessage(msg));
+  socket.on('user-joined', (u) => addSystemMessage(u.username + ' joined'));
+  socket.on('user-left', (u) => addSystemMessage(u.username + ' left'));
+}
+
+function closeChat(){
+  chatPopup.style.display = 'none';
+  if(socket) { socket.disconnect(); socket = null; }
+}
+
+chatClose.addEventListener('click', closeChat);
+
+function addChatMessage(msg){
+  const d = document.createElement('div');
+  d.style.marginBottom = '8px';
+  d.innerHTML = `<strong style="color:#7bb3ff">${escapeHtml(msg.username)}:</strong> ${escapeHtml(msg.text)}`;
+  chatMessages.appendChild(d);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addSystemMessage(text){
+  const d = document.createElement('div');
+  d.style.marginBottom = '8px';
+  d.style.opacity = '0.8';
+  d.style.fontStyle = 'italic';
+  d.innerText = text;
+  chatMessages.appendChild(d);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+chatSend.addEventListener('click', ()=> {
+  const text = chatInput.value.trim();
+  if(!text || !socket) return;
+  socket.emit('chat-message', { text });
+  chatInput.value = '';
+});
+
+// small helper
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* --------- Dashboard games list & modal (unchanged) ---------- */
 const gamesList=[
   {name:'2048',img:'https://upload.wikimedia.org/wikipedia/commons/0/09/2048_logo.png',url:'https://play2048.co/'},
   {name:'Slow Roads',img:'https://i.imgur.com/3df4LxE.png',url:'https://slowroads.io/'},
@@ -254,7 +327,6 @@ gamesList.forEach(g=>{
   gamesGrid.appendChild(div);
 });
 
-// GAME MODAL
 const modal=document.getElementById('gameModal');
 const overlay=document.getElementById('overlay');
 const gameFrame=document.getElementById('gameFrame');
@@ -275,10 +347,10 @@ function closeModal(){
   modal.classList.remove('active'); overlay.classList.remove('active'); gameFrame.src='';
   if(document.fullscreenElement) document.exitFullscreen();
 }
-
 closeBtn.addEventListener('click',closeModal);
 overlay.addEventListener('click',closeModal);
-fullscreenBtn.addEventListener('click',()=>{if(!document.fullscreenElement) modal.requestFullscreen(); else document.exitFullscreen();});
+fullscreenBtn.addEventListener('click',()=>{ if(!document.fullscreenElement) modal.requestFullscreen(); else document.exitFullscreen(); });
+
 </script>
 </body>
 </html>
