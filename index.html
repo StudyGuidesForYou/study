@@ -49,14 +49,20 @@
       border: 2px solid #3a3a3a;
       border-radius: 10px;
       outline: none;
-      transition: 0.2s;
+      transition: all 0.2s;
       color: #e6e6e6;
       background: #111;
+      cursor: pointer;
+    }
+
+    .code-input:hover {
+      border-color: #5c7ef7;
     }
 
     .code-input:focus {
       border-color: #4a6cf7;
-      box-shadow: 0 0 5px rgba(74, 108, 247, 0.5);
+      box-shadow: 0 0 8px rgba(74, 108, 247, 0.6);
+      background: #1b1b1b;
     }
 
     button {
@@ -75,7 +81,6 @@
       background: #2f4ac7;
     }
 
-    /* Spinner */
     .spinner {
       margin-top: 20px;
       width: 40px;
@@ -94,7 +99,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Loaded message */
     #loadedMsg {
       margin-top: 20px;
       color: #8cff8c;
@@ -104,7 +108,6 @@
       transition: opacity 0.5s ease;
     }
 
-    /* Error message */
     #errorMsg {
       color: #ff4d4d;
       font-weight: 600;
@@ -113,7 +116,6 @@
       transition: opacity 0.3s ease;
     }
 
-    /* Shake animation for wrong code */
     @keyframes shake {
       0% { transform: translateX(0); }
       25% { transform: translateX(-5px); }
@@ -126,7 +128,6 @@
       animation: shake 0.3s;
     }
 
-    /* NEW SCREEN */
     #gamesScreen {
       position: absolute;
       top: 0;
@@ -183,7 +184,6 @@
       color: #e6e6e6;
     }
 
-    /* Popup game modal */
     #gameModal {
       position: fixed;
       top: 50%;
@@ -268,7 +268,6 @@
     <div id="loadedMsg">Loaded!</div>
   </div>
 
-  <!-- Games Screen -->
   <div id="gamesScreen">
     <h2>FREE BROWSER GAMES</h2>
     <div class="games-grid">
@@ -295,7 +294,6 @@
     </div>
   </div>
 
-  <!-- Modal & Overlay -->
   <div id="overlay"></div>
   <div id="gameModal">
     <div id="gameFrameContainer">
@@ -323,7 +321,6 @@
 
     const validCodes = ["44157", "82693", "90210"];
 
-    // Auto-focus and enter
     inputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         if (input.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
@@ -338,8 +335,7 @@
     inputs[0].focus();
 
     function submitCode() {
-      let code = '';
-      inputs.forEach(i => code += i.value);
+      let code = Array.from(inputs).map(i => i.value).join('');
       if (!validCodes.includes(code)) {
         errorMsg.style.opacity = 1;
         codeBox.classList.add('shake');
@@ -366,7 +362,6 @@
       }, 1500);
     }
 
-    // Game modal logic
     document.querySelectorAll('.game-card').forEach(card => {
       card.addEventListener('click', () => {
         gameFrame.src = card.dataset.url;
@@ -375,15 +370,15 @@
       });
     });
 
-    closeBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', closeModal);
-
     function closeModal() {
       modal.classList.remove('active');
       overlay.classList.remove('active');
       gameFrame.src = '';
       if (document.fullscreenElement) document.exitFullscreen();
     }
+
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
 
     fullscreenBtn.addEventListener('click', () => {
       if (!document.fullscreenElement) {
