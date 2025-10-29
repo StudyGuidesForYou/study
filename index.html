@@ -1,32 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat App</title>
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Supabase -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realtime Chat</title>
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- DISPLAY NAME SCREEN -->
-  <div id="name-screen" class="center-screen fade-in">
-    <div class="card">
-      <h2>Enter Display Name</h2>
-      <input id="display-name" placeholder="Your name...">
-      <button id="enter-chat">Continue</button>
-    </div>
-  </div>
+  <div id="chat-screen" class="fade-in">
 
-  <!-- CHAT SCREEN -->
-  <div id="chat-screen" class="hidden fade-in">
-    
     <div id="chat-header">
-      <h2>Chat Room</h2>
+      <h2>Realtime Chat</h2>
       <span id="user-label"></span>
-      <button id="logout-btn">Change Name</button>
     </div>
 
     <ul id="messages"></ul>
@@ -34,7 +21,7 @@
     <div id="typing-indicator"></div>
 
     <form id="chat-form">
-      <input id="input" autocomplete="off" placeholder="Write a message...">
+      <input id="input" autocomplete="off" placeholder="Type something...">
       <button>Send</button>
     </form>
   </div>
