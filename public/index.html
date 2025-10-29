@@ -1,22 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat System</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-Time Chat</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="chat-container">
-    <h1>Chat Room</h1>
-    <ul id="messages"></ul>
-    <form id="chat-form">
-      <input id="input" autocomplete="off" placeholder="Type a message..." />
-      <button>Send</button>
-    </form>
-  </div>
+<div id="auth-container">
+  <h2>Login / Register</h2>
+  <input id="username" placeholder="Username">
+  <input id="email" placeholder="Email (for register)">
+  <input id="password" type="password" placeholder="Password">
+  <button id="register">Register</button>
+  <button id="login">Login</button>
+  <div id="auth-msg"></div>
+</div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="script.js"></script>
+<div id="chat-container" style="display:none">
+  <h1>Chat Room</h1>
+  <ul id="messages"></ul>
+  <form id="chat-form">
+    <input id="input" autocomplete="off" placeholder="Type a message..." />
+    <button>Send</button>
+  </form>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
