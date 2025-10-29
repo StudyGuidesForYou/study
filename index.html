@@ -139,12 +139,114 @@
       pointer-events: none;
       transition: opacity 0.8s ease;
       padding: 20px;
+      overflow: auto;
     }
 
     #gamesScreen h2 {
-      margin: 0;
+      margin: 0 0 20px 0;
       font-size: 26px;
       font-weight: 700;
+      text-align: center;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      justify-items: center;
+    }
+
+    .game-card {
+      background: #1a1a1a;
+      border-radius: 15px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 120px;
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(74, 108, 247, 0.5);
+    }
+
+    .game-card img {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 10px;
+    }
+
+    .game-card p {
+      margin: 0;
+      font-size: 14px;
+      color: #e6e6e6;
+    }
+
+    /* Popup game modal */
+    #gameModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: #111;
+      border-radius: 15px;
+      width: 80%;
+      max-width: 900px;
+      height: 70%;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+
+    #gameModal.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    #gameFrameContainer {
+      flex: 1;
+      position: relative;
+    }
+
+    #gameFrame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 15px 15px 0 0;
+    }
+
+    .game-controls {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background: #1a1a1a;
+    }
+
+    .game-controls button {
+      width: auto;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 900;
+    }
+
+    #overlay.active {
+      opacity: 1;
+      pointer-events: all;
     }
   </style>
 </head>
@@ -166,9 +268,43 @@
     <div id="loadedMsg">Loaded!</div>
   </div>
 
-  <!-- New screen -->
+  <!-- Games Screen -->
   <div id="gamesScreen">
     <h2>FREE BROWSER GAMES</h2>
+    <div class="games-grid">
+      <div class="game-card" data-url="https://poki.com/">
+        <img src="https://poki.com/favicon.ico" alt="Poki">
+        <p>Poki Games</p>
+      </div>
+      <div class="game-card" data-url="https://www.crazygames.com/">
+        <img src="https://www.crazygames.com/favicon.ico" alt="CrazyGames">
+        <p>CrazyGames</p>
+      </div>
+      <div class="game-card" data-url="https://slither.io/">
+        <img src="https://slither.io/s/favicons/favicon-96x96.png" alt="Slither.io">
+        <p>Slither.io</p>
+      </div>
+      <div class="game-card" data-url="https://diep.io/">
+        <img src="https://diep.io/favicon.ico" alt="Diep.io">
+        <p>Diep.io</p>
+      </div>
+      <div class="game-card" data-url="https://starblast.io/">
+        <img src="https://starblast.io/favicon.ico" alt="Starblast.io">
+        <p>Starblast.io</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal & Overlay -->
+  <div id="overlay"></div>
+  <div id="gameModal">
+    <div id="gameFrameContainer">
+      <iframe id="gameFrame" src="" frameborder="0" allowfullscreen></iframe>
+      <div class="game-controls">
+        <button id="fullscreenBtn">⛶ Fullscreen</button>
+        <button id="closeBtn">✕ Close</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -179,47 +315,39 @@
     const gamesScreen = document.getElementById("gamesScreen");
     const errorMsg = document.getElementById("errorMsg");
 
-    // Allow multiple valid codes
+    const modal = document.getElementById('gameModal');
+    const overlay = document.getElementById('overlay');
+    const gameFrame = document.getElementById('gameFrame');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const closeBtn = document.getElementById('closeBtn');
+
     const validCodes = ["44157", "82693", "90210"];
 
-    // Auto-focus behavior and Enter key
+    // Auto-focus and enter
     inputs.forEach((input, index) => {
       input.addEventListener('input', () => {
-        if (input.value.length === 1 && index < inputs.length - 1) {
-          inputs[index + 1].focus();
-        }
+        if (input.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
       });
 
       input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && input.value === '' && index > 0) {
-          inputs[index - 1].focus();
-        }
-        if (e.key === 'Enter') {
-          submitCode();
-        }
+        if (e.key === 'Backspace' && input.value === '' && index > 0) inputs[index - 1].focus();
+        if (e.key === 'Enter') submitCode();
       });
     });
 
-    inputs[0].focus(); // Auto-focus the first input on page load
+    inputs[0].focus();
 
     function submitCode() {
       let code = '';
       inputs.forEach(i => code += i.value);
-
       if (!validCodes.includes(code)) {
         errorMsg.style.opacity = 1;
         codeBox.classList.add('shake');
-
-        setTimeout(() => {
-          codeBox.classList.remove('shake');
-        }, 300);
-
+        setTimeout(() => codeBox.classList.remove('shake'), 300);
         inputs.forEach(i => i.value = '');
         inputs[0].focus();
         return;
       }
-
-      // Hide error and start loading sequence
       errorMsg.style.opacity = 0;
       spinner.style.display = "block";
 
@@ -229,16 +357,41 @@
 
         setTimeout(() => {
           codeBox.style.opacity = 0;
-
           setTimeout(() => {
             codeBox.style.display = "none";
             gamesScreen.style.opacity = 1;
             gamesScreen.style.pointerEvents = "auto";
           }, 600);
-
         }, 1200);
       }, 1500);
     }
+
+    // Game modal logic
+    document.querySelectorAll('.game-card').forEach(card => {
+      card.addEventListener('click', () => {
+        gameFrame.src = card.dataset.url;
+        modal.classList.add('active');
+        overlay.classList.add('active');
+      });
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
+
+    function closeModal() {
+      modal.classList.remove('active');
+      overlay.classList.remove('active');
+      gameFrame.src = '';
+      if (document.fullscreenElement) document.exitFullscreen();
+    }
+
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        modal.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
   </script>
 </body>
 </html>
