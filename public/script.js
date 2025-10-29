@@ -16,16 +16,14 @@ const passwordInput = document.getElementById("password");
 const messages = document.getElementById("messages");
 const form = document.getElementById("chat-form");
 const input = document.getElementById("input");
+const currentUserDisplay = document.getElementById("current-user");
 
 // ===== CHECK SESSION ON LOAD =====
 window.addEventListener('load', async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     currentUser = session.user.email;
-    authContainer.style.display = "none";
-    chatContainer.style.display = "flex";
-    loadMessages();
-    subscribeMessages();
+    showChat();
   }
 });
 
@@ -35,11 +33,8 @@ document.getElementById("register").onclick = async () => {
   const password = passwordInput.value;
 
   const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) {
-    authMsg.textContent = error.message;
-  } else {
-    authMsg.textContent = "Check your email to confirm!";
-  }
+  if (error) authMsg.textContent = error.message;
+  else authMsg.textContent = "Check your email to confirm!";
 };
 
 // ===== LOGIN =====
@@ -48,14 +43,10 @@ document.getElementById("login").onclick = async () => {
   const password = passwordInput.value;
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    authMsg.textContent = error.message;
-  } else {
+  if (error) authMsg.textContent = error.message;
+  else {
     currentUser = email;
-    authContainer.style.display = "none";
-    chatContainer.style.display = "flex";
-    loadMessages();
-    subscribeMessages();
+    showChat();
   }
 };
 
@@ -67,6 +58,15 @@ document.getElementById("logout").onclick = async () => {
   authContainer.style.display = "flex";
 };
 
+// ===== SHOW CHAT & INIT =====
+function showChat() {
+  authContainer.style.display = "none";
+  chatContainer.style.display = "flex";
+  currentUserDisplay.textContent = currentUser;
+  loadMessages();
+  subscribeMessages();
+}
+
 // ===== LOAD LAST MESSAGES =====
 async function loadMessages() {
   const { data, error } = await supabase
@@ -76,11 +76,7 @@ async function loadMessages() {
     .limit(500);
 
   messages.innerHTML = "";
-  data.forEach(m => {
-    const li = document.createElement("li");
-    li.textContent = `${m.username || m.email}: ${m.message}`;
-    messages.appendChild(li);
-  });
+  data.forEach(m => addMessage(`${m.username || m.email}: ${m.message}`));
   messages.scrollTop = messages.scrollHeight;
 }
 
@@ -98,15 +94,20 @@ form.addEventListener("submit", async (e) => {
   input.value = "";
 });
 
+// ===== ADD MESSAGE TO UI =====
+function addMessage(text) {
+  const li = document.createElement("li");
+  li.textContent = text;
+  messages.appendChild(li);
+  messages.scrollTop = messages.scrollHeight;
+}
+
 // ===== REAL-TIME SUBSCRIPTION =====
 function subscribeMessages() {
   supabase
     .channel('public:messages')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-      const li = document.createElement("li");
-      li.textContent = `${payload.new.username || payload.new.email}: ${payload.new.message}`;
-      messages.appendChild(li);
-      messages.scrollTop = messages.scrollHeight;
+      addMessage(`${payload.new.username || payload.new.email}: ${payload.new.message}`);
     })
     .subscribe();
 }
