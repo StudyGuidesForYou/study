@@ -1,7 +1,7 @@
 {
   "name": "game-dashboard",
   "version": "1.0.0",
-  "description": "Dashboard + accounts + chat demo (Express + Socket.IO)",
+  "description": "Dashboard + accounts + chat demo (Express + Socket.IO + LowDB)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -11,6 +11,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
+    "lowdb": "^6.0.1",
     "socket.io": "^4.7.2",
     "uuid": "^9.0.0"
   }
