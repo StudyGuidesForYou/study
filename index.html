@@ -38,7 +38,7 @@
     .code-boxes {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 25px;
+      margin-bottom: 10px;
     }
 
     .code-input {
@@ -104,6 +104,28 @@
       transition: opacity 0.5s ease;
     }
 
+    /* Error message */
+    #errorMsg {
+      color: #ff4d4d;
+      font-weight: 600;
+      margin-top: 15px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Shake animation for wrong code */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .shake {
+      animation: shake 0.3s;
+    }
+
     /* NEW SCREEN */
     #gamesScreen {
       position: absolute;
@@ -139,6 +161,7 @@
     </div>
     <button onclick="submitCode()">Continue</button>
 
+    <div id="errorMsg">Incorrect code. Try again.</div>
     <div class="spinner" id="spinner"></div>
     <div id="loadedMsg">Loaded!</div>
   </div>
@@ -154,7 +177,12 @@
     const loadedMsg = document.getElementById("loadedMsg");
     const codeBox = document.getElementById("codeBox");
     const gamesScreen = document.getElementById("gamesScreen");
+    const errorMsg = document.getElementById("errorMsg");
 
+    // Allow multiple valid codes
+    const validCodes = ["44157", "82693", "90210"];
+
+    // Auto-focus behavior and Enter key
     inputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         if (input.value.length === 1 && index < inputs.length - 1) {
@@ -166,18 +194,33 @@
         if (e.key === 'Backspace' && input.value === '' && index > 0) {
           inputs[index - 1].focus();
         }
+        if (e.key === 'Enter') {
+          submitCode();
+        }
       });
     });
+
+    inputs[0].focus(); // Auto-focus the first input on page load
 
     function submitCode() {
       let code = '';
       inputs.forEach(i => code += i.value);
 
-      if (code !== "44157") {
-        alert("Incorrect class code.");
+      if (!validCodes.includes(code)) {
+        errorMsg.style.opacity = 1;
+        codeBox.classList.add('shake');
+
+        setTimeout(() => {
+          codeBox.classList.remove('shake');
+        }, 300);
+
+        inputs.forEach(i => i.value = '');
+        inputs[0].focus();
         return;
       }
 
+      // Hide error and start loading sequence
+      errorMsg.style.opacity = 0;
       spinner.style.display = "block";
 
       setTimeout(() => {
@@ -185,20 +228,15 @@
         loadedMsg.style.opacity = 1;
 
         setTimeout(() => {
-          // Fade out code box
           codeBox.style.opacity = 0;
 
           setTimeout(() => {
             codeBox.style.display = "none";
-
-            // Fade in the FREE BROWSER GAMES screen
             gamesScreen.style.opacity = 1;
             gamesScreen.style.pointerEvents = "auto";
-
           }, 600);
 
         }, 1200);
-
       }, 1500);
     }
   </script>
