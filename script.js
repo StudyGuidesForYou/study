@@ -1,191 +1,162 @@
-// ---------- CONFIG (replace these) ----------
-const SUPABASE_URL = "https://gwgrxmmugsjnflvcybcq.supabase.co"; // e.g. https://xyz.supabase.co
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0";    // anon key (public), NOT service_role
+/* ---------- CONFIG ---------- */
+/* Your Supabase values (you provided these earlier) */
+const SUPABASE_URL = "https://gwgrxmmugsjnflvcybcq.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0";
 
-// ---------- INIT CLIENT (correct usage) ----------
-const sb = window.supabase && window.supabase.createClient
+/* ---------- Create Supabase client (use window.supabase) ---------- */
+const sb = (window && window.supabase && window.supabase.createClient)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;
 
-// ---------- DOM ----------
+/* ---------- DOM ---------- */
 const statusBar = document.getElementById("status-bar");
 const messagesUI = document.getElementById("messages");
-const input = document.getElementById("input");
+const inputEl = document.getElementById("input");
 const form = document.getElementById("chat-form");
 const userLabel = document.getElementById("user-label");
 const typingIndicator = document.getElementById("typing-indicator");
+const resetBtn = document.getElementById("reset-user");
 
+/* ---------- State ---------- */
 let username = null;
 let typingTimer = null;
-let realtimeChannel = null;
+let channel = null;
 
-// ---------- UTIL ----------
-function setStatus(text, ok = true) {
+/* ---------- Debug helpers ---------- */
+function logStatus(text, ok = true) {
+  console.log("[STATUS]", text);
   statusBar.textContent = text;
   statusBar.style.background = ok ? "#07202a" : "#4a0b0b";
-  console.log("[STATUS]", text);
+}
+function logErr(prefix, err) {
+  console.error("[ERROR]", prefix, err);
+  const msg = err && err.message ? err.message : String(err);
+  logStatus(`${prefix}: ${msg}`, false);
 }
 
-function logErrorAndStatus(prefix, err) {
-  console.error(prefix, err);
-  const msg = err && err.message ? err.message : JSON.stringify(err);
-  setStatus(`${prefix}: ${msg}`, false);
+/* ---------- Safety check: Supabase lib present ---------- */
+if (!sb) {
+  logStatus("Supabase library not found — ensure <script src=\"...supabase.min.js\"> is loaded BEFORE script.js", false);
+  throw new Error("Supabase client not available");
 }
 
-// ---------- ASSIGN AUTO USER ----------
-async function assignUser() {
+/* ---------- Utilities ---------- */
+function appendMessageRow(row) {
+  const li = document.createElement("li");
+  const ts = row.created_at ? ` (${new Date(row.created_at).toLocaleTimeString()})` : "";
+  li.textContent = `${row.username}: ${row.message || row.content || ""}${ts}`;
+  messagesUI.appendChild(li);
+  messagesUI.scrollTop = messagesUI.scrollHeight;
+}
+
+/* ---------- Auto-assign username (user_N) ---------- */
+async function assignAutoUser() {
   try {
-    const stored = localStorage.getItem("user_name");
-    if (stored) {
-      username = stored;
+    const saved = localStorage.getItem("user_name");
+    if (saved) {
+      username = saved;
       userLabel.textContent = username;
-      setStatus("Using saved username: " + username);
+      logStatus("Using saved username: " + username);
       return;
     }
-    // get approximate count of messages to pick a number
-    // Use head:true to get count only - PostgREST supports head + count, Supabase .select may return via count option
-    const res = await sb.from("messages").select("*", { count: "exact", head: true });
-    if (res.error) {
-      console.warn("count error (fallback to 0):", res.error);
-      const userNum = 1;
-      username = `user_${userNum}`;
-    } else {
-      const cnt = res.count || 0;
-      username = `user_${cnt + 1}`;
-    }
+    // Attempt to get a count of messages for numbering
+    const res = await sb.from("messages").select("*", { head: true, count: "exact" });
+    console.log("count res", res);
+    const count = res?.count || 0;
+    username = `user_${count + 1}`;
     localStorage.setItem("user_name", username);
     userLabel.textContent = username;
-    setStatus("Assigned username: " + username);
+    logStatus("Assigned username: " + username);
   } catch (err) {
-    logErrorAndStatus("Assign user failed", err);
-    // fallback
+    logErr("assignAutoUser failed", err);
     username = `user_${Math.floor(Math.random()*10000)}`;
     localStorage.setItem("user_name", username);
     userLabel.textContent = username;
   }
 }
 
-// ---------- CONNECTION CHECK ----------
-async function connectionCheck() {
-  if (!sb) {
-    setStatus("Supabase library not found — check <script> include.", false);
-    throw new Error("Supabase client not available");
-  }
-  // test a simple select (safe)
-  try {
-    const { data, error } = await sb.from("messages").select("id").limit(1);
-    if (error) {
-      logErrorAndStatus("DB read test failed", error);
-      throw error;
-    }
-    setStatus("Connected to Supabase — messages table reachable.");
-    return true;
-  } catch (err) {
-    throw err;
-  }
-}
-
-// ---------- LOAD MESSAGES ----------
+/* ---------- Load recent messages ---------- */
 async function loadMessages() {
   try {
-    const { data, error } = await sb
-      .from("messages")
-      .select("*")
-      .order("id", { ascending: true })
-      .limit(500);
+    const { data, error } = await sb.from("messages").select("*").order("id", { ascending: true }).limit(500);
+    console.log("loadMessages result:", { data, error });
     if (error) {
-      logErrorAndStatus("Failed to load messages", error);
+      logErr("Failed to load messages", error);
       return;
     }
     messagesUI.innerHTML = "";
-    (data || []).forEach(row => {
-      appendMessageToUI(row);
-    });
-    setStatus("Loaded messages (" + (data?.length||0) + ")");
+    (data || []).forEach(appendMessageRow);
+    logStatus(`Loaded ${data?.length || 0} messages`);
   } catch (err) {
-    logErrorAndStatus("Load messages error", err);
+    logErr("loadMessages crashed", err);
   }
 }
 
-// ---------- APPEND UI ----------
-function appendMessageToUI(row) {
-  const li = document.createElement("li");
-  const time = row.created_at ? ` (${new Date(row.created_at).toLocaleTimeString()})` : "";
-  li.textContent = `${row.username}: ${row.message || row.content || ""}${time}`;
-  messagesUI.appendChild(li);
-  messagesUI.scrollTop = messagesUI.scrollHeight;
-}
-
-// ---------- SEND MESSAGE ----------
+/* ---------- Send message (button or Enter) ---------- */
 form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
-  const txt = input.value.trim();
-  if (!txt) return;
+  const text = inputEl.value.trim();
+  if (!text) return;
   try {
-    setStatus("Sending...");
-    const { data, error } = await sb.from("messages").insert([{ username, message: txt }]);
+    logStatus("Sending...");
+    const { data, error } = await sb.from("messages").insert([{ username, message: text }]);
+    console.log("insert result:", { data, error });
     if (error) {
-      logErrorAndStatus("Insert failed", error);
+      logErr("Insert failed", error);
       return;
     }
-    input.value = "";
-    setStatus("Message sent");
-    // note: realtime subscription will also append when DB insert is replicated
+    inputEl.value = "";
+    logStatus("Message sent");
+    // Realtime subscription will append when DB inserts replicate
   } catch (err) {
-    logErrorAndStatus("Send error", err);
+    logErr("Send error", err);
   }
 });
 
-// allow Enter key (form submit covers it) — keep for safety
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    // let form submit handle
-  }
-});
-
-// ---------- TYPING INDICATOR (local) ----------
-input.addEventListener("input", () => {
-  typingIndicator.textContent = username + " is typing...";
+/* ---------- Typing indicator (local) ---------- */
+inputEl.addEventListener("input", () => {
+  typingIndicator.textContent = `${username} is typing...`;
   clearTimeout(typingTimer);
-  typingTimer = setTimeout(() => { typingIndicator.textContent = ""; }, 900);
+  typingTimer = setTimeout(() => { typingIndicator.textContent = ""; }, 800);
 });
 
-// ---------- SUBSCRIBE REALTIME ----------
+/* ---------- Realtime subscription ---------- */
 function subscribeRealtime() {
   try {
-    if (realtimeChannel) {
-      try { sb.removeChannel(realtimeChannel); } catch(_) {}
-      realtimeChannel = null;
+    if (channel) {
+      try { sb.removeChannel(channel); } catch (_) { /* ignore */ }
+      channel = null;
     }
-    const ch = sb.channel("public:messages");
-    ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-      console.log("Realtime INSERT received", payload);
-      appendMessageToUI(payload.new);
+    channel = sb.channel("public:messages");
+    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+      console.log("Realtime payload:", payload);
+      appendMessageRow(payload.new);
     });
-    ch.subscribe((status) => {
-      console.log("channel status", status);
-      if (status === 'SUBSCRIBED') setStatus("Realtime subscribed");
+    channel.subscribe(status => {
+      console.log("Realtime status", status);
+      if (status === 'SUBSCRIBED') logStatus("Realtime subscribed");
     });
-    realtimeChannel = ch;
   } catch (err) {
-    logErrorAndStatus("Realtime subscribe failed", err);
+    logErr("subscribeRealtime failed", err);
   }
 }
 
-// ---------- BOOTSTRAP ----------
-(async function bootstrap() {
+/* ---------- Reset assigned user ---------- */
+resetBtn.addEventListener("click", () => {
+  localStorage.removeItem("user_name");
+  logStatus("Username cleared. Reloading...");
+  setTimeout(() => location.reload(), 300);
+});
+
+/* ---------- Bootstrap ---------- */
+(async function init() {
   try {
-    setStatus("Initializing client...");
-    if (!SUPABASE_URL || !SUPABASE_KEY || SUPABASE_URL.includes("YOUR_") || SUPABASE_KEY.includes("YOUR_")) {
-      setStatus("Please set SUPABASE_URL and SUPABASE_KEY in script.js", false);
-      return;
-    }
-    await assignUser();
-    await connectionCheck();   // will throw if fails
+    logStatus("Initializing...");
+    await assignAutoUser();
     await loadMessages();
     subscribeRealtime();
+    logStatus("Ready — send a message!");
   } catch (err) {
-    // error already logged
-    console.error("Bootstrap failed", err);
+    logErr("Bootstrap failed", err);
   }
 })();
