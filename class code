@@ -57,6 +57,23 @@
       color: #555;
       font-size: 14px;
     }
+      button {
+      margin-top: 25px;
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: #b8c0d6;
+      color: white;
+      cursor: not-allowed;
+      transition: 0.2s;
+    }
+
+    button.enabled {
+      background: #4d6cff;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -69,7 +86,38 @@
       <input maxlength="1" />
       <input maxlength="1" />
     </div>
+    <button id="submitBtn" disabled>Submit</button>
     <p class="subtext">Enter the 5‑digit class code provided by your teacher.</p>
   </div>
+  <script>
+    const boxes = document.querySelectorAll('.code-boxes input');
+    const submitBtn = document.getElementById('submitBtn');
+
+    boxes.forEach((box, index) => {
+      box.addEventListener('input', () => {
+        if (box.value.length === 1 && index < boxes.length - 1) {
+          boxes[index + 1].focus();
+        }
+        checkFilled();
+      });
+
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && box.value === '' && index > 0) {
+          boxes[index - 1].focus();
+        }
+      });
+    });
+
+    function checkFilled() {
+      const allFilled = Array.from(boxes).every(b => b.value.length === 1);
+      if (allFilled) {
+        submitBtn.classList.add('enabled');
+        submitBtn.disabled = false;
+      } else {
+        submitBtn.classList.remove('enabled');
+        submitBtn.disabled = true;
+      }
+    }
+  </script>
 </body>
 </html>
