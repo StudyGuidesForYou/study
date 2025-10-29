@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Code</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: #ffffff;
+      width: 360px;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #2b2f3a;
+    }
+
+    .code-boxes {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .code-boxes input {
+      width: 50px;
+      height: 60px;
+      font-size: 28px;
+      text-align: center;
+      border: 2px solid #d0d4dc;
+      border-radius: 8px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .code-boxes input:focus {
+      border-color: #4d6cff;
+    }
+
+    .subtext {
+      margin-top: 15px;
+      color: #555;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Class Code?</h1>
+    <div class="code-boxes">
+      <input maxlength="1" />
+      <input maxlength="1" />
+      <input maxlength="1" />
+      <input maxlength="1" />
+      <input maxlength="1" />
+    </div>
+    <p class="subtext">Enter the 5‑digit class code provided by your teacher.</p>
+  </div>
+</body>
+</html>
