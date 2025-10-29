@@ -1,8 +1,8 @@
 // ===== Supabase setup =====
-const SUPABASE_URL = 'YOUR_PROJECT_URL'; // replace with your Supabase project URL
-const SUPABASE_KEY = 'YOUR_ANON_KEY';    // replace with your anon key
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL = 'https://gwgrxmmugsjnflvcybcq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0';
 
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 
 // ===== DOM elements =====
@@ -61,7 +61,7 @@ async function loadMessages() {
     .from('messages')
     .select('*')
     .order('created_at', { ascending: true })
-    .limit(500); // keeps last 500 messages
+    .limit(500); // last 500 messages
 
   messages.innerHTML = "";
   data.forEach(m => {
