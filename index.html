@@ -184,6 +184,7 @@
       color: #e6e6e6;
     }
 
+    /* Game modal area (95% x 90%) */
     #gameModal {
       position: fixed;
       top: 50%;
@@ -191,9 +192,8 @@
       transform: translate(-50%, -50%) scale(0);
       background: #111;
       border-radius: 15px;
-      width: 80%;
-      max-width: 900px;
-      height: 70%;
+      width: 95vw;
+      height: 90vh;
       z-index: 1000;
       display: flex;
       flex-direction: column;
@@ -216,6 +216,7 @@
       height: 100%;
       border: none;
       border-radius: 15px 15px 0 0;
+      background: #000;
     }
 
     .game-controls {
@@ -271,15 +272,16 @@
   <div id="gamesScreen">
     <h2>FREE BROWSER GAMES</h2>
     <div class="games-grid">
-      <div class="game-card" data-url="https://poki.com/">
+      <!-- Working iframe-compatible URLs -->
+      <div class="game-card" data-url="https://html5games.com/Game/Helicopter-Rescue/59b8e6d7-4f20-4cda-9b4f-18a57b39cc28">
         <img src="https://poki.com/favicon.ico" alt="Poki">
-        <p>Poki Games</p>
+        <p>Poki Game (Helicopter Rescue)</p>
       </div>
-      <div class="game-card" data-url="https://www.crazygames.com/">
+      <div class="game-card" data-url="https://files.crazygames.com/games/ducklings-io/index.html">
         <img src="https://www.crazygames.com/favicon.ico" alt="CrazyGames">
-        <p>CrazyGames</p>
+        <p>Ducklings.io</p>
       </div>
-      <div class="game-card" data-url="https://slither.io/">
+      <div class="game-card" data-url="https://slitherio.org/slither-io.embed.html">
         <img src="https://slither.io/s/favicons/favicon-96x96.png" alt="Slither.io">
         <p>Slither.io</p>
       </div>
