@@ -13,14 +13,14 @@ const DB_PATH = path.join(__dirname, 'db.json');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-this';
 const PORT = process.env.PORT || 3000;
 
-// --- Simple JSON DB (synchronous file reads/writes) ---
+// --- Load / Save DB ---
 function loadDb() {
   if (!fs.existsSync(DB_PATH)) {
     const base = {
-      users: {}, // id => { id, username, passwordHash, data: {} }
-      usernames: {}, // username -> id
+      users: {},
+      usernames: {},
       nextGuest: 1,
-      chat: [] // array of last messages
+      chat: []
     };
     fs.writeFileSync(DB_PATH, JSON.stringify(base, null, 2));
     return base;
@@ -38,7 +38,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper: create token
+// --- JWT Helpers ---
 function createToken(user) {
   return jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
 }
@@ -59,8 +59,9 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// --- API endpoints ---
-// Sign up
+// --- API Endpoints ---
+
+// Sign Up
 app.post('/api/signup', (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
@@ -75,7 +76,7 @@ app.post('/api/signup', (req, res) => {
   res.json({ token, user: { id: user.id, username: user.username, data: user.data } });
 });
 
-// Log in
+// Log In
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
@@ -93,7 +94,7 @@ app.get('/api/me', authMiddleware, (req, res) => {
   res.json({ id: user.id, username: user.username, data: user.data });
 });
 
-// Save game data for logged-in user
+// Save game data
 app.post('/api/save-game', authMiddleware, (req, res) => {
   const { gameId, payload } = req.body || {};
   if (!gameId) return res.status(400).json({ error: 'Missing gameId' });
@@ -104,28 +105,24 @@ app.post('/api/save-game', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// Fetch last chat messages
+// Chat history
 app.get('/api/chat-history', (req, res) => {
   res.json({ chat: db.chat.slice(-200) });
 });
 
-// --- Start HTTP + Socket.IO ---
+// --- HTTP + Socket.IO ---
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-// Socket auth helper
+// Socket auth
 function verifyToken(token) {
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch (e) {
-    return null;
-  }
+  try { return jwt.verify(token, JWT_SECRET); } 
+  catch { return null; }
 }
 
 io.on('connection', (socket) => {
-  // Clients may send token immediately in query or as 'auth' event.
   let token = socket.handshake.auth && socket.handshake.auth.token;
   let user = null;
   if (token) {
@@ -135,20 +132,15 @@ io.on('connection', (socket) => {
     }
   }
   if (!user) {
-    // create guest
     const guestNumber = db.nextGuest++;
     user = { id: `guest_${guestNumber}`, username: `User_${guestNumber}`, logged: false };
     saveDb(db);
   }
 
   socket.data.user = user;
-  // announce presence
   io.emit('user-joined', { id: user.id, username: user.username });
-
-  // send recent chat history to this socket
   socket.emit('chat-history', db.chat.slice(-200));
 
-  // handle incoming chat messages
   socket.on('chat-message', (payload) => {
     const text = String(payload && payload.text || '').trim();
     if (!text) return;
@@ -160,7 +152,6 @@ io.on('connection', (socket) => {
       ts: Date.now()
     };
     db.chat.push(msg);
-    // keep chat trimmed
     if (db.chat.length > 1000) db.chat.splice(0, db.chat.length - 1000);
     saveDb(db);
     io.emit('chat-message', msg);
