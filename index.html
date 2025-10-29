@@ -8,22 +8,24 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
 </head>
 <body>
-  <!-- AUTH CONTAINER -->
-  <div id="auth-container" class="container">
-    <h2>Login / Register</h2>
-    <input id="username" placeholder="Username (optional)">
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <div class="buttons">
-      <button id="register">Register</button>
-      <button id="login">Login</button>
+  <!-- AUTH MODAL -->
+  <div id="auth-container" class="auth-container">
+    <div class="auth-box">
+      <h2>Welcome to Supabase Chat</h2>
+      <input id="username" placeholder="Username (optional)">
+      <input id="email" type="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password">
+      <div class="auth-buttons">
+        <button id="register">Register</button>
+        <button id="login">Login</button>
+      </div>
+      <p id="auth-msg"></p>
     </div>
-    <p id="auth-msg" class="message"></p>
   </div>
 
-  <!-- CHAT CONTAINER -->
-  <div id="chat-container" class="container chat" style="display:none;">
-    <div id="chat-header">
+  <!-- CHAT UI -->
+  <div id="chat-container" class="chat-container" style="display:none;">
+    <div class="chat-header">
       <h2>Supabase Chat</h2>
       <span id="current-user"></span>
       <button id="logout">Logout</button>
