@@ -272,26 +272,44 @@
   <div id="gamesScreen">
     <h2>FREE BROWSER GAMES</h2>
     <div class="games-grid">
-      <!-- Working iframe-compatible URLs -->
-      <div class="game-card" data-url="https://html5games.com/Game/Helicopter-Rescue/59b8e6d7-4f20-4cda-9b4f-18a57b39cc28">
-        <img src="https://poki.com/favicon.ico" alt="Poki">
-        <p>Poki Game (Helicopter Rescue)</p>
+      <div class="game-card" data-url="https://play2048.co/">
+        <img src="https://play2048.co/favicon.ico" alt="2048">
+        <p>2048</p>
       </div>
-      <div class="game-card" data-url="https://files.crazygames.com/games/ducklings-io/index.html">
-        <img src="https://www.crazygames.com/favicon.ico" alt="CrazyGames">
-        <p>Ducklings.io</p>
+
+      <div class="game-card" data-url="https://slowroads.io/">
+        <img src="https://slowroads.io/favicon.ico" alt="Slow Roads">
+        <p>Slow Roads</p>
       </div>
-      <div class="game-card" data-url="https://slitherio.org/slither-io.embed.html">
-        <img src="https://slither.io/s/favicons/favicon-96x96.png" alt="Slither.io">
-        <p>Slither.io</p>
+
+      <div class="game-card" data-url="https://bloxd.io/">
+        <img src="https://bloxd.io/favicon.ico" alt="Bloxd.io">
+        <p>Bloxd.io</p>
       </div>
+
       <div class="game-card" data-url="https://diep.io/">
         <img src="https://diep.io/favicon.ico" alt="Diep.io">
         <p>Diep.io</p>
       </div>
-      <div class="game-card" data-url="https://starblast.io/">
-        <img src="https://starblast.io/favicon.ico" alt="Starblast.io">
-        <p>Starblast.io</p>
+
+      <div class="game-card" data-url="https://sandboxels.r74n.com/">
+        <img src="https://sandboxels.r74n.com/favicon.ico" alt="Sandboxels">
+        <p>Sandboxels</p>
+      </div>
+
+      <div class="game-card" data-url="https://jellymar.io/">
+        <img src="https://jellymar.io/favicon.ico" alt="Jellymar.io">
+        <p>Jellymar.io</p>
+      </div>
+
+      <div class="game-card" data-url="https://www.chess.com/play">
+        <img src="https://www.chess.com/bundles/web/images/favicon.ico" alt="Chess.com">
+        <p>Chess.com</p>
+      </div>
+
+      <div class="game-card" data-url="https://inv.nadeko.net/">
+        <img src="https://inv.nadeko.net/favicon.ico" alt="Invaders">
+        <p>Invaders</p>
       </div>
     </div>
   </div>
@@ -366,9 +384,19 @@
 
     document.querySelectorAll('.game-card').forEach(card => {
       card.addEventListener('click', () => {
-        gameFrame.src = card.dataset.url;
+        const url = card.dataset.url;
+        gameFrame.src = url;
+
+        // Try to embed — if blocked, open in new tab
         modal.classList.add('active');
         overlay.classList.add('active');
+
+        setTimeout(() => {
+          if (gameFrame.contentWindow === null) {
+            window.open(url, '_blank');
+            closeModal();
+          }
+        }, 2000);
       });
     });
 
