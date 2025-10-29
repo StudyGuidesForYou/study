@@ -1,212 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Browser Game Dashboard</title>
-  <style>
-    * { box-sizing: border-box; margin:0; padding:0; }
-    body { font-family: "Roboto", Arial, sans-serif; background:#0f1116; color:white; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden; }
-    button { cursor:pointer; }
-
-    /* --- LOGIN SCREEN --- */
-    .container { background:#181a21; padding:40px; border-radius:16px; width:350px; text-align:center; box-shadow:0 8px 25px rgba(0,0,0,0.6); border:1px solid #23262f; transition: opacity 0.6s ease; }
-    h1 { margin-bottom:25px; font-size:24px; color:#e8eaf0; font-weight:600; }
-    .code-boxes { display:flex; justify-content:space-between; margin-bottom:15px; }
-    .code-input { width:50px; height:60px; font-size:28px; text-align:center; border:2px solid #30333b; border-radius:10px; outline:none; color:#f0f0f0; background:#111319; transition:all 0.2s; cursor:pointer; }
-    .code-input:hover { border-color:#4b75ff; }
-    .code-input:focus { border-color:#4b75ff; box-shadow:0 0 8px rgba(75,117,255,0.6); background:#161820; }
-    button { width:100%; padding:12px; font-size:16px; border:none; border-radius:10px; background:#3a7afe; color:white; transition:0.2s; font-weight:500; }
-    button:hover { background:#2f4ac7; }
-    .spinner { margin-top:20px; width:40px; height:40px; border:4px solid #444; border-top-color:#4a6cf7; border-radius:50%; animation:spin 0.8s linear infinite; display:none; margin-left:auto; margin-right:auto; }
-    @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-    #loadedMsg { margin-top:20px; color:#7bff99; font-size:18px; font-weight:600; opacity:0; transition:opacity 0.5s ease; }
-    #errorMsg { color:#ff4d4d; font-weight:600; margin-top:15px; opacity:0; transition:opacity 0.3s ease; }
-    @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 50%{transform:translateX(5px);} 75%{transform:translateX(-5px);} }
-    .shake { animation:shake 0.3s; }
-
-    /* --- DASHBOARD --- */
-    #gamesScreen { position:absolute; top:0; left:0; width:100vw; height:100vh; background:#0f1116; color:white; opacity:0; pointer-events:none; transition:opacity 0.8s ease; padding:30px; overflow-y:auto; display:flex; flex-direction:column; }
-    #gamesScreen h2 { font-size:28px; font-weight:700; text-align:center; margin-bottom:10px; color:#f0f0f0; }
-    #usernameDisplay { position:absolute; top:15px; right:20px; font-weight:600; font-size:16px; }
-
-    /* --- Settings Button --- */
-    #settingsBtn { position:absolute; top:15px; left:20px; background:#3a7afe; color:white; border:none; border-radius:8px; padding:6px 12px; font-size:14px; }
-    #settingsModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#181a21; padding:20px; border-radius:15px; width:300px; box-shadow:0 8px 20px rgba(0,0,0,0.7); z-index:1000; flex-direction:column; }
-    #settingsModal button { margin:5px 0; }
-
-    .games-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:25px; justify-items:center; margin-top:50px; }
-    .game-card { background:#181b22; border:1px solid #252933; border-radius:12px; padding:15px; text-align:center; cursor:pointer; transition:all 0.25s ease; width:180px; }
-    .game-card:hover { transform:translateY(-5px); border-color:#4b75ff; box-shadow:0 4px 15px rgba(75,117,255,0.3); }
-    .game-card img { width:100%; height:110px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
-    .game-card p { font-size:15px; color:#e0e0e0; font-weight:500; }
-
-    /* --- GAME MODAL --- */
-    #gameModal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); background:#101217; border-radius:15px; width:94vw; height:88vh; z-index:1000; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.7); transition:transform 0.3s ease; }
-    #gameModal.active { transform:translate(-50%,-50%) scale(1); }
-    #gameFrame { flex:1; width:100%; border:none; background:#000; }
-    .game-controls { display:flex; justify-content:space-between; padding:10px 20px; background:#181b22; border-top:1px solid #252933; }
-
-    #overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); opacity:0; pointer-events:none; transition:opacity 0.3s ease; z-index:900; }
-    #overlay.active { opacity:1; pointer-events:all; }
-
-    /* --- Chat Modal --- */
-    #chatModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:400px; height:500px; background:#181a21; border-radius:15px; z-index:1100; display:flex; flex-direction:column; overflow:hidden; }
-    #chatMessages { flex:1; overflow-y:auto; padding:10px; }
-    #chatInput { display:flex; padding:10px; border-top:1px solid #252933; }
-    #chatInput input { flex:1; padding:8px; border-radius:8px; border:none; margin-right:5px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Game Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0;}
+  body { font-family: "Roboto", sans-serif; background:#0f1116; color:#fff; }
+  .top-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#181a21; border-bottom:1px solid #252933;}
+  .username-display { font-weight:600; }
+  button { padding:6px 12px; background:#3a7afe; border:none; border-radius:8px; color:white; cursor:pointer; margin-left:5px; }
+  button:hover { background:#2f4ac7; }
+  #settingsPanel { position:absolute; top:50px; right:20px; background:#181a21; border:1px solid #252933; border-radius:10px; padding:10px; display:none; flex-direction:column; }
+  #settingsPanel input { margin-bottom:5px; padding:6px; border-radius:6px; border:none; width:160px; }
+  #gamesScreen { padding:80px 30px 30px 30px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:25px; }
+  .game-card { background:#181b22; border:1px solid #252933; border-radius:12px; padding:15px; text-align:center; cursor:pointer; transition:all 0.25s ease; }
+  .game-card img { width:100%; height:110px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
+  #gameModal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); background:#101217; border-radius:15px; width:94vw; height:88vh; z-index:1000; display:flex; flex-direction:column; transition: transform 0.3s ease; overflow:hidden; }
+  #gameModal.active { transform:translate(-50%,-50%) scale(1); }
+  #gameFrame { flex:1; width:100%; height:100%; border:none; background:#000; }
+  .game-controls { display:flex; justify-content:space-between; padding:10px; background:#181b22; border-top:1px solid #252933; }
+  #chatModal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); background:#181a21; width:400px; height:500px; z-index:1100; border-radius:12px; display:flex; flex-direction:column; transition:transform 0.3s ease; overflow:hidden; }
+  #chatModal.active { transform:translate(-50%,-50%) scale(1); }
+  #chatMessages { flex:1; overflow-y:auto; padding:10px; }
+  #chatInput { display:flex; padding:10px; border-top:1px solid #252933; }
+  #chatInput input { flex:1; padding:6px; border-radius:6px; border:none; margin-right:5px; }
+  #overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; z-index:900; }
+  #overlay.active { display:block; }
+</style>
 </head>
 <body>
-  <!-- LOGIN SCREEN -->
-  <div class="container" id="codeBox">
-    <h1>Class Code?</h1>
-    <div class="code-boxes">
-      <input maxlength="1" class="code-input" id="c1" />
-      <input maxlength="1" class="code-input" id="c2" />
-      <input maxlength="1" class="code-input" id="c3" />
-      <input maxlength="1" class="code-input" id="c4" />
-      <input maxlength="1" class="code-input" id="c5" />
-    </div>
-    <button onclick="submitCode()">Continue</button>
-    <div id="errorMsg">Incorrect code. Try again.</div>
-    <div class="spinner" id="spinner"></div>
-    <div id="loadedMsg">Loaded!</div>
+
+<div class="top-bar">
+  <div>Game Dashboard</div>
+  <div>
+    <span class="username-display" id="usernameDisplay"></span>
+    <button id="settingsBtn">⚙️</button>
   </div>
+</div>
 
-  <!-- DASHBOARD -->
-  <div id="gamesScreen">
-    <h2>Browser Game Dashboard</h2>
-    <div id="usernameDisplay"></div>
-    <button id="settingsBtn">Settings ⚙️</button>
+<div id="settingsPanel">
+  <input type="text" placeholder="Username" id="signupUsername">
+  <input type="password" placeholder="Password" id="signupPassword">
+  <button id="signupBtn">Sign Up</button>
+  <button id="loginBtn">Log In</button>
+  <button id="chatBtn">Chat</button>
+</div>
 
-    <div class="games-grid">
-      <!-- Game cards here -->
-      <div class="game-card" data-url="https://play2048.co/"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/2048_logo.png" alt=""><p>2048</p></div>
-      <div class="game-card" data-url="https://slowroads.io/"><img src="https://i.imgur.com/3df4LxE.png" alt=""><p>Slow Roads</p></div>
-      <div class="game-card" data-url="https://bloxd.io/"><img src="https://i.imgur.com/IXq3V2y.png" alt=""><p>Bloxd.io</p></div>
-      <div class="game-card" data-url="https://diep.io/"><img src="https://i.imgur.com/nL6kzUX.png" alt=""><p>Diep.io</p></div>
-      <div class="game-card" data-url="https://sandboxels.r74n.com/"><img src="https://i.imgur.com/rzITyRG.png" alt=""><p>Sandboxels</p></div>
-      <div class="game-card" data-url="https://jellymar.io/"><img src="https://i.imgur.com/VbPwcMB.png" alt=""><p>Jellymar.io</p></div>
-      <div class="game-card" data-url="https://www.chess.com/play"><img src="https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/ChessComStaff/phpR9T4kO.png" alt=""><p>Chess.com</p></div>
-      <div class="game-card" data-url="https://inv.nadeko.net/"><img src="https://i.imgur.com/2Vq6HPO.png" alt=""><p>Invaders</p></div>
-      <div class="game-card" data-url="https://gamesnacks.com/"><img src="https://i.imgur.com/JkBzCKp.png" alt=""><p>GameSnacks</p></div>
-    </div>
+<div id="gamesScreen">
+  <div class="game-card" data-url="https://play2048.co/"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/2048_logo.png"><p>2048</p></div>
+  <div class="game-card" data-url="https://slowroads.io/"><img src="https://i.imgur.com/3df4LxE.png"><p>Slow Roads</p></div>
+  <div class="game-card" data-url="https://bloxd.io/"><img src="https://i.imgur.com/IXq3V2y.png"><p>Bloxd.io</p></div>
+</div>
+
+<div id="gameModal">
+  <iframe id="gameFrame"></iframe>
+  <div class="game-controls">
+    <button id="fullscreenBtn">⛶ Fullscreen</button>
+    <button id="closeBtn">✕ Close</button>
   </div>
+</div>
 
-  <!-- SETTINGS MODAL -->
-  <div id="settingsModal">
-    <button id="signupBtn">Sign Up</button>
-    <button id="loginBtn">Log In</button>
-    <button id="chatBtn">Chat</button>
-    <button onclick="closeSettings()">Close</button>
+<div id="chatModal">
+  <div id="chatMessages"></div>
+  <div id="chatInput">
+    <input type="text" id="chatText" placeholder="Type a message...">
+    <button id="sendChatBtn">Send</button>
   </div>
+</div>
 
-  <!-- CHAT MODAL -->
-  <div id="chatModal">
-    <div id="chatMessages"></div>
-    <div id="chatInput">
-      <input type="text" id="chatText" placeholder="Type a message...">
-      <button id="sendChatBtn">Send</button>
-    </div>
-  </div>
+<div id="overlay"></div>
 
-  <!-- GAME MODAL -->
-  <div id="overlay"></div>
-  <div id="gameModal">
-    <iframe id="gameFrame" src=""></iframe>
-    <div class="game-controls">
-      <button id="fullscreenBtn">⛶ Fullscreen</button>
-      <button id="closeBtn">✕ Close</button>
-    </div>
-  </div>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+let token = localStorage.getItem('token') || null;
+let currentUser = null;
+const usernameDisplay = document.getElementById('usernameDisplay');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+const signupBtn = document.getElementById('signupBtn');
+const loginBtn = document.getElementById('loginBtn');
+const chatBtn = document.getElementById('chatBtn');
+const signupUsername = document.getElementById('signupUsername');
+const signupPassword = document.getElementById('signupPassword');
+const chatModal = document.getElementById('chatModal');
+const chatMessages = document.getElementById('chatMessages');
+const chatText = document.getElementById('chatText');
+const sendChatBtn = document.getElementById('sendChatBtn');
+const overlay = document.getElementById('overlay');
 
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script>
-    // --- LOGIN / CLASS CODE ---
-    const inputs = document.querySelectorAll('.code-input');
-    const spinner = document.getElementById("spinner");
-    const loadedMsg = document.getElementById("loadedMsg");
-    const codeBox = document.getElementById("codeBox");
-    const gamesScreen = document.getElementById("gamesScreen");
-    const errorMsg = document.getElementById("errorMsg");
-    const usernameDisplay = document.getElementById("usernameDisplay");
+function setUser(user, tokenStr){
+  currentUser = user;
+  token = tokenStr;
+  localStorage.setItem('token', tokenStr);
+  usernameDisplay.textContent = user.username;
+}
 
-    const validCodes = ["44157","82693","90210"];
-    inputs.forEach((input,index)=>{
-      input.addEventListener('input',()=>{ if(input.value.length===1 && index<inputs.length-1) inputs[index+1].focus(); });
-      input.addEventListener('keydown',e=>{ if(e.key==='Backspace' && input.value==='' && index>0) inputs[index-1].focus(); if(e.key==='Enter') submitCode(); });
-    });
-    inputs[0].focus();
+async function apiPost(path, data){
+  const res = await fetch(path, {
+    method:'POST',
+    headers:{'Content-Type':'application/json', 'Authorization': token ? 'Bearer '+token : ''},
+    body:JSON.stringify(data)
+  });
+  return res.json();
+}
 
-    function submitCode(){
-      let code=Array.from(inputs).map(i=>i.value).join('');
-      if(!validCodes.includes(code)){
-        errorMsg.style.opacity=1; codeBox.classList.add('shake'); setTimeout(()=>codeBox.classList.remove('shake'),300); inputs.forEach(i=>i.value=''); inputs[0].focus(); return;
-      }
-      errorMsg.style.opacity=0; spinner.style.display="block";
-      setTimeout(()=>{
-        spinner.style.display="none"; loadedMsg.style.opacity=1;
-        setTimeout(()=>{
-          codeBox.style.opacity=0;
-          setTimeout(()=>{ codeBox.style.display="none"; gamesScreen.style.opacity=1; gamesScreen.style.pointerEvents="auto"; loadUsername(); },600);
-        },1200);
-      },1500);
-    }
+async function apiGet(path){
+  const res = await fetch(path, { headers:{ 'Authorization': token ? 'Bearer '+token : '' } });
+  return res.json();
+}
 
-    // --- GAME MODAL ---
-    const modal = document.getElementById('gameModal');
-    const overlay = document.getElementById('overlay');
-    const gameFrame = document.getElementById('gameFrame');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const closeBtn = document.getElementById('closeBtn');
+signupBtn.onclick = async ()=>{
+  const res = await apiPost('/api/signup',{username:signupUsername.value,password:signupPassword.value});
+  if(res.error) return alert(res.error);
+  setUser(res.user,res.token);
+  settingsPanel.style.display='none';
+}
 
-    document.querySelectorAll('.game-card').forEach(card=>{
-      card.addEventListener('click',()=>{
-        const url=card.dataset.url;
-        gameFrame.src=url;
-        modal.classList.add('active'); overlay.classList.add('active');
-      });
-    });
+loginBtn.onclick = async ()=>{
+  const res = await apiPost('/api/login',{username:signupUsername.value,password:signupPassword.value});
+  if(res.error) return alert(res.error);
+  setUser(res.user,res.token);
+  settingsPanel.style.display='none';
+}
 
-    function closeModal(){
-      modal.classList.remove('active'); overlay.classList.remove('active'); gameFrame.src='';
-      if(document.fullscreenElement) document.exitFullscreen();
-    }
-    closeBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', closeModal);
-    fullscreenBtn.addEventListener('click',()=>{ if(!document.fullscreenElement) modal.requestFullscreen(); else document.exitFullscreen(); });
+settingsBtn.onclick = ()=>{ settingsPanel.style.display = settingsPanel.style.display==='flex'?'none':'flex'; }
+chatBtn.onclick = ()=>{ chatModal.classList.add('active'); overlay.classList.add('active'); }
 
-    // --- SETTINGS ---
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsModal = document.getElementById('settingsModal');
-    const signupBtn = document.getElementById('signupBtn');
-    const loginBtn = document.getElementById('loginBtn');
-    const chatBtn = document.getElementById('chatBtn');
+overlay.onclick = ()=>{
+  chatModal.classList.remove('active');
+  document.getElementById('gameModal').classList.remove('active');
+  overlay.classList.remove('active');
+}
 
-    settingsBtn.addEventListener('click',()=>settingsModal.style.display='flex');
-    function closeSettings(){ settingsModal.style.display='none'; }
+sendChatBtn.onclick = ()=>{
+  if(!chatText.value.trim()) return;
+  socket.emit('chat-message',{text:chatText.value});
+  chatText.value='';
+}
 
-    signupBtn.addEventListener('click',()=>{ alert('Sign Up placeholder'); });
-    loginBtn.addEventListener('click',()=>{ alert('Log In placeholder'); });
+const socket = io('/', { auth:{token: token} });
 
-    // --- CHAT ---
-    const chatModal = document.getElementById('chatModal');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatText = document.getElementById('chatText');
-    const sendChatBtn = document.getElementById('sendChatBtn');
+socket.on('chat-history', msgs=>{ chatMessages.innerHTML=''; msgs.forEach(m=>addChatMessage(m)); chatMessages.scrollTop=chatMessages.scrollHeight; });
+socket.on('chat-message', addChatMessage);
 
-    chatBtn.addEventListener('click',()=>{ chatModal.style.display='flex'; loadChat(); });
+function addChatMessage(msg){
+  const el = document.createElement('div');
+  el.textContent = msg.username+': '+msg.text;
+  chatMessages.appendChild(el);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
-    function loadUsername(){
-      let name=localStorage.getItem('username')||'Guest';
-      usernameDisplay.textContent='Hello, '+name;
-    }
+// --- Games ---
+document.querySelectorAll('.game-card').forEach(card=>{
+  card.onclick = ()=>{
+    document.getElementById('gameFrame').src = card.dataset.url;
+    document.getElementById('gameModal').classList.add('active');
+    overlay.classList.add('active');
+  }
+});
 
-    // Simple chat placeholder (will connect to server later)
-    function loadChat(){ chatMessages.innerHTML='<p>Chat will appear here.</p>'; }
-    sendChatBtn.addEventListener('click',()=>{ if(chatText.value.trim()!==''){ chatMessages.innerHTML+='<p>'+chatText.value+'</p>'; chatText.value=''; chatMessages.scrollTop=chatMessages.scrollHeight; } });
+document.getElementById('closeBtn').onclick = ()=>{
+  document.getElementById('gameModal').classList.remove('active');
+  overlay.classList.remove('active');
+  document.getElementById('gameFrame').src='';
+}
 
-  </script>
+document.getElementById('fullscreenBtn').onclick = ()=>{
+  const modal = document.getElementById('gameModal');
+  if(!document.fullscreenElement) modal.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+// --- Load user from token ---
+if(token){
+  apiGet('/api/me').then(res=>{
+    if(!res.error) setUser(res,res.token||token);
+  });
+}
+</script>
 </body>
 </html>
