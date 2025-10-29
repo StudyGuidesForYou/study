@@ -1,35 +1,26 @@
-const express = require('express');
-const http = require('http');
-const cors = require('cors');
-const { Server } = require('socket.io');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
-app.use(cors());
 const server = http.createServer(app);
+const io = new Server(server);
 
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173", // Make sure this matches your frontend dev URL
-    methods: ["GET", "POST"]
-  }
-});
+const PORT = process.env.PORT || 3000;
 
-io.on('connection', (socket) => {
-  let displayName = "Anonymous";
+// Serve static frontend
+app.use(express.static("public"));
 
-  socket.on('setDisplayName', (name) => {
-    displayName = name || "Anonymous";
+io.on("connection", (socket) => {
+  console.log("User connected");
+
+  socket.on("chat message", (msg) => {
+    io.emit("chat message", msg);
   });
 
-  socket.on('message', (msg) => {
-    io.emit('message', {
-      text: msg,
-      sender: displayName,
-      timestamp: new Date(),
-    });
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
   });
 });
 
-server.listen(5000, () => {
-  console.log('Server listening on port 5000');
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
