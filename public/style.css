@@ -1,74 +1,108 @@
-body, html {
+/* Reset */
+* {
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
-  font-family: Arial, sans-serif;
-  background: #1e1e2f;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  box-sizing: border-box;
+  font-family: sans-serif;
 }
 
-#auth-container, #chat-container {
-  background: #2b2b3c;
-  padding: 20px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 800px;
-  height: 90%;
+/* Full-page containers */
+html, body {
+  height: 100%;
+  width: 100%;
+  background-color: #1e1e2f;
+  color: #fff;
+}
+
+.container {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.chat {
+  justify-content: flex-start;
+  height: 100%;
+}
+
+#chat-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 #messages {
   list-style: none;
-  padding: 0;
   flex: 1;
+  width: 100%;
   overflow-y: auto;
-  margin-bottom: 10px;
-  border: 1px solid #555;
+  padding: 10px;
+  border: 1px solid #444;
   border-radius: 8px;
-  background: #1c1c2b;
+  margin-bottom: 10px;
+  background-color: #2a2a3c;
 }
 
 #messages li {
-  padding: 5px 10px;
-  margin-bottom: 5px;
-  border-radius: 5px;
-  background: #3c3c5a;
-  word-wrap: break-word;
+  margin-bottom: 8px;
 }
 
-#chat-form {
+form {
+  width: 100%;
   display: flex;
 }
 
-#input {
+form input {
   flex: 1;
   padding: 10px;
-  border-radius: 5px 0 0 5px;
-  border: none;
+  border: 1px solid #444;
+  border-radius: 8px 0 0 8px;
+  background-color: #2a2a3c;
+  color: #fff;
+}
+
+form button {
+  padding: 10px 20px;
+  border: 1px solid #444;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  background-color: #5c5cff;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+form button:hover {
+  background-color: #3f3fff;
+}
+
+input, button {
   outline: none;
 }
 
-button {
+#auth-container input {
+  margin: 5px 0;
   padding: 10px;
-  border: none;
-  background: #5a5aff;
-  color: white;
-  border-radius: 0 5px 5px 0;
-  cursor: pointer;
+  width: 250px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background-color: #2a2a3c;
+  color: #fff;
 }
 
-button:hover {
-  background: #7a7aff;
+#auth-container .buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-input {
-  margin-bottom: 10px;
-  padding: 8px;
-  border-radius: 5px;
-  border: none;
+#auth-msg {
+  margin-top: 10px;
+  color: #ff5555;
+  text-align: center;
 }
