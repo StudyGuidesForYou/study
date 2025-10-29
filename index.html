@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Realtime Chat</title>
+  <meta charset="utf-8" />
+  <title>Realtime Chat — Debug Ready</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 </head>
 <body>
+  <div id="status-bar" class="status">Starting...</div>
 
-  <div id="chat-screen" class="fade-in">
-
-    <div id="chat-header">
+  <div id="chat-screen" class="app">
+    <header id="chat-header">
       <h2>Realtime Chat</h2>
-      <span id="user-label"></span>
-    </div>
+      <div>
+        <span id="user-label"></span>
+      </div>
+    </header>
 
-    <ul id="messages"></ul>
-
-    <div id="typing-indicator"></div>
-
-    <form id="chat-form">
-      <input id="input" autocomplete="off" placeholder="Type something...">
-      <button>Send</button>
-    </form>
+    <main style="flex:1; display:flex; flex-direction:column; gap:8px; padding:12px;">
+      <ul id="messages" class="messages" aria-live="polite"></ul>
+      <div id="typing-indicator" style="color:#aaa; height:18px;"></div>
+      <form id="chat-form" class="composer">
+        <input id="input" autocomplete="off" placeholder="Type something..." />
+        <button type="submit">Send</button>
+      </form>
+    </main>
   </div>
 
-  <script src="script.js"></script>
+  <script defer src="script.js"></script>
 </body>
 </html>
