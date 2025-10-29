@@ -1,1 +1,2 @@
-# class code thingy
+# class code thing
+
