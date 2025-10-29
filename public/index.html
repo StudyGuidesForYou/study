@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Class Code / Free Games</title>
 <style>
-/* (Styles are unchanged from your preferred dark UI, compacted) */
+/* (same CSS as previously provided for your dark UI) */
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:"Roboto", Arial, sans-serif; background:#0f1116; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden; color:#e8eaf0; }
 
@@ -124,11 +124,11 @@ button:hover { background:#2f4ac7; box-shadow:0 4px 12px rgba(75,117,255,0.4); }
   <button id="chatClose" style="margin-top:10px; width:100%; padding:10px; border-radius:8px; background:#333; color:white;">Close</button>
 </div>
 
-<!-- socket.io client served from server -->
+<!-- socket.io client -->
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
-/* --------- CLASS CODE (same UX you wanted) ---------- */
+/* --------- CLASS CODE ---------- */
 const inputs = document.querySelectorAll('.code-input');
 const spinner = document.getElementById('spinner');
 const loadedMsg = document.getElementById('loadedMsg');
@@ -139,7 +139,6 @@ const errorMsg = document.getElementById('errorMsg');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
 
-// ONLY this code is valid
 const validCodes = ['44157'];
 
 inputs.forEach((input,index)=> {
@@ -180,9 +179,8 @@ function submitCode(){
   }, 1500);
 }
 
-/* --------- AUTH (signup/login) & CHAT (Socket.IO) ---------- */
-
-let authMode = null; // "signup" or "login"
+/* --------- AUTH & CHAT ---------- */
+let authMode = null;
 let authToken = localStorage.getItem('token') || null;
 let socket = null;
 
@@ -231,12 +229,10 @@ authSubmit.addEventListener('click', async ()=> {
     const data = await res.json();
     if(!res.ok) { authError.innerText = data.error || 'Error'; authError.style.display='block'; return; }
 
-    // Save token and close
     authToken = data.token;
     localStorage.setItem('token', data.token);
     authPopup.style.display = 'none';
     authError.style.display = 'none';
-    // If chat open, reconnect socket with token
     if(socket) { socket.auth = { token: authToken }; socket.disconnect(); openChat(); }
   } catch (e) {
     authError.innerText = 'Network error'; authError.style.display = 'block';
@@ -248,7 +244,6 @@ function openChat(){
   chatPopup.style.display = 'flex';
   chatMessages.innerHTML = '';
 
-  // connect - socket.io client served from server
   const opts = { auth: {} };
   if(authToken) opts.auth.token = authToken;
 
@@ -293,7 +288,7 @@ function addSystemMessage(text){
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-chatSend.addEventListener('click', ()=> {
+document.getElementById('chatSend').addEventListener('click', ()=> {
   const text = chatInput.value.trim();
   if(!text || !socket) return;
   socket.emit('chat-message', { text });
@@ -305,7 +300,7 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-/* --------- Dashboard games list & modal (unchanged) ---------- */
+/* --------- Dashboard & modal ---------- */
 const gamesList=[
   {name:'2048',img:'https://upload.wikimedia.org/wikipedia/commons/0/09/2048_logo.png',url:'https://play2048.co/'},
   {name:'Slow Roads',img:'https://i.imgur.com/3df4LxE.png',url:'https://slowroads.io/'},
@@ -350,7 +345,6 @@ function closeModal(){
 closeBtn.addEventListener('click',closeModal);
 overlay.addEventListener('click',closeModal);
 fullscreenBtn.addEventListener('click',()=>{ if(!document.fullscreenElement) modal.requestFullscreen(); else document.exitFullscreen(); });
-
 </script>
 </body>
 </html>
