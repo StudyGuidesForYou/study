@@ -13,6 +13,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      overflow: hidden;
     }
 
     .container {
@@ -24,6 +25,7 @@
       width: 350px;
       border: 1px solid #2e2e2e;
       position: relative;
+      transition: opacity 0.6s ease;
     }
 
     h1 {
@@ -101,10 +103,32 @@
       opacity: 0;
       transition: opacity 0.5s ease;
     }
+
+    /* NEW SCREEN */
+    #gamesScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #0f0f0f;
+      color: white;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease;
+      padding: 20px;
+    }
+
+    #gamesScreen h2 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 700;
+    }
   </style>
 </head>
+
 <body>
-  <div class="container">
+  <div class="container" id="codeBox">
     <h1>Class Code?</h1>
     <div class="code-boxes">
       <input maxlength="1" class="code-input" id="c1" />
@@ -119,10 +143,17 @@
     <div id="loadedMsg">Loaded!</div>
   </div>
 
+  <!-- New screen -->
+  <div id="gamesScreen">
+    <h2>FREE BROWSER GAMES</h2>
+  </div>
+
   <script>
     const inputs = document.querySelectorAll('.code-input');
     const spinner = document.getElementById("spinner");
     const loadedMsg = document.getElementById("loadedMsg");
+    const codeBox = document.getElementById("codeBox");
+    const gamesScreen = document.getElementById("gamesScreen");
 
     inputs.forEach((input, index) => {
       input.addEventListener('input', () => {
@@ -154,8 +185,19 @@
         loadedMsg.style.opacity = 1;
 
         setTimeout(() => {
-          loadedMsg.style.opacity = 0;
-        }, 1500);
+          // Fade out code box
+          codeBox.style.opacity = 0;
+
+          setTimeout(() => {
+            codeBox.style.display = "none";
+
+            // Fade in the FREE BROWSER GAMES screen
+            gamesScreen.style.opacity = 1;
+            gamesScreen.style.pointerEvents = "auto";
+
+          }, 600);
+
+        }, 1200);
 
       }, 1500);
     }
