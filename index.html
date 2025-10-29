@@ -2,62 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Supabase Chat (username only)</title>
+  <title>Realtime Chat — Display Name Only</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
-  <!-- Supabase client (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <!-- Your script (deferred) -->
   <script defer src="script.js"></script>
 </head>
 <body>
-  <main class="page">
-    <!-- AUTH -->
-    <section id="auth-card" class="card">
-      <h1 id="auth-title">Login</h1>
+  <!-- Display-name prompt modal -->
+  <div id="name-modal" class="modal">
+    <div class="modal-card">
+      <h2>Pick a display name</h2>
+      <input id="display-name" placeholder="e.g. CoolDude42" maxlength="30" />
+      <div class="row">
+        <label class="small"><input id="remember-name" type="checkbox" checked /> Remember me</label>
+        <button id="enter-chat">Enter Chat</button>
+      </div>
+      <p class="hint">No password — just a display name. Your name is stored locally only.</p>
+    </div>
+  </div>
 
-      <div id="auth-forms">
-        <!-- Login form -->
-        <form id="login-form" class="form">
-          <input id="login-username" type="text" placeholder="Username" required />
-          <input id="login-password" type="password" placeholder="Password" required />
-          <button id="login-btn" type="submit">Log in</button>
-        </form>
-
-        <!-- Register form (hidden by default) -->
-        <form id="register-form" class="form hidden">
-          <input id="register-username" type="text" placeholder="Choose a username" required />
-          <input id="register-password" type="password" placeholder="Choose a password" required />
-          <button id="register-btn" type="submit">Create account</button>
-        </form>
+  <!-- Main chat UI -->
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">💬</div>
+        <div>
+          <div class="title">Realtime Chat</div>
+          <div class="subtitle">Display-name only • Realtime • Dark mode</div>
+        </div>
       </div>
 
-      <p id="auth-toggle">
-        <span id="toggle-text">Don't have an account?</span>
-        <button id="toggle-btn" class="linkish">Register</button>
-      </p>
+      <div class="controls">
+        <div id="typing-indicator" class="typing"></div>
+        <button id="theme-toggle" class="icon-btn" title="Toggle dark/light">🌓</button>
+        <button id="leave-btn" class="small">Leave</button>
+      </div>
+    </header>
 
-      <p id="auth-msg" class="msg"></p>
-    </section>
-
-    <!-- CHAT -->
-    <section id="chat-card" class="card hidden">
-      <header id="chat-header">
-        <div>Signed in as <strong id="current-user"></strong></div>
-        <div>
-          <button id="logout-btn" class="small">Log out</button>
+    <main class="chat-area">
+      <aside class="sidebar">
+        <div class="me">
+          <div id="my-avatar" class="avatar"></div>
+          <div>
+            <div id="my-name" class="my-name">You</div>
+            <div class="muted">Display name stored locally</div>
+          </div>
         </div>
-      </header>
+        <hr />
+        <div class="moderation">
+          <h4>Moderation</h4>
+          <button id="clear-local" class="small">Clear local name</button>
+          <p class="muted">You can delete messages you sent. Report messages to moderators.</p>
+        </div>
+      </aside>
 
-      <div id="messages" class="messages" aria-live="polite"></div>
+      <section class="chat-panel">
+        <ul id="messages" class="messages" aria-live="polite"></ul>
 
-      <form id="message-form" class="message-form">
-        <input id="message-input" type="text" placeholder="Type a message..." autocomplete="off" required />
-        <button type="submit">Send</button>
-      </form>
+        <form id="message-form" class="composer">
+          <input id="message-input" placeholder="Type a message..." autocomplete="off" maxlength="1000" />
+          <button type="submit">Send</button>
+        </form>
+      </section>
+    </main>
 
-      <p id="chat-status" class="msg"></p>
-    </section>
-  </main>
+    <footer class="footer muted">Built with Supabase • Messages are persistent</footer>
+  </div>
 </body>
 </html>
