@@ -1,6 +1,6 @@
 // ---------- IMPORTANT: paste your Supabase values here ----------
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"; // <-- REPLACE
-const SUPABASE_KEY = "YOUR_ANON_KEY";                    // <-- REPLACE
+const SUPABASE_URL = "https://gwgrxmmugsjnflvcybcq.supabase.co"; // <-- REPLACE
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0";                    // <-- REPLACE
 
 // ---------- wait-for-supabase helper ----------
 async function waitForSupabase(timeoutMs = 4000) {
