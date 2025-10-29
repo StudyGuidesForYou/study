@@ -1,1 +1,40 @@
-holder
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Chat</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
+</head>
+<body>
+  <!-- AUTH CONTAINER -->
+  <div id="auth-container" class="container">
+    <h2>Login / Register</h2>
+    <input id="username" placeholder="Username (optional)">
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <div class="buttons">
+      <button id="register">Register</button>
+      <button id="login">Login</button>
+    </div>
+    <p id="auth-msg" class="message"></p>
+  </div>
+
+  <!-- CHAT CONTAINER -->
+  <div id="chat-container" class="container chat" style="display:none;">
+    <div id="chat-header">
+      <h2>Supabase Chat</h2>
+      <span id="current-user"></span>
+      <button id="logout">Logout</button>
+    </div>
+    <ul id="messages"></ul>
+    <form id="chat-form">
+      <input id="input" placeholder="Type a message..." autocomplete="off">
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
