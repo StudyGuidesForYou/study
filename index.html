@@ -1,46 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Supabase Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <title>Supabase Chat (username only)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase client (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <!-- Your script (deferred) -->
   <script defer src="script.js"></script>
 </head>
 <body>
-  <!-- Auth container -->
-  <div id="auth-container">
-    <h2 id="auth-title">Login</h2>
+  <main class="page">
+    <!-- AUTH -->
+    <section id="auth-card" class="card">
+      <h1 id="auth-title">Login</h1>
 
-    <form id="login-form">
-      <input type="text" id="login-username" placeholder="Username" required />
-      <input type="password" id="login-password" placeholder="Password" required />
-      <button type="submit">Log In</button>
-    </form>
+      <div id="auth-forms">
+        <!-- Login form -->
+        <form id="login-form" class="form">
+          <input id="login-username" type="text" placeholder="Username" required />
+          <input id="login-password" type="password" placeholder="Password" required />
+          <button id="login-btn" type="submit">Log in</button>
+        </form>
 
-    <form id="register-form" style="display:none">
-      <input type="text" id="register-username" placeholder="Username" required />
-      <input type="password" id="register-password" placeholder="Password" required />
-      <button type="submit">Register</button>
-    </form>
+        <!-- Register form (hidden by default) -->
+        <form id="register-form" class="form hidden">
+          <input id="register-username" type="text" placeholder="Choose a username" required />
+          <input id="register-password" type="password" placeholder="Choose a password" required />
+          <button id="register-btn" type="submit">Create account</button>
+        </form>
+      </div>
 
-    <p id="toggle-auth">
-      Don't have an account? <a href="#" id="show-register">Register</a>
-    </p>
-  </div>
+      <p id="auth-toggle">
+        <span id="toggle-text">Don't have an account?</span>
+        <button id="toggle-btn" class="linkish">Register</button>
+      </p>
 
-  <!-- Chat container -->
-  <div id="chat-container" style="display:none">
-    <div id="chat-header">
-      Logged in as <span id="current-user"></span>
-      <button id="logout-btn">Log Out</button>
-    </div>
-    <div id="messages"></div>
-    <form id="message-form">
-      <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required />
-      <button type="submit">Send</button>
-    </form>
-  </div>
+      <p id="auth-msg" class="msg"></p>
+    </section>
+
+    <!-- CHAT -->
+    <section id="chat-card" class="card hidden">
+      <header id="chat-header">
+        <div>Signed in as <strong id="current-user"></strong></div>
+        <div>
+          <button id="logout-btn" class="small">Log out</button>
+        </div>
+      </header>
+
+      <div id="messages" class="messages" aria-live="polite"></div>
+
+      <form id="message-form" class="message-form">
+        <input id="message-input" type="text" placeholder="Type a message..." autocomplete="off" required />
+        <button type="submit">Send</button>
+      </form>
+
+      <p id="chat-status" class="msg"></p>
+    </section>
+  </main>
 </body>
 </html>
