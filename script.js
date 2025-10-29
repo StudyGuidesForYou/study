@@ -1,77 +1,60 @@
-// CONFIG
-const SUPABASE_URL = "https://gwgrxmmugsjnflvcybcq.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0";
+// ✅ SET THESE:
+const SUPABASE_URL = "YOUR_URL_HERE";
+const SUPABASE_KEY = "YOUR_ANON_KEY_HERE";
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // DOM
-const nameScreen = document.getElementById("name-screen");
-const chatScreen = document.getElementById("chat-screen");
-const enterButton = document.getElementById("enter-chat");
-const nameInput = document.getElementById("display-name");
-const userLabel = document.getElementById("user-label");
-const logoutBtn = document.getElementById("logout-btn");
-
 const messagesUI = document.getElementById("messages");
 const input = document.getElementById("input");
 const form = document.getElementById("chat-form");
+const userLabel = document.getElementById("user-label");
 const typingIndicator = document.getElementById("typing-indicator");
 
 let username = null;
 let typingTimeout = null;
 
-// ✅ Load saved display name
-window.onload = () => {
-  const saved = localStorage.getItem("display_name");
-  if (saved) {
-    username = saved;
-    userLabel.textContent = "Logged in as: " + username;
-    nameScreen.classList.add("hidden");
-    chatScreen.classList.remove("hidden");
-    loadMessages();
-    subscribeRealtime();
+// ✅ Auto-generate username: user_1, user_2, user_3...
+async function assignUser() {
+  const stored = localStorage.getItem("user_name");
+  if (stored) {
+    username = stored;
+    userLabel.textContent = username;
+    return;
   }
-};
 
-// ✅ Enter chat
-enterButton.onclick = () => {
-  if (nameInput.value.trim() === "") return;
+  const { count } = await supabase
+    .from("messages")
+    .select("*", { count: "exact", head: true });
 
-  username = nameInput.value.trim();
-  localStorage.setItem("display_name", username);
+  const userNum = (count || 0) + 1;
+  username = `user_${userNum}`;
+  localStorage.setItem("user_name", username);
+  userLabel.textContent = username;
+}
 
-  userLabel.textContent = "Logged in as: " + username;
-
-  nameScreen.classList.add("hidden");
-  chatScreen.classList.remove("hidden");
-
-  loadMessages();
-  subscribeRealtime();
-};
-
-// ✅ Logout
-logoutBtn.onclick = () => {
-  localStorage.removeItem("display_name");
-  location.reload();
-};
-
-// ✅ Load existing messages
+// ✅ Load messages
 async function loadMessages() {
-  const { data } = await supabase.from("messages").select("*").order("id", { ascending: true });
-  messagesUI.innerHTML = "";
+  const { data } = await supabase
+    .from("messages")
+    .select("*")
+    .order("id", { ascending: true });
 
+  messagesUI.innerHTML = "";
   data.forEach(addMessageToUI);
 }
 
-// ✅ Subscribe to realtime events
+// ✅ Live updates
 function subscribeRealtime() {
-  supabase.channel("chat-room")
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
-      addMessageToUI(payload.new);
-    })
+  supabase.channel("realtime-chat")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "messages" },
+      (payload) => addMessageToUI(payload.new)
+    )
     .subscribe();
 }
 
-// ✅ UI helper
+// ✅ Add message to UI
 function addMessageToUI(msg) {
   const li = document.createElement("li");
   li.textContent = `${msg.username}: ${msg.message}`;
@@ -85,7 +68,7 @@ form.addEventListener("submit", async (e) => {
   if (input.value.trim() === "") return;
 
   await supabase.from("messages").insert({
-    username,
+    username: username,
     message: input.value
   });
 
@@ -101,3 +84,10 @@ input.addEventListener("input", () => {
     typingIndicator.textContent = "";
   }, 700);
 });
+
+// ✅ Initialize
+(async function start() {
+  await assignUser();
+  await loadMessages();
+  subscribeRealtime();
+})();
