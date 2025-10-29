@@ -1,288 +1,259 @@
-// ------------- CONFIG -------------
-const SUPABASE_URL = 'https://gwgrxmmugsjnflvcybcq.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0';
+// ---------------- CONFIG ----------------
+const SUPABASE_URL = "https://gwgrxmmugsjnflvcybcq.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0";
 
-// create Supabase client - use a distinct variable name
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ------------- DOM ELEMENTS -------------
-let loginForm, registerForm, toggleBtn, authTitle, authMsgEl;
-let authCard, chatCard, currentUserEl, messagesEl, messageForm, messageInput, logoutBtn;
+// ---------------- DOM ----------------
+const nameModal = document.getElementById("name-modal");
+const displayNameInput = document.getElementById("display-name");
+const enterBtn = document.getElementById("enter-chat");
+const rememberChk = document.getElementById("remember-name");
 
-// wait for DOM load
-window.addEventListener('DOMContentLoaded', () => {
-  // auth
-  loginForm = document.getElementById('login-form');
-  registerForm = document.getElementById('register-form');
-  toggleBtn = document.getElementById('toggle-btn');
-  authTitle = document.getElementById('auth-title');
-  authMsgEl = document.getElementById('auth-msg');
-  authCard = document.getElementById('auth-card');
+const app = document.getElementById("app");
+const messagesEl = document.getElementById("messages");
+const messageForm = document.getElementById("message-form");
+const messageInput = document.getElementById("message-input");
+const typingIndicator = document.getElementById("typing-indicator");
+const themeToggle = document.getElementById("theme-toggle");
+const leaveBtn = document.getElementById("leave-btn");
+const myNameEl = document.getElementById("my-name");
+const myAvatarEl = document.getElementById("my-avatar");
+const clearLocalBtn = document.getElementById("clear-local");
+const typingTable = 'typing_presence'; // table name in Supabase for presence
+const profanity = ["badword1","badword2","poop"]; // simple list, edit as desired
 
-  // chat
-  chatCard = document.getElementById('chat-card');
-  currentUserEl = document.getElementById('current-user');
-  messagesEl = document.getElementById('messages');
-  messageForm = document.getElementById('message-form');
-  messageInput = document.getElementById('message-input');
-  logoutBtn = document.getElementById('logout-btn');
+// small helper: get/set display name locally
+function saveDisplayName(name, remember) {
+  if (remember) localStorage.setItem("displayName", name);
+  sessionStorage.setItem("displayName", name);
+}
+function clearDisplayNameLocal() {
+  localStorage.removeItem("displayName");
+  sessionStorage.removeItem("displayName");
+}
+function getSavedDisplayName() {
+  return sessionStorage.getItem("displayName") || localStorage.getItem("displayName");
+}
 
-  // wire events
-  toggleBtn.addEventListener('click', toggleAuthForms);
-  loginForm.addEventListener('submit', handleLogin);
-  registerForm.addEventListener('submit', handleRegister);
-  messageForm.addEventListener('submit', handleSendMessage);
-  logoutBtn.addEventListener('click', handleLogout);
+// set avatar color and initial
+function avatarFor(name, el) {
+  const initials = (name || "??").slice(0,2).toUpperCase();
+  el.textContent = initials;
+  // color by hash
+  let h = 0; for (let i=0;i<name.length;i++) h = (h<<5)-h + name.charCodeAt(i);
+  const hue = Math.abs(h) % 360;
+  el.style.background = `linear-gradient(135deg, hsl(${hue} 80% 50%), hsl(${(hue+60)%360} 80% 40%))`;
+}
 
-  // try existing session
-  const saved = localStorage.getItem('currentUser');
-  if (saved) {
-    showChat(saved);
-  } else {
-    showAuth();
-  }
+// profanity filter (obfuscate)
+function sanitizeMessage(s) {
+  let out = s;
+  profanity.forEach(w => {
+    const re = new RegExp('\\b' + w.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&') + '\\b', 'ig');
+    out = out.replace(re, (m) => '*'.repeat(m.length));
+  });
+  return out;
+}
+
+// scroll helper
+function scrollBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+// ---------------- Display logic ----------------
+function showAppFor(name) {
+  nameModal.style.display = "none";
+  app.classList.remove("hidden");
+  myNameEl.textContent = name;
+  avatarFor(name, myAvatarEl);
+  // init chat
+  loadMessages();
+  subscribeMessages();
+  startTypingHeartbeat();
+}
+function showNameModal() {
+  nameModal.style.display = "";
+  app.classList.add("hidden");
+}
+
+// ---------------- Enter chat ----------------
+enterBtn.addEventListener('click', () => {
+  const name = displayNameInput.value.trim();
+  if (!name) return alert("Please enter a display name");
+  const remember = rememberChk.checked;
+  saveDisplayName(name, remember);
+  showAppFor(name);
 });
 
-// ----------------- Helpers -----------------
-// show messages in status area
-function showAuthMsg(text, ok = false) {
-  authMsgEl.textContent = text || '';
-  authMsgEl.classList.toggle('success', ok);
+// auto-open if saved
+const saved = getSavedDisplayName();
+if (saved) {
+  displayNameInput.value = saved;
+  saveDisplayName(saved, true);
+  showAppFor(saved);
+} else {
+  showNameModal();
 }
 
-// safe append message UI
-function appendMessageToUI(user, text) {
-  const div = document.createElement('div');
-  div.className = 'message';
-  const safeUser = (user === null || user === undefined) ? 'Anon' : escapeHtml(user);
-  div.innerHTML = `<strong>${safeUser}:</strong> ${escapeHtml(text)}`;
-  messagesEl.appendChild(div);
-  // scroll
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+// ---------------- Theme toggle ----------------
+themeToggle?.addEventListener('click', () => {
+  document.body.classList.toggle('light');
+});
+
+// ---------------- Messages load & render ----------------
+let myDisplayName = () => sessionStorage.getItem("displayName") || localStorage.getItem("displayName") || "Anon";
+
+async function loadMessages() {
+  messagesEl.innerHTML = '';
+  try {
+    const { data, error } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(500);
+    if (error) { console.error(error); return; }
+    data.forEach(row => renderMessageRow(row));
+    scrollBottom();
+  } catch (err) { console.error(err); }
 }
 
+function renderMessageRow(row) {
+  const id = row.id;
+  const username = row.username || "Anon";
+  const text = sanitizeMessage(row.message ?? row.content ?? '');
+  const el = document.createElement('li');
+  el.className = 'message' + (username === myDisplayName() ? ' me' : '');
+  el.dataset.id = id;
+  el.innerHTML = `
+    <div class="avatar" title="${escapeHtml(username)}">${escapeHtml((username||'').slice(0,2).toUpperCase())}</div>
+    <div style="flex:1">
+      <div class="meta"><strong>${escapeHtml(username)}</strong> <span class="muted">· ${new Date(row.created_at).toLocaleTimeString()}</span></div>
+      <div class="text">${escapeHtml(text)}</div>
+    </div>
+    <div class="msg-actions">
+      <button data-action="react">❤️</button>
+      ${username === myDisplayName() ? `<button data-action="delete">Delete</button>` : `<button data-action="report">Report</button>`}
+    </div>
+  `;
+  // attach actions
+  el.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', (e) => handleMessageAction(e, row));
+  });
+  messagesEl.appendChild(el);
+}
+
+// escape
 function escapeHtml(s) {
   if (!s) return '';
   return s.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
 }
 
-// SHA-256 helper (Web Crypto) returns hex
-async function sha256hex(str) {
-  const data = new TextEncoder().encode(str);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-// ----------------- Auth UI -----------------
-function toggleAuthForms() {
-  const loginHidden = loginForm.classList.contains('hidden');
-  if (loginHidden) {
-    // show login
-    authTitle.textContent = 'Login';
-    loginForm.classList.remove('hidden');
-    registerForm.classList.add('hidden');
-    toggleBtn.textContent = 'Register';
-    showAuthMsg('');
-  } else {
-    // show register
-    authTitle.textContent = 'Register';
-    loginForm.classList.add('hidden');
-    registerForm.classList.remove('hidden');
-    toggleBtn.textContent = 'Log in';
-    showAuthMsg('');
+// ---------------- Message actions ----------------
+async function handleMessageAction(e, row) {
+  const action = e.currentTarget.dataset.action;
+  if (action === 'delete') {
+    if (row.username !== myDisplayName()) return alert("You can only delete your own messages");
+    if (!confirm("Delete this message?")) return;
+    const { error } = await sb.from('messages').delete().eq('id', row.id);
+    if (error) return alert("Delete failed: " + error.message);
+    // remove from UI
+    const el = messagesEl.querySelector(`li[data-id="${row.id}"]`);
+    if (el) el.remove();
+  } else if (action === 'report') {
+    const reason = prompt("Report reason (optional):", "spam");
+    await sb.from('reports').insert([{ message_id: row.id, reporter: myDisplayName(), reason: reason || null }]);
+    alert("Reported — moderators will review.");
+  } else if (action === 'react') {
+    // simple local animation
+    e.currentTarget.classList.add('pulse');
+    setTimeout(()=>e.currentTarget.classList.remove('pulse'),800);
   }
 }
 
-function showAuth() {
-  authCard.classList.remove('hidden');
-  chatCard.classList.add('hidden');
-  showAuthMsg('');
-}
-
-function showChat(username) {
-  authCard.classList.add('hidden');
-  chatCard.classList.remove('hidden');
-  currentUserEl.textContent = username;
-  showAuthMsg('');
-  // load messages and subscribe
-  loadRecentMessages();
-  subscribeToNewMessages();
-}
-
-// ----------------- Auth handlers -----------------
-async function handleRegister(e) {
-  e.preventDefault();
-  showAuthMsg('Registering...');
-
-  const username = document.getElementById('register-username').value.trim();
-  const password = document.getElementById('register-password').value;
-
-  if (!username || !password) {
-    showAuthMsg('Username and password required');
+// ---------------- Send message ----------------
+messageForm.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const text0 = messageInput.value.trim();
+  if (!text0) return;
+  const text = sanitizeMessage(text0).slice(0,1000);
+  const username = myDisplayName();
+  // insert
+  const { error } = await sb.from('messages').insert([{ username, message: text }]);
+  if (error) {
+    console.error('send error', error);
     return;
   }
+  messageInput.value = '';
+});
 
-  try {
-    // check if username exists
-    const { data: existing, error: selErr } = await sb.from('users').select('id').eq('username', username).limit(1).maybeSingle();
-    if (selErr) {
-      console.error('select err', selErr);
-      showAuthMsg('Error checking username');
-      return;
-    }
-    if (existing) {
-      showAuthMsg('Username already taken');
-      return;
-    }
+// ---------------- Realtime subscription ----------------
+let channel = null;
+function subscribeMessages() {
+  if (channel) try { sb.removeChannel(channel); } catch(_) {}
+  channel = sb.channel('public:messages');
 
-    const password_hash = await sha256hex(username + '|' + password);
-    const { error } = await sb.from('users').insert([{ username, password_hash }]);
-    if (error) {
-      console.error('insert err', error);
-      showAuthMsg('Registration failed: ' + error.message);
-      return;
-    }
-
-    showAuthMsg('Registered! Please log in.', true);
-    // switch to login
-    toggleAuthForms();
-  } catch (err) {
-    console.error(err);
-    showAuthMsg('Registration error');
-  }
-}
-
-async function handleLogin(e) {
-  e.preventDefault();
-  showAuthMsg('Logging in...');
-
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value;
-
-  if (!username || !password) {
-    showAuthMsg('Username and password required');
-    return;
-  }
-
-  try {
-    const { data, error } = await sb.from('users').select('password_hash').eq('username', username).maybeSingle();
-    if (error) {
-      console.error('select err', error);
-      showAuthMsg('Login failed (DB error)');
-      return;
-    }
-    if (!data) {
-      showAuthMsg('User not found');
-      return;
-    }
-
-    const password_hash = await sha256hex(username + '|' + password);
-    if (password_hash !== data.password_hash) {
-      showAuthMsg('Incorrect password');
-      return;
-    }
-
-    // success
-    localStorage.setItem('currentUser', username);
-    showAuthMsg('Logged in', true);
-    showChat(username);
-  } catch (err) {
-    console.error(err);
-    showAuthMsg('Login error');
-  }
-}
-
-async function handleLogout(e) {
-  e?.preventDefault();
-  localStorage.removeItem('currentUser');
-  // unsubscribe channel if needed
-  try {
-    // best-effort unsubscribe
-    if (window._supabase_subscription) {
-      await sb.removeChannel(window._supabase_subscription);
-      window._supabase_subscription = null;
-    }
-  } catch (err) {
-    console.warn('unsubscribe fail', err);
-  }
-  showAuth();
-}
-
-// ----------------- Messages -----------------
-async function loadRecentMessages() {
-  messagesEl.innerHTML = '';
-  try {
-    // try selecting both possible columns names
-    const { data, error } = await sb
-      .from('messages')
-      .select('username, message, content, created_at')
-      .order('created_at', { ascending: true })
-      .limit(500);
-
-    if (error) {
-      console.error('load messages error', error);
-      document.getElementById('chat-status').textContent = 'Failed to load messages';
-      return;
-    }
-    if (!data) return;
-
-    data.forEach(row => {
-      const user = row.username || row.email || 'Anon';
-      const text = row.message ?? row.content ?? '';
-      appendMessageToUI(user, text);
-    });
-  } catch (err) {
-    console.error(err);
-    document.getElementById('chat-status').textContent = 'Error loading messages';
-  }
-}
-
-async function handleSendMessage(e) {
-  e.preventDefault();
-  const txt = messageInput.value.trim();
-  if (!txt) return;
-  const username = localStorage.getItem('currentUser') || 'Anon';
-
-  try {
-    // insert into 'message' column if that exists on your table, otherwise 'content'
-    // We'll insert into both to be safe; one will be null in DB, but that's okay.
-    const payload = { username, message: txt };
-    const { error } = await sb.from('messages').insert([payload]);
-    if (error) {
-      console.error('insert msg err', error);
-      document.getElementById('chat-status').textContent = 'Failed to send message';
-      return;
-    }
-    messageInput.value = '';
-    document.getElementById('chat-status').textContent = '';
-  } catch (err) {
-    console.error(err);
-    document.getElementById('chat-status').textContent = 'Send error';
-  }
-}
-
-// ----------------- Realtime -----------------
-function subscribeToNewMessages() {
-  // remove existing subscription if any
-  if (window._supabase_subscription) {
-    try { sb.removeChannel(window._supabase_subscription); } catch(_) {}
-    window._supabase_subscription = null;
-  }
-
-  const channel = sb.channel('public:messages');
-
-  channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-    // payload.new may have message or content field
-    const user = payload.new.username || payload.new.email || 'Anon';
-    const text = payload.new.message ?? payload.new.content ?? '';
-    appendMessageToUI(user, text);
+  channel.on('postgres_changes', { event:'INSERT', schema:'public', table:'messages' }, payload => {
+    renderMessageRow(payload.new);
+    scrollBottom();
   });
 
   channel.subscribe((status) => {
-    if (status === 'SUBSCRIBED') {
-      console.log('Subscribed to realtime messages');
-    }
+    if (status === 'SUBSCRIBED') console.log('Subscribed to messages');
   });
 
-  window._supabase_subscription = channel;
+  window._chat_channel = channel;
 }
+
+// ---------------- Typing indicator (presence)
+let typingTimer = null;
+function startTypingHeartbeat() {
+  // update typing_presence row every 2s while typing
+  messageInput.addEventListener('input', () => {
+    sendTypingHeartbeat();
+  });
+
+  // subscribe to typing_presence
+  const tp = sb.channel('public:typing_presence');
+  tp.on('postgres_changes', { event: '*', schema: 'public', table: 'typing_presence' }, payload => {
+    // query presence rows and show who typed recently
+    showTypingUsers();
+  });
+  tp.subscribe();
+  window._typing_channel = tp;
+}
+
+let lastTypingSent = 0;
+async function sendTypingHeartbeat() {
+  const now = Date.now();
+  if (now - lastTypingSent < 1200) return;
+  lastTypingSent = now;
+  const name = myDisplayName();
+  try {
+    await sb.from('typing_presence').upsert([{ username: name, last_seen: new Date().toISOString() }], { onConflict: 'username' });
+    // cleanup old rows periodically
+    await sb.rpc('cleanup_typing_presence', {});
+  } catch (err) {
+    // ignore
+  }
+}
+
+async function showTypingUsers() {
+  try {
+    const cutoff = new Date(Date.now() - 5000).toISOString();
+    const { data } = await sb.from('typing_presence').select('*').gt('last_seen', cutoff);
+    const others = (data || []).filter(r => r.username !== myDisplayName()).map(r => r.username);
+    typingIndicator.textContent = others.length ? `${others.join(', ')} typing…` : '';
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ---------------- Utility buttons ----------------
+themeToggle?.addEventListener('click', () => document.body.classList.toggle('light'));
+leaveBtn?.addEventListener('click', () => {
+  clearDisplayNameLocal();
+  window.location.reload();
+});
+clearLocalBtn?.addEventListener('click', () => {
+  clearDisplayNameLocal();
+  alert('Local display name cleared. You will be asked for a name next time.');
+});
+
+// ---------------- Helper: cleanup function on server (optional)
+// If you want, create a Postgres function named cleanup_typing_presence to delete old rows.
+// If not present, the call will fail silently.
