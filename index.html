@@ -1,78 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Realtime Chat — Display Name</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Realtime Chat</title>
+<link rel="stylesheet" href="style.css">
 
-  <!-- Load Supabase from CDN first. If an extension blocks it, a local fallback is attempted in inline script. -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
-
-  <link rel="stylesheet" href="style.css" />
-  <script>
-    // If CDN blocked, load local ./libs/supabase.js after a short delay
-    (function tryLocalFallback(){
-      setTimeout(()=> {
-        if (!window.supabase) {
-          const s = document.createElement('script');
-          s.src = './libs/supabase.js';
-          s.onload = () => console.info('Loaded local supabase.js fallback');
-          s.onerror = () => console.warn('Failed to load local supabase.js fallback');
-          document.head.appendChild(s);
-        }
-      }, 300);
-    })();
-  </script>
+<!-- Supabase JS (must be before script.js) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
+<script defer src="script.js"></script>
 </head>
 <body>
-  <!-- Display-name modal -->
-  <div id="name-modal" class="modal">
-    <div class="modal-card">
-      <h2>Pick a display name</h2>
-      <input id="display-name" placeholder="e.g. CoolCat" maxlength="30" />
-      <div class="row">
-        <label><input id="remember-name" type="checkbox" checked /> Remember me</label>
-        <button id="enter-chat">Enter Chat</button>
-      </div>
-      <p class="hint">No passwords — your display name is stored locally only.</p>
-    </div>
+
+<div id="username-prompt" class="overlay">
+  <div class="prompt-box">
+    <h2>Enter your display name</h2>
+    <input id="displayNameInput" placeholder="Display name">
+    <button id="enterChat">Join Chat</button>
   </div>
+</div>
 
-  <!-- Main app -->
-  <div id="app" class="app hidden">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo">💬</div>
-        <div>
-          <div class="title">Realtime Chat</div>
-          <div class="subtitle">Display-name • Realtime • Dark</div>
-        </div>
-      </div>
-
-      <div class="controls">
-        <div id="typing-indicator" class="typing muted"></div>
-        <div class="userbox">
-          <span id="my-name" class="my-name">You</span>
-          <button id="change-name" class="small">Change</button>
-        </div>
-      </div>
-    </header>
-
-    <main class="chat-area">
-      <section class="chat-panel">
-        <ul id="messages" class="messages" aria-live="polite"></ul>
-
-        <form id="message-form" class="composer">
-          <input id="message-input" placeholder="Type a message and press Enter" autocomplete="off" maxlength="1000" />
-          <button type="submit">Send</button>
-        </form>
-      </section>
-    </main>
-
-    <footer class="footer muted">Messages stored in Supabase</footer>
+<div id="chat-container" class="container" style="display:none;">
+  <div id="chat-header">
+    <h2>Realtime Chat</h2>
+    <span id="current-user"></span>
   </div>
+  <ul id="messages"></ul>
+  <div id="typing-indicator"></div>
+  <form id="chat-form">
+    <input id="chat-input" placeholder="Type a message..." autocomplete="off">
+    <button type="submit">Send</button>
+  </form>
+</div>
 
-  <!-- App JS (deferred) -->
-  <script defer src="script.js"></script>
 </body>
 </html>
