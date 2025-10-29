@@ -1,7 +1,8 @@
-// ✅ SET THESE:
-const SUPABASE_URL = "https://gwgrxmmugsjnflvcybcq.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ✅ Correct Supabase initialization
+const client = window.supabase.createClient(
+  "https://gwgrxmmugsjnflvcybcq.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0"
+);
 
 // DOM
 const messagesUI = document.getElementById("messages");
@@ -13,7 +14,7 @@ const typingIndicator = document.getElementById("typing-indicator");
 let username = null;
 let typingTimeout = null;
 
-// ✅ Auto-generate username: user_1, user_2, user_3...
+// ✅ Auto-assign username: user_1, user_2, user_3...
 async function assignUser() {
   const stored = localStorage.getItem("user_name");
   if (stored) {
@@ -22,7 +23,7 @@ async function assignUser() {
     return;
   }
 
-  const { count } = await supabase
+  const { count } = await client
     .from("messages")
     .select("*", { count: "exact", head: true });
 
@@ -34,7 +35,7 @@ async function assignUser() {
 
 // ✅ Load messages
 async function loadMessages() {
-  const { data } = await supabase
+  const { data } = await client
     .from("messages")
     .select("*")
     .order("id", { ascending: true });
@@ -43,9 +44,10 @@ async function loadMessages() {
   data.forEach(addMessageToUI);
 }
 
-// ✅ Live updates
+// ✅ Realtime subscription
 function subscribeRealtime() {
-  supabase.channel("realtime-chat")
+  client
+    .channel("realtime-chat")
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "messages" },
@@ -62,14 +64,16 @@ function addMessageToUI(msg) {
   messagesUI.scrollTop = messagesUI.scrollHeight;
 }
 
-// ✅ Send message
+// ✅ SEND MESSAGE (button + Enter key)
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (input.value.trim() === "") return;
 
-  await supabase.from("messages").insert({
+  const text = input.value.trim();
+  if (!text) return;
+
+  await client.from("messages").insert({
     username: username,
-    message: input.value
+    message: text
   });
 
   input.value = "";
@@ -85,8 +89,8 @@ input.addEventListener("input", () => {
   }, 700);
 });
 
-// ✅ Initialize
-(async function start() {
+// ✅ Start everything
+(async function init() {
   await assignUser();
   await loadMessages();
   subscribeRealtime();
