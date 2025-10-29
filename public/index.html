@@ -1,36 +1,22 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Chat App</title>
-    <style>
-      body { font-family: Arial; }
-      #messages { list-style-type: none; padding: 0; }
-      #messages li { padding: 5px 10px; }
-    </style>
-  </head>
-  <body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="chat-container">
+    <h1>Chat Room</h1>
     <ul id="messages"></ul>
-    <input id="input" autocomplete="off" /><button onclick="sendMsg()">Send</button>
+    <form id="chat-form">
+      <input id="input" autocomplete="off" placeholder="Type a message..." />
+      <button>Send</button>
+    </form>
+  </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
-      const input = document.getElementById("input");
-      const messages = document.getElementById("messages");
-
-      socket.on("chat message", function(msg){
-        const li = document.createElement("li");
-        li.textContent = msg;
-        messages.appendChild(li);
-      });
-
-      function sendMsg() {
-        const msg = input.value;
-        if(msg) {
-          socket.emit("chat message", msg);
-          input.value = "";
-        }
-      }
-    </script>
-  </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
 </html>
