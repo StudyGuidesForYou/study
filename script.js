@@ -2,55 +2,48 @@
 const SUPABASE_URL = 'https://gwgrxmmugsjnflvcybcq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0';
 
-console.log("[chat] Initializing Supabase client...");
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabase;
+let currentUser;
+let userNumber = 1;
 
-let currentUser = null;
-
-// DOM Elements
-const displayContainer = document.getElementById("display-container");
-const displayInput = document.getElementById("display-name");
-const enterButton = document.getElementById("enter-chat");
-const displayMsg = document.getElementById("display-msg");
+// ===== DOM Elements =====
+const usernameContainer = document.getElementById("username-container");
+const usernameInput = document.getElementById("username-input");
+const enterChatBtn = document.getElementById("enter-chat");
 
 const chatContainer = document.getElementById("chat-container");
+const currentUserSpan = document.getElementById("current-user");
 const messages = document.getElementById("messages");
-const chatForm = document.getElementById("chat-form");
-const chatInput = document.getElementById("chat-input");
-const userLabel = document.getElementById("user-label");
+const form = document.getElementById("chat-form");
+const input = document.getElementById("input");
 
-// ===== Enter chat =====
-enterButton.onclick = () => {
-  let name = displayInput.value.trim();
-  if (!name) {
-    displayMsg.textContent = "Please enter a display name!";
+// ===== Initialize after page load =====
+window.onload = async () => {
+  console.log("[STATUS] Initializing Supabase client...");
+  
+  if (!window.supabase) {
+    console.error("[ERROR] Supabase library not loaded!");
+    alert("Supabase library not loaded. Check console.");
     return;
   }
-  currentUser = name;
-  localStorage.setItem("chat_username", currentUser);
-  displayContainer.style.display = "none";
+  
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log("[STATUS] Supabase client ready.");
+};
+
+// ===== Enter Chat =====
+enterChatBtn.onclick = () => {
+  const name = usernameInput.value.trim();
+  currentUser = name || `user_${userNumber++}`;
+  usernameContainer.style.display = "none";
   chatContainer.style.display = "flex";
-  userLabel.textContent = currentUser;
-  console.log(`[chat] Entered as ${currentUser}`);
+  currentUserSpan.textContent = currentUser;
+
   loadMessages();
   subscribeMessages();
 };
 
-// ===== Load saved username =====
-window.onload = () => {
-  const saved = localStorage.getItem("chat_username");
-  if (saved) {
-    currentUser = saved;
-    displayContainer.style.display = "none";
-    chatContainer.style.display = "flex";
-    userLabel.textContent = currentUser;
-    console.log(`[chat] Using saved username: ${currentUser}`);
-    loadMessages();
-    subscribeMessages();
-  }
-};
-
-// ===== Load last messages =====
+// ===== Load Last 500 Messages =====
 async function loadMessages() {
   try {
     const { data, error } = await supabase
@@ -63,45 +56,50 @@ async function loadMessages() {
 
     messages.innerHTML = "";
     data.forEach(msg => {
-      const li = document.createElement("li");
-      li.textContent = `${msg.username}: ${msg.message}`;
-      messages.appendChild(li);
+      appendMessage(msg.username, msg.message);
     });
     messages.scrollTop = messages.scrollHeight;
   } catch (err) {
-    console.error("[chat] Load messages error:", err);
+    console.error("[ERROR] Loading messages:", err);
   }
 }
 
-// ===== Send message =====
-chatForm.addEventListener("submit", async (e) => {
+// ===== Append Message to Chat =====
+function appendMessage(username, message) {
+  const li = document.createElement("li");
+  li.textContent = `${username}: ${message}`;
+  messages.appendChild(li);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// ===== Send Message =====
+form.addEventListener("submit", async e => {
   e.preventDefault();
-  const msg = chatInput.value.trim();
+  const msg = input.value.trim();
   if (!msg || !currentUser) return;
 
   try {
-    console.log("[chat] Sending message:", msg);
-    const { data, error } = await supabase
-      .from('messages')
-      .insert([{ username: currentUser, message: msg }]);
-
-    if (error) throw error;
-    chatInput.value = "";
+    await supabase.from('messages').insert([{ username: currentUser, message: msg }]);
+    input.value = "";
   } catch (err) {
-    console.error("[chat] Send message error:", err);
+    console.error("[ERROR] Sending message:", err);
   }
 });
 
-// ===== Subscribe to realtime messages =====
+// ===== Real-Time Subscription =====
 function subscribeMessages() {
   supabase
     .channel('public:messages')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-      console.log("[chat] New message:", payload.new);
-      const li = document.createElement("li");
-      li.textContent = `${payload.new.username}: ${payload.new.message}`;
-      messages.appendChild(li);
-      messages.scrollTop = messages.scrollHeight;
+      appendMessage(payload.new.username, payload.new.message);
     })
     .subscribe();
 }
+
+// ===== Enter Key Support =====
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    form.dispatchEvent(new Event("submit"));
+  }
+});
