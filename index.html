@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supabase Chat</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- Load Supabase FIRST -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Realtime Supabase Chat</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- Supabase CDN MUST be loaded BEFORE script.js -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
 </head>
 <body>
-  <!-- Display Name Prompt -->
-  <div id="display-name-container" class="container">
-    <h2>Enter your display name</h2>
-    <input id="display-name-input" placeholder="Your display name">
-    <button id="display-name-btn">Join Chat</button>
-    <p id="display-name-msg" class="message"></p>
-  </div>
 
-  <!-- Chat Container -->
-  <div id="chat-container" class="container chat" style="display:none;">
-    <div id="chat-header">
-      <h2>Supabase Chat</h2>
-      <span id="current-user"></span>
-    </div>
-    <ul id="messages"></ul>
-    <form id="chat-form">
-      <input id="input" placeholder="Type a message..." autocomplete="off">
-      <button type="submit">Send</button>
-    </form>
-  </div>
+<div id="display-name-container" class="container">
+  <h2>Enter your display name</h2>
+  <input id="display-name-input" placeholder="Display Name">
+  <button id="start-chat">Join Chat</button>
+  <p id="name-msg" class="message"></p>
+</div>
 
-  <script src="script.js"></script>
+<div id="chat-container" class="container chat" style="display:none;">
+  <div id="chat-header">
+    <h2>Supabase Chat</h2>
+    <span id="current-user"></span>
+  </div>
+  <ul id="messages"></ul>
+  <form id="chat-form">
+    <input id="input" placeholder="Type a message..." autocomplete="off">
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
