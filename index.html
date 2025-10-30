@@ -5,17 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Realtime Chat</title>
 <link rel="stylesheet" href="style.css">
-<!-- Supabase library MUST load first -->
+
+<!-- Supabase Library MUST load FIRST -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
+
+<!-- Our App Script -->
 <script defer src="script.js"></script>
 </head>
 <body>
+
 <div id="chat-container" class="container">
   <ul id="messages"></ul>
+
   <form id="chat-form">
-    <input id="input" placeholder="Type a message..." autocomplete="off">
+    <input id="input" placeholder="Type message..." autocomplete="off">
     <button type="submit">Send</button>
   </form>
 </div>
+
 </body>
 </html>
