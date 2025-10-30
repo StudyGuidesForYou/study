@@ -3,26 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Real-Time Supabase Chat</title>
+  <title>Realtime Supabase Chat</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
-  <script defer src="script.js"></script>
 </head>
 <body>
-  <!-- DISPLAY NAME MODAL -->
-  <div id="display-modal" class="modal">
-    <div class="modal-content">
-      <h2>Enter Display Name</h2>
-      <input id="display-name" placeholder="Your name (optional)">
-      <button id="enter-chat">Enter Chat</button>
-    </div>
+  <div id="display-name-container" class="container">
+    <h2>Enter your display name</h2>
+    <input id="display-name-input" placeholder="Display Name" maxlength="20">
+    <button id="enter-chat">Enter Chat</button>
+    <p id="display-name-msg" class="message"></p>
   </div>
 
-  <!-- CHAT CONTAINER -->
-  <div id="chat-container" class="chat hidden">
+  <div id="chat-container" class="container chat" style="display:none;">
     <div id="chat-header">
       <h2>Supabase Chat</h2>
-      <span id="user-label"></span>
+      <span id="current-user"></span>
     </div>
     <ul id="messages"></ul>
     <form id="chat-form">
@@ -30,5 +26,7 @@
       <button type="submit">Send</button>
     </form>
   </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
