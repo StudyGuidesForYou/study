@@ -3,32 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supabase Chat</title>
+  <title>Realtime Chat</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Load Supabase first -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
 </head>
 <body>
-  <!-- DISPLAY NAME INPUT -->
-  <div id="display-container" class="container">
-    <h2>Enter your display name</h2>
-    <input id="display-name" placeholder="Display Name">
+  <div id="display-container" class="center-container">
+    <h2>Enter a display name:</h2>
+    <input type="text" id="display-name" placeholder="Your name">
     <button id="enter-chat">Enter Chat</button>
+    <p id="display-msg" class="message"></p>
   </div>
 
-  <!-- CHAT UI -->
-  <div id="chat-container" class="container" style="display:none;">
+  <div id="chat-container" class="center-container" style="display:none;">
     <div id="chat-header">
-      <h2>Supabase Chat</h2>
-      <span id="current-user"></span>
+      <h2>Realtime Chat</h2>
+      <span id="user-label"></span>
     </div>
     <ul id="messages"></ul>
     <form id="chat-form">
-      <input id="input" placeholder="Type a message..." autocomplete="off">
+      <input id="chat-input" placeholder="Type a message..." autocomplete="off">
       <button type="submit">Send</button>
     </form>
   </div>
 
-  <script src="script.js" defer></script>
+  <script src="script.js"></script>
 </body>
 </html>
