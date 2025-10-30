@@ -6,10 +6,10 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 if (!window.supabase) {
     alert("Supabase library not loaded. Check console.");
-    throw new Error("Supabase library not found");
+    throw new Error("Supabase not loaded");
 }
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ------------------------
 // DOM Elements
@@ -19,23 +19,35 @@ const form = document.getElementById('chat-form');
 const input = document.getElementById('input');
 
 // ------------------------
-// Load last messages
+// User ID
+// ------------------------
+let currentUser = `user_${Math.floor(Math.random() * 10000)}`;
+
+// ------------------------
+// Load existing messages
 // ------------------------
 async function loadMessages() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true })
         .limit(500);
+    if (error) return console.error(error);
 
-    if (error) console.error("[chat] Load error:", error);
     messages.innerHTML = "";
-    if (data) data.forEach(m => {
-        const li = document.createElement('li');
-        li.textContent = m.message;
-        messages.appendChild(li);
+    data.forEach(msg => {
+        appendMessage(msg.message);
     });
     messages.scrollTop = messages.scrollHeight;
+}
+
+// ------------------------
+// Append message
+// ------------------------
+function appendMessage(msg) {
+    const li = document.createElement('li');
+    li.textContent = msg;
+    messages.appendChild(li);
 }
 
 // ------------------------
@@ -46,34 +58,31 @@ form.addEventListener('submit', async e => {
     const msg = input.value.trim();
     if (!msg) return;
 
-    const { data, error } = await supabase
+    input.value = "";
+
+    const { data, error } = await supabaseClient
         .from('messages')
-        .insert([{ message: msg }]);
-    if (error) console.error("[chat] Send error:", error);
-    else input.value = "";
+        .insert([{ username: currentUser, message: msg }]);
+    if (error) console.error(error);
 });
 
+// Support Enter key
 input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') form.dispatchEvent(new Event('submit', { cancelable:true }));
+    if (e.key === 'Enter') form.dispatchEvent(new Event('submit', { cancelable: true }));
 });
 
 // ------------------------
-// Real-time subscription
+// Realtime subscription
 // ------------------------
-function subscribeMessages() {
-    supabase
-        .channel('public:messages')
-        .on('postgres_changes', { event:'INSERT', schema:'public', table:'messages' }, payload => {
-            const li = document.createElement('li');
-            li.textContent = payload.new.message;
-            messages.appendChild(li);
-            messages.scrollTop = messages.scrollHeight;
-        })
-        .subscribe();
-}
+supabaseClient
+    .channel('public:messages')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        appendMessage(payload.new.message);
+        messages.scrollTop = messages.scrollHeight;
+    })
+    .subscribe();
 
 // ------------------------
 // Initialize
 // ------------------------
 loadMessages();
-subscribeMessages();
