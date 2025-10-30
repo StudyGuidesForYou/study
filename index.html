@@ -1,27 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Realtime Chat</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Realtime Chat</title>
+  <link rel="stylesheet" href="style.css">
 
-<!-- Supabase Library MUST load FIRST -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
+  <!-- Primary Supabase UMD CDN (stable) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
 
-<!-- Our App Script -->
-<script defer src="script.js"></script>
+  <!-- NOTE: If the CDN is blocked for you, download the file above and put it at:
+       /libs/supabase.js
+       The app will attempt this local fallback automatically.
+  -->
+  <script defer src="script.js"></script>
 </head>
 <body>
+  <div id="status" class="status">Initializing...</div>
 
-<div id="chat-container" class="container">
-  <ul id="messages"></ul>
+  <div id="chat-wrap" class="container hidden">
+    <h2>Anonymous Realtime Chat</h2>
 
-  <form id="chat-form">
-    <input id="input" placeholder="Type message..." autocomplete="off">
-    <button type="submit">Send</button>
-  </form>
-</div>
+    <ul id="messages" aria-live="polite"></ul>
 
+    <form id="chat-form" autocomplete="off">
+      <input id="input" placeholder="Type a message..." autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <div id="error-box" class="error hidden" role="alert"></div>
 </body>
 </html>
