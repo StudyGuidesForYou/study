@@ -1,93 +1,116 @@
-// ===== Supabase setup =====
-const SUPABASE_URL = "https://gwgrxmmugsjnflvcybcq.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0";
+document.addEventListener("DOMContentLoaded", () => {
 
-console.log("[chat] Initializing Supabase client...");
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log("[chat] Initializing...");
 
-let username = null;
+  // --- Supabase setup ---
+  const SUPABASE_URL = 'https://gwgrxmmugsjnflvcybcq.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0';
 
-// ===== DOM =====
-const displayContainer = document.getElementById("display-container");
-const displayInput = document.getElementById("display-name-input");
-const displayButton = document.getElementById("set-display-name");
-const displayMsg = document.getElementById("display-msg");
-
-const chatContainer = document.getElementById("chat-container");
-const chatForm = document.getElementById("chat-form");
-const chatInput = document.getElementById("chat-input");
-const messagesList = document.getElementById("messages");
-
-// ===== Handle Display Name =====
-displayButton.onclick = async () => {
-  let name = displayInput.value.trim();
-  if(!name) {
-    displayMsg.textContent = "Please enter a display name!";
+  if (!supabase) {
+    console.error("[chat] Supabase library not loaded!");
+    alert("Supabase library not loaded. Check console.");
     return;
   }
-  username = name;
-  localStorage.setItem("chat_username", username);
-  displayContainer.style.display = "none";
-  chatContainer.style.display = "flex";
-  console.log("[chat] Username set:", username);
-  loadMessages();
-  subscribeMessages();
-};
 
-const savedName = localStorage.getItem("chat_username");
-if(savedName) {
-  username = savedName;
-  displayContainer.style.display = "none";
-  chatContainer.style.display = "flex";
-  loadMessages();
-  subscribeMessages();
-}
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let username = null;
 
-// ===== Load last messages =====
-async function loadMessages() {
-  const { data, error } = await supabase
-    .from("messages")
-    .select("*")
-    .order("created_at", { ascending: true })
-    .limit(200);
+  const displayContainer = document.getElementById("display-name-container");
+  const displayInput = document.getElementById("display-name-input");
+  const displayBtn = document.getElementById("display-name-btn");
+  const displayMsg = document.getElementById("display-name-msg");
 
-  if(error) { console.error(error); return; }
+  const chatContainer = document.getElementById("chat-container");
+  const messages = document.getElementById("messages");
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("input");
+  const currentUserSpan = document.getElementById("current-user");
 
-  messagesList.innerHTML = "";
-  data.forEach(m => {
-    const li = document.createElement("li");
-    li.textContent = `${m.username}: ${m.message}`;
-    messagesList.appendChild(li);
+  // Generate user number if needed
+  function generateUserNumber() {
+    const saved = localStorage.getItem("chatUserNumber");
+    if (saved) return saved;
+    const num = Math.floor(Math.random() * 10000);
+    localStorage.setItem("chatUserNumber", num);
+    return num;
+  }
+
+  const userNumber = generateUserNumber();
+
+  // --- Display Name ---
+  displayBtn.addEventListener("click", () => {
+    const val = displayInput.value.trim();
+    if (!val) {
+      displayMsg.textContent = "Please enter a display name!";
+      return;
+    }
+    username = val + "_" + userNumber;
+    console.log("[chat] Using username:", username);
+    displayContainer.style.display = "none";
+    chatContainer.style.display = "flex";
+    currentUserSpan.textContent = username;
+
+    loadMessages();
+    subscribeMessages();
   });
-  messagesList.scrollTop = messagesList.scrollHeight;
-}
 
-// ===== Send message =====
-chatForm.addEventListener("submit", async e => {
-  e.preventDefault();
-  const msg = chatInput.value.trim();
-  if(!msg) return;
+  // --- Load messages ---
+  async function loadMessages() {
+    const { data, error } = await client
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(500);
 
-  console.log("[chat] Sending...", msg);
-  const { data, error } = await supabase
-    .from("messages")
-    .insert([{ username, message: msg }]);
+    if (error) {
+      console.error("[chat] Load messages error:", error);
+      return;
+    }
 
-  if(error) console.error("Send error", error);
-  chatInput.value = "";
-});
-
-// ===== Realtime subscription =====
-function subscribeMessages() {
-  supabase
-    .channel("public:messages")
-    .on("postgres_changes", { event:"INSERT", schema:"public", table:"messages" }, payload => {
-      const m = payload.new;
+    messages.innerHTML = "";
+    data.forEach(m => {
       const li = document.createElement("li");
       li.textContent = `${m.username}: ${m.message}`;
-      messagesList.appendChild(li);
-      messagesList.scrollTop = messagesList.scrollHeight;
-      console.log("[chat] New message:", m);
-    })
-    .subscribe();
-}
+      messages.appendChild(li);
+    });
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // --- Send message ---
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = input.value.trim();
+    if (!msg || !username) return;
+    input.value = "";
+
+    console.log("[chat] Sending:", msg);
+
+    const { data, error } = await client
+      .from('messages')
+      .insert([{ username, message: msg }]);
+
+    if (error) {
+      console.error("[chat] Send error:", error);
+    } else {
+      console.log("[chat] Message sent:", data);
+    }
+  });
+
+  // Allow Enter key to send
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") form.dispatchEvent(new Event("submit"));
+  });
+
+  // --- Realtime subscription ---
+  function subscribeMessages() {
+    client.channel('messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        const li = document.createElement("li");
+        li.textContent = `${payload.new.username}: ${payload.new.message}`;
+        messages.appendChild(li);
+        messages.scrollTop = messages.scrollHeight;
+      })
+      .subscribe();
+  }
+
+});
