@@ -1,116 +1,124 @@
-document.addEventListener("DOMContentLoaded", () => {
+// ------------------------
+// Supabase Setup
+// ------------------------
+console.log("[chat] Initializing Supabase client...");
+const SUPABASE_URL = 'https://gwgrxmmugsjnflvcybcq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0';
 
-  console.log("[chat] Initializing...");
-
-  // --- Supabase setup ---
-  const SUPABASE_URL = 'https://gwgrxmmugsjnflvcybcq.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z3J4bW11Z3NqbmZsdmN5YmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NDY2ODYsImV4cCI6MjA3NzMyMjY4Nn0.uWYdfGWEwo9eRcSMYs0E_t-QVVlupf8An0OAgypY8O0';
-
-  if (!supabase) {
-    console.error("[chat] Supabase library not loaded!");
+if (!window.supabase) {
     alert("Supabase library not loaded. Check console.");
-    return;
-  }
+    console.error("[chat] Supabase library not loaded. Ensure the CDN script is BEFORE script.js");
+} 
 
-  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  let username = null;
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const displayContainer = document.getElementById("display-name-container");
-  const displayInput = document.getElementById("display-name-input");
-  const displayBtn = document.getElementById("display-name-btn");
-  const displayMsg = document.getElementById("display-name-msg");
+// ------------------------
+// DOM Elements
+// ------------------------
+const displayContainer = document.getElementById('display-name-container');
+const displayInput = document.getElementById('display-name-input');
+const startButton = document.getElementById('start-chat');
+const nameMsg = document.getElementById('name-msg');
 
-  const chatContainer = document.getElementById("chat-container");
-  const messages = document.getElementById("messages");
-  const form = document.getElementById("chat-form");
-  const input = document.getElementById("input");
-  const currentUserSpan = document.getElementById("current-user");
+const chatContainer = document.getElementById('chat-container');
+const currentUserSpan = document.getElementById('current-user');
+const messages = document.getElementById('messages');
+const form = document.getElementById('chat-form');
+const input = document.getElementById('input');
 
-  // Generate user number if needed
-  function generateUserNumber() {
-    const saved = localStorage.getItem("chatUserNumber");
-    if (saved) return saved;
-    const num = Math.floor(Math.random() * 10000);
-    localStorage.setItem("chatUserNumber", num);
-    return num;
-  }
+let currentUser = null;
 
-  const userNumber = generateUserNumber();
-
-  // --- Display Name ---
-  displayBtn.addEventListener("click", () => {
-    const val = displayInput.value.trim();
-    if (!val) {
-      displayMsg.textContent = "Please enter a display name!";
-      return;
+// ------------------------
+// Display name handling
+// ------------------------
+startButton.onclick = () => {
+    const name = displayInput.value.trim();
+    if (!name) {
+        nameMsg.textContent = "Please enter a display name!";
+        return;
     }
-    username = val + "_" + userNumber;
-    console.log("[chat] Using username:", username);
-    displayContainer.style.display = "none";
-    chatContainer.style.display = "flex";
-    currentUserSpan.textContent = username;
+    currentUser = name;
+    localStorage.setItem('chatUser', currentUser);
+    startChat();
+};
+
+function startChat() {
+    displayContainer.style.display = 'none';
+    chatContainer.style.display = 'flex';
+    currentUserSpan.textContent = currentUser;
 
     loadMessages();
     subscribeMessages();
-  });
+}
 
-  // --- Load messages ---
-  async function loadMessages() {
-    const { data, error } = await client
-      .from('messages')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(500);
-
-    if (error) {
-      console.error("[chat] Load messages error:", error);
-      return;
+// Check if user already stored
+window.addEventListener('load', () => {
+    const saved = localStorage.getItem('chatUser');
+    if (saved) {
+        currentUser = saved;
+        startChat();
     }
+});
+
+// ------------------------
+// Load messages
+// ------------------------
+async function loadMessages() {
+    console.log("[chat] Loading last messages...");
+    const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(500);
+
+    if (error) console.error(error);
 
     messages.innerHTML = "";
-    data.forEach(m => {
-      const li = document.createElement("li");
-      li.textContent = `${m.username}: ${m.message}`;
-      messages.appendChild(li);
-    });
-    messages.scrollTop = messages.scrollHeight;
-  }
+    if (data) {
+        data.forEach(m => {
+            const li = document.createElement('li');
+            li.textContent = `${m.username}: ${m.message}`;
+            messages.appendChild(li);
+        });
+        messages.scrollTop = messages.scrollHeight;
+    }
+}
 
-  // --- Send message ---
-  form.addEventListener("submit", async (e) => {
+// ------------------------
+// Send message
+// ------------------------
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = input.value.trim();
-    if (!msg || !username) return;
-    input.value = "";
+    if (!msg || !currentUser) return;
 
-    console.log("[chat] Sending:", msg);
+    console.log("[chat] Sending message:", msg);
 
-    const { data, error } = await client
-      .from('messages')
-      .insert([{ username, message: msg }]);
+    const { data, error } = await supabase
+        .from('messages')
+        .insert([{ username: currentUser, message: msg }]);
 
-    if (error) {
-      console.error("[chat] Send error:", error);
-    } else {
-      console.log("[chat] Message sent:", data);
-    }
-  });
-
-  // Allow Enter key to send
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") form.dispatchEvent(new Event("submit"));
-  });
-
-  // --- Realtime subscription ---
-  function subscribeMessages() {
-    client.channel('messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-        const li = document.createElement("li");
-        li.textContent = `${payload.new.username}: ${payload.new.message}`;
-        messages.appendChild(li);
-        messages.scrollTop = messages.scrollHeight;
-      })
-      .subscribe();
-  }
-
+    if (error) console.error("[chat] Send error:", error);
+    else input.value = "";
 });
+
+// Enter key support
+input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') form.dispatchEvent(new Event('submit', { cancelable: true }));
+});
+
+// ------------------------
+// Real-time subscription
+// ------------------------
+function subscribeMessages() {
+    console.log("[chat] Subscribing to messages...");
+    supabase
+        .channel('public:messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+            const li = document.createElement('li');
+            li.textContent = `${payload.new.username}: ${payload.new.message}`;
+            messages.appendChild(li);
+            messages.scrollTop = messages.scrollHeight;
+        })
+        .subscribe();
+}
