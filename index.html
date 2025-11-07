@@ -30,6 +30,7 @@
     border: none;
     background: #222;
     color:white;
+    cursor: pointer;
   }
 </style>
 </head>
@@ -59,6 +60,9 @@ window.onresize = resize; resize();
 
 class Ball{
   constructor(){
+    this.reset();
+  }
+  reset(){
     this.x = cx + (Math.random()*2-1)*50;
     this.y = cy + (Math.random()*2-1)*50;
     const a = Math.random()*Math.PI*2;
@@ -69,24 +73,32 @@ class Ball{
   }
   update(){
     const mode = modeSel.value;
+
+    // Gravity downward
     if(mode=="gravity"){
       this.vy += 0.15;
     }
+
+    // Black hole gravity
     if(mode=="blackhole"){
       const dx = blackhole.x - this.x;
       const dy = blackhole.y - this.y;
       const d = Math.sqrt(dx*dx+dy*dy);
-      const g = 2000/(d*d+50);
+      const g = Math.min(50, 2000/(d*d+50)); // prevent crazy speed
       this.vx += dx/d*g;
       this.vy += dy/d*g;
+      // optional damping
+      this.vx *= 0.99;
+      this.vy *= 0.99;
     }
 
     this.x += this.vx;
     this.y += this.vy;
 
+    // Circle boundary collision
     const dx = this.x - cx;
     const dy = this.y - cy;
-    const dist = Math.sqrt(dx*dx+dy*dy);
+    const dist = Math.sqrt(dx*dx + dy*dy);
 
     if(dist > radius){
       const nx = dx/dist;
@@ -95,10 +107,12 @@ class Ball{
       this.vx -= 2*dot*nx;
       this.vy -= 2*dot*ny;
 
-      glow = 1.0;
-
       if(mode=="double"){
-        spawnBall();
+        // double the total balls
+        let current = balls.length;
+        for(let i=0;i<current;i++){
+          spawnBall();
+        }
       }
     }
 
@@ -127,7 +141,13 @@ let camFollow=false;
 let glow=0;
 let modeSel=document.getElementById("mode");
 
+// black hole orbit
 const blackhole={angle:0,x:0,y:0};
+
+// Reset balls when mode changes
+modeSel.onchange = ()=>{
+  balls=[new Ball()];
+}
 
 function loop(){
   requestAnimationFrame(loop);
@@ -136,16 +156,22 @@ function loop(){
   if(glow>0.05) glow*=0.9; else glow=0.05;
 
   const mode = modeSel.value;
+
+  // Black hole orbit
   if(mode=="blackhole"){
     blackhole.angle += 0.01;
-    blackhole.x = cx + Math.cos(blackhole.angle)*(radius-20);
-    blackhole.y = cy + Math.sin(blackhole.angle)*(radius-20);
+    blackhole.x = cx + Math.cos(blackhole.angle)*(radius+50); // orbit outside
+    blackhole.y = cy + Math.sin(blackhole.angle)*(radius+50);
     ctx.beginPath();
+    let grad = ctx.createRadialGradient(blackhole.x,blackhole.y,5,blackhole.x,blackhole.y,25);
+    grad.addColorStop(0,"white");
+    grad.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.fillStyle=grad;
     ctx.arc(blackhole.x,blackhole.y,15,0,Math.PI*2);
-    ctx.fillStyle="white";
     ctx.fill();
   }
 
+  // Camera
   let camX=0, camY=0;
   if(camFollow && balls.length>0){
     camX = cx - balls[0].x;
@@ -154,19 +180,21 @@ function loop(){
   ctx.save();
   ctx.translate(camX, camY);
 
+  // Outer circle
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI*2);
   ctx.strokeStyle=`rgba(0,255,0,${glow})`;
   ctx.lineWidth=5;
   ctx.stroke();
 
+  // Update & draw all balls
   for(const b of balls){ b.update(); b.draw(); }
 
   ctx.restore();
 }
 loop();
 
-// UI
+// UI buttons
 addBallBtn.onclick=()=>spawnBall();
 toggleCamBtn.onclick=()=>camFollow=!camFollow;
 </script>
