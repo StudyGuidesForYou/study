@@ -21,7 +21,7 @@
     border-radius: 12px;
     backdrop-filter: blur(10px);
   }
-  button, select {
+  button, select, input {
     width: 150px;
     margin: 5px 0;
     padding: 6px;
@@ -31,6 +31,15 @@
     background: #222;
     color:white;
     cursor: pointer;
+  }
+  #combineModes {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  label {
+    font-size: 14px;
+    margin: 2px 0;
   }
 </style>
 </head>
@@ -45,11 +54,17 @@
     <option value="blackhole">Gravity Ball</option>
     <option value="double">Double Trouble</option>
   </select>
+  <div id="combineModes">
+    <label><input type="checkbox" value="gravity"> Gravity</label>
+    <label><input type="checkbox" value="blackhole"> Gravity Ball</label>
+    <label><input type="checkbox" value="double"> Double Trouble</label>
+  </div>
 </div>
 <script>
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 let w, h, cx, cy, radius;
+
 function resize(){
   w = canvas.width = window.innerWidth;
   h = canvas.height = window.innerHeight;
@@ -72,43 +87,46 @@ class Ball{
     this.trail=[];
   }
   update(){
-    const mode = modeSel.value;
+    const modes = getActiveModes();
 
     // Gravity downward
-    if(mode=="gravity"){
-      this.vy += 0.15;
+    if(modes.includes("gravity")){
+      this.vy += 0.3; // stronger gravity
     }
 
     // Black hole gravity
-    if(mode=="blackhole"){
+    if(modes.includes("blackhole")){
       const dx = blackhole.x - this.x;
       const dy = blackhole.y - this.y;
-      const d = Math.sqrt(dx*dx+dy*dy);
-      const g = Math.min(50, 2000/(d*d+50)); // prevent crazy speed
+      const d = Math.sqrt(dx*dx + dy*dy);
+      const g = Math.min(50, 2000/(d*d+50));
       this.vx += dx/d*g;
       this.vy += dy/d*g;
-      // optional damping
-      this.vx *= 0.99;
-      this.vy *= 0.99;
     }
 
+    // Apply velocity damping
+    this.vx *= 0.995;
+    this.vy *= 0.995;
+
+    // Update position
     this.x += this.vx;
     this.y += this.vy;
 
-    // Circle boundary collision
+    // Circle boundary collision (bounce)
     const dx = this.x - cx;
     const dy = this.y - cy;
     const dist = Math.sqrt(dx*dx + dy*dy);
-
     if(dist > radius){
       const nx = dx/dist;
       const ny = dy/dist;
       const dot = this.vx*nx + this.vy*ny;
       this.vx -= 2*dot*nx;
       this.vy -= 2*dot*ny;
+      // damping on bounce
+      this.vx *= 0.9;
+      this.vy *= 0.9;
 
-      if(mode=="double"){
-        // double the total balls
+      if(modes.includes("double")){
         let current = balls.length;
         for(let i=0;i<current;i++){
           spawnBall();
@@ -116,6 +134,7 @@ class Ball{
       }
     }
 
+    // Trail
     this.trail.push({x:this.x,y:this.y});
     if(this.trail.length>50) this.trail.shift();
   }
@@ -124,13 +143,18 @@ class Ball{
       const p = this.trail[i];
       ctx.beginPath();
       ctx.arc(p.x,p.y,3,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${i*3},100%,50%,0.3)`;
+      ctx.fillStyle=`hsla(${i*5},100%,50%,0.3)`;
       ctx.fill();
     }
     ctx.beginPath();
     ctx.arc(this.x,this.y,10,0,Math.PI*2);
     ctx.fillStyle = "lime";
     ctx.fill();
+    // Add subtle glow
+    ctx.shadowColor = "lime";
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
   }
 }
 
@@ -138,36 +162,61 @@ let balls=[new Ball()];
 function spawnBall(){balls.push(new Ball());}
 
 let camFollow=false;
-let glow=0;
 let modeSel=document.getElementById("mode");
+const combineCheckboxes = document.querySelectorAll("#combineModes input");
 
-// black hole orbit
+// Black hole
 const blackhole={angle:0,x:0,y:0};
 
-// Reset balls when mode changes
+// Mode reset
 modeSel.onchange = ()=>{
   balls=[new Ball()];
+  updateCheckboxesFromSelect();
+}
+
+// Combine checkbox logic
+combineCheckboxes.forEach(cb=>{
+  cb.addEventListener("change", ()=>{
+    // turn off conflicting modes
+    combineCheckboxes.forEach(other=>{
+      if(other!==cb) other.checked=false;
+    });
+    // update dropdown to match
+    modeSel.value = cb.checked ? cb.value : "none";
+    balls=[new Ball()];
+  });
+});
+
+// helper: get active modes from checkboxes
+function getActiveModes(){
+  return Array.from(combineCheckboxes).filter(cb=>cb.checked).map(cb=>cb.value);
+}
+
+function updateCheckboxesFromSelect(){
+  combineCheckboxes.forEach(cb=>{
+    cb.checked = cb.value === modeSel.value;
+  });
 }
 
 function loop(){
   requestAnimationFrame(loop);
   ctx.clearRect(0,0,w,h);
 
-  if(glow>0.05) glow*=0.9; else glow=0.05;
-
-  const mode = modeSel.value;
+  const modes = getActiveModes();
 
   // Black hole orbit
-  if(mode=="blackhole"){
+  if(modes.includes("blackhole")){
     blackhole.angle += 0.01;
-    blackhole.x = cx + Math.cos(blackhole.angle)*(radius+50); // orbit outside
+    blackhole.x = cx + Math.cos(blackhole.angle)*(radius+50);
     blackhole.y = cy + Math.sin(blackhole.angle)*(radius+50);
-    ctx.beginPath();
-    let grad = ctx.createRadialGradient(blackhole.x,blackhole.y,5,blackhole.x,blackhole.y,25);
+
+    let grad = ctx.createRadialGradient(blackhole.x,blackhole.y,5,blackhole.x,blackhole.y,35);
     grad.addColorStop(0,"white");
-    grad.addColorStop(1,"rgba(255,255,255,0)");
-    ctx.fillStyle=grad;
-    ctx.arc(blackhole.x,blackhole.y,15,0,Math.PI*2);
+    grad.addColorStop(0.5,"cyan");
+    grad.addColorStop(1,"rgba(0,255,255,0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(blackhole.x,blackhole.y,20,0,Math.PI*2);
     ctx.fill();
   }
 
@@ -183,7 +232,7 @@ function loop(){
   // Outer circle
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI*2);
-  ctx.strokeStyle=`rgba(0,255,0,${glow})`;
+  ctx.strokeStyle="rgba(0,255,0,0.5)";
   ctx.lineWidth=5;
   ctx.stroke();
 
@@ -195,8 +244,8 @@ function loop(){
 loop();
 
 // UI buttons
-addBallBtn.onclick=()=>spawnBall();
-toggleCamBtn.onclick=()=>camFollow=!camFollow;
+document.getElementById("addBallBtn").onclick = ()=>spawnBall();
+document.getElementById("toggleCamBtn").onclick = ()=>camFollow = !camFollow;
 </script>
 </body>
 </html>
