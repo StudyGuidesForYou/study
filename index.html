@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ultimate Ball Simulator</title>
 <style>
-body { margin:0; background:black; overflow:hidden; font-family:Arial,sans-serif; color:white;}
+body { margin:0; background:black; overflow:hidden; font-family:Arial,sans-serif; color:white; }
 #ui {position:fixed; top:10px; right:10px; background:rgba(20,20,20,0.85); padding:15px; border-radius:12px; backdrop-filter:blur(10px); z-index:10;}
 button, select, input {width:150px; margin:5px 0; padding:6px; font-size:14px; border-radius:8px; border:none; background:#222; color:white; cursor:pointer;}
 #combineModes {margin-top:10px; display:flex; flex-direction:column;}
@@ -34,59 +34,74 @@ label {font-size:14px; margin:2px 0; cursor:pointer;}
   <input type="range" id="speedSlider" min="0.2" max="3" step="0.05" value="1">
 </div>
 <script>
-const canvas=document.getElementById("c"), ctx=canvas.getContext("2d");
+const canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
 let w,h,cx,cy,radius;
 function resize(){ w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; cx=w/2; cy=h/2; radius=Math.min(w,h)*0.4; }
-window.onresize=resize; resize();
+window.onresize = resize; resize();
 
-const MAX_BALLS=100;
-let ballSpeed=1;
+const MAX_BALLS = 100;
+let ballSpeed = 1;
 
-// Particles for black hole
+// Particle for black hole
 class Particle{
-  constructor(x,y){ this.x=x; this.y=y; this.vx=(Math.random()-0.5)*2; this.vy=(Math.random()-0.5)*2; this.life=Math.random()*50+50; this.size=Math.random()*3+2; }
+  constructor(x,y){ this.x=x; this.y=y; this.vx=(Math.random()-0.5)*2; this.vy=(Math.random()-0.5)*2; this.life=Math.random()*50+50; this.size=Math.random()*2+2; }
   update(){ this.x+=this.vx; this.y+=this.vy; this.life--; this.size*=0.96; }
   draw(){ ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fillStyle=`rgba(0,255,255,${Math.max(this.life/50,0)})`; ctx.fill(); }
 }
 
-// Ball class
+// Ball class with fixed timestep physics
 class Ball{
-  constructor(){ this.reset(); }
-  reset(){ this.x=cx+(Math.random()*2-1)*50; this.y=cy+(Math.random()*2-1)*50; const a=Math.random()*Math.PI*2; const s=3+Math.random()*2; this.vx=Math.cos(a)*s; this.vy=Math.sin(a)*s; this.trail=[]; }
+  constructor(){ this.reset(); this.collided=false; }
+  reset(){ this.x=cx+(Math.random()*2-1)*50; this.y=cy+(Math.random()*2-1)*50; const a=Math.random()*Math.PI*2; const s=3+Math.random()*2; this.vx=Math.cos(a)*s; this.vy=Math.sin(a)*s; this.trail=[]; this.collided=false; }
   update(){
     const modes=getActiveModes();
-    // Apply gravity
+    this.collided=false;
+
+    // Apply forces
     if(modes.includes("gravity")) this.vy+=0.3*ballSpeed;
-    // Apply black hole pull
     if(modes.includes("blackhole")){
       const dx=blackhole.x-this.x, dy=blackhole.y-this.y;
       const dist=Math.sqrt(dx*dx+dy*dy);
       const g=Math.min(50,2000/(dist*dist+50));
-      this.vx+=dx/dist*g*ballSpeed; this.vy+=dy/dist*g*ballSpeed;
+      this.vx+=dx/dist*g*ballSpeed;
+      this.vy+=dy/dist*g*ballSpeed;
     }
-    // Velocity damping
-    this.vx*=0.995; this.vy*=0.995;
-    // Update position
-    this.x+=this.vx; this.y+=this.vy;
 
-    // Circle boundary collision
-    const dx=this.x-cx, dy=this.y-cy, dist=Math.sqrt(dx*dx+dy*dy);
+    // Limit velocity
+    const maxV=15*ballSpeed;
+    this.vx=Math.max(Math.min(this.vx,maxV),-maxV);
+    this.vy=Math.max(Math.min(this.vy,maxV),-maxV);
+
+    // Predict next position
+    let nextX=this.x+this.vx;
+    let nextY=this.y+this.vy;
+    const dx=nextX-cx, dy=nextY-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
     if(dist>radius){
+      // Reflect velocity along normal
       const nx=dx/dist, ny=dy/dist, dot=this.vx*nx+this.vy*ny;
       this.vx-=2*dot*nx; this.vy-=2*dot*ny;
-      this.vx*=0.9; this.vy*=0.9;
-      // Double Trouble safe spawn
-      if(getActiveModes().includes("double")){
-        const current=balls.length;
-        for(let i=0;i<current;i++) if(balls.length<MAX_BALLS) spawnBall();
-      }
+      // Move to edge
+      nextX=cx+nx*radius; nextY=cy+ny*radius;
+      this.collided=true;
     }
+
+    this.x=nextX; this.y=nextY;
+
+    // Double Trouble spawn once per collision
+    if(modes.includes("double") && this.collided){
+      const current=balls.length;
+      for(let i=0;i<current;i++) if(balls.length<MAX_BALLS) spawnBall();
+    }
+
+    // Trail
     this.trail.push({x:this.x,y:this.y,v:Math.sqrt(this.vx*this.vx+this.vy*this.vy)});
     if(this.trail.length>50) this.trail.shift();
   }
   draw(){
     for(let i=0;i<this.trail.length;i++){
-      const p=this.trail[i]; ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2);
+      const p=this.trail[i];
+      ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2);
       let alpha=Math.min(p.v/10,1);
       ctx.fillStyle=`hsla(${i*5},100%,50%,${alpha*0.4})`; ctx.fill();
     }
@@ -106,7 +121,7 @@ const blackhole={angle:0,x:0,y:0};
 modeSel.onchange=()=>{ balls=[new Ball()]; updateCheckboxesFromSelect(); }
 combineCheckboxes.forEach(cb=>{
   cb.addEventListener("change",()=>{
-    // Mutual exclusion: gravity vs blackhole
+    // Gravity vs blackhole exclusive
     if(cb.value==="gravity" && cb.checked) document.querySelector('input[value="blackhole"]').checked=false;
     if(cb.value==="blackhole" && cb.checked) document.querySelector('input[value="gravity"]').checked=false;
     modeSel.value=cb.checked?cb.value:"none"; balls=[new Ball()];
@@ -119,7 +134,7 @@ function updateCheckboxesFromSelect(){ combineCheckboxes.forEach(cb=>{cb.checked
 const speedSlider=document.getElementById("speedSlider"), speedVal=document.getElementById("speedVal");
 speedSlider.oninput=()=>{ ballSpeed=parseFloat(speedSlider.value); speedVal.textContent=ballSpeed.toFixed(2); }
 
-// Loop
+// Main loop
 function loop(){
   requestAnimationFrame(loop);
   ctx.clearRect(0,0,w,h);
