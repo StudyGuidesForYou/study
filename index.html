@@ -20,6 +20,7 @@
     padding: 15px;
     border-radius: 12px;
     backdrop-filter: blur(10px);
+    z-index: 10;
   }
   button, select, input {
     width: 150px;
@@ -73,7 +74,9 @@ function resize(){
 }
 window.onresize = resize; resize();
 
-class Ball{
+const MAX_BALLS = 100; // Safe cap
+
+class Ball {
   constructor(){
     this.reset();
   }
@@ -84,33 +87,29 @@ class Ball{
     const s = 3 + Math.random()*2;
     this.vx = Math.cos(a)*s;
     this.vy = Math.sin(a)*s;
-    this.trail=[];
+    this.trail = [];
   }
-  update(){
+  update(dt){
     const modes = getActiveModes();
 
     // Gravity downward
     if(modes.includes("gravity")){
-      this.vy += 0.3; // stronger gravity
+      this.vy += 0.3 * dt;
     }
 
     // Black hole gravity
     if(modes.includes("blackhole")){
       const dx = blackhole.x - this.x;
       const dy = blackhole.y - this.y;
-      const d = Math.sqrt(dx*dx + dy*dy);
-      const g = Math.min(50, 2000/(d*d+50));
-      this.vx += dx/d*g;
-      this.vy += dy/d*g;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const g = Math.min(50, 2000/(dist*dist + 50));
+      this.vx += dx/dist * g * dt;
+      this.vy += dy/dist * g * dt;
     }
 
-    // Apply velocity damping
-    this.vx *= 0.995;
-    this.vy *= 0.995;
-
     // Update position
-    this.x += this.vx;
-    this.y += this.vy;
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
 
     // Circle boundary collision (bounce)
     const dx = this.x - cx;
@@ -122,35 +121,38 @@ class Ball{
       const dot = this.vx*nx + this.vy*ny;
       this.vx -= 2*dot*nx;
       this.vy -= 2*dot*ny;
-      // damping on bounce
+      // Bounce damping
       this.vx *= 0.9;
       this.vy *= 0.9;
 
+      // Double Trouble
       if(modes.includes("double")){
         let current = balls.length;
         for(let i=0;i<current;i++){
-          spawnBall();
+          if(balls.length < MAX_BALLS){
+            spawnBall();
+          }
         }
       }
     }
 
-    // Trail
+    // Trails
     this.trail.push({x:this.x,y:this.y});
     if(this.trail.length>50) this.trail.shift();
   }
   draw(){
-    for(let i=1;i<this.trail.length;i++){
+    // Trail
+    for(let i=0;i<this.trail.length;i++){
       const p = this.trail[i];
       ctx.beginPath();
       ctx.arc(p.x,p.y,3,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${i*5},100%,50%,0.3)`;
+      ctx.fillStyle = `hsla(${i*5},100%,50%,0.3)`;
       ctx.fill();
     }
+    // Ball
     ctx.beginPath();
     ctx.arc(this.x,this.y,10,0,Math.PI*2);
     ctx.fillStyle = "lime";
-    ctx.fill();
-    // Add subtle glow
     ctx.shadowColor = "lime";
     ctx.shadowBlur = 10;
     ctx.fill();
@@ -158,36 +160,34 @@ class Ball{
   }
 }
 
-let balls=[new Ball()];
+let balls = [new Ball()];
 function spawnBall(){balls.push(new Ball());}
 
-let camFollow=false;
-let modeSel=document.getElementById("mode");
+// Camera
+let camFollow = false;
+let modeSel = document.getElementById("mode");
 const combineCheckboxes = document.querySelectorAll("#combineModes input");
 
 // Black hole
-const blackhole={angle:0,x:0,y:0};
+const blackhole = {angle:0, x:0, y:0};
 
 // Mode reset
 modeSel.onchange = ()=>{
-  balls=[new Ball()];
+  balls = [new Ball()];
   updateCheckboxesFromSelect();
 }
 
 // Combine checkbox logic
 combineCheckboxes.forEach(cb=>{
   cb.addEventListener("change", ()=>{
-    // turn off conflicting modes
     combineCheckboxes.forEach(other=>{
       if(other!==cb) other.checked=false;
     });
-    // update dropdown to match
     modeSel.value = cb.checked ? cb.value : "none";
-    balls=[new Ball()];
+    balls = [new Ball()];
   });
 });
 
-// helper: get active modes from checkboxes
 function getActiveModes(){
   return Array.from(combineCheckboxes).filter(cb=>cb.checked).map(cb=>cb.value);
 }
@@ -198,15 +198,20 @@ function updateCheckboxesFromSelect(){
   });
 }
 
-function loop(){
+// Time step
+let lastTime = performance.now();
+function loop(time){
   requestAnimationFrame(loop);
+  const dt = (time - lastTime)/16; // normalize for ~60fps
+  lastTime = time;
+
   ctx.clearRect(0,0,w,h);
 
   const modes = getActiveModes();
 
   // Black hole orbit
   if(modes.includes("blackhole")){
-    blackhole.angle += 0.01;
+    blackhole.angle += 0.01 * dt;
     blackhole.x = cx + Math.cos(blackhole.angle)*(radius+50);
     blackhole.y = cy + Math.sin(blackhole.angle)*(radius+50);
 
@@ -229,23 +234,28 @@ function loop(){
   ctx.save();
   ctx.translate(camX, camY);
 
-  // Outer circle
+  // Outer circle glow
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI*2);
   ctx.strokeStyle="rgba(0,255,0,0.5)";
   ctx.lineWidth=5;
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = "lime";
   ctx.stroke();
+  ctx.shadowBlur = 0;
 
-  // Update & draw all balls
-  for(const b of balls){ b.update(); b.draw(); }
+  // Update & draw balls
+  balls.forEach(b => b.update(dt));
+  balls.forEach(b => b.draw());
 
   ctx.restore();
 }
-loop();
+requestAnimationFrame(loop);
 
-// UI buttons
-document.getElementById("addBallBtn").onclick = ()=>spawnBall();
+// UI
+document.getElementById("addBallBtn").onclick = ()=>{if(balls.length<MAX_BALLS) spawnBall();};
 document.getElementById("toggleCamBtn").onclick = ()=>camFollow = !camFollow;
+
 </script>
 </body>
 </html>
