@@ -1,650 +1,235 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Modern Bouncing Character — Neon Physics</title>
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Modern Neon Physics</title>
 <style>
-  :root{
-    --bg:#05030a; --glass: rgba(255,255,255,0.04);
-    --accent1:#7df9ff; --accent2:#ff6ec7; --accent3:#ffd166;
-    --panel: rgba(255,255,255,0.04);
-    --ui-fg:#e9eef7;
-  }
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#05030a 0%, #070516 60%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-  #app{height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-  canvas{display:block; border-radius:16px; box-shadow: 0 40px 80px rgba(2,2,8,0.8), inset 0 1px 0 rgba(255,255,255,0.02);}
-  /* control panel */
-  .ui {
-    position: absolute; left:18px; top:18px; color:var(--ui-fg); z-index:60;
-    display:flex; gap:10px; align-items:center; backdrop-filter: blur(6px);
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.04);
-  }
-  .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--ui-fg);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
-  .toggle{display:flex;flex-direction:column;gap:6px;padding:8px;background:rgba(0,0,0,0.2);border-radius:10px}
-  .small{font-size:12px;opacity:.9}
-  .rightPanel{position:absolute; right:18px; top:18px; width:300px; max-width:40vw; z-index:60; padding:12px; border-radius:12px; background:linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.15)); color:var(--ui-fg); border:1px solid rgba(255,255,255,0.03)}
-  .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-  .label{font-size:13px;opacity:.9}
-  input[type=range]{width:140px}
-  .muted{opacity:.7;font-size:12px;margin-top:6px}
-  footer{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;color:rgba(255,255,255,0.55);font-size:13px}
-  .logo{font-weight:700;letter-spacing:0.6px}
-  /* mobile tweaks */
-  @media(max-width:700px){
-    .rightPanel{display:none}
-    .ui{left:10px; top:10px; padding:8px}
-  }
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        height: 100%;
+        overflow: hidden;
+        font-family: system-ui, sans-serif;
+        user-select: none;
+    }
+
+    #ui {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    button {
+        background: rgba(30,30,30,0.9);
+        color: white;
+        padding: 10px 16px;
+        border: 1px solid rgba(60,60,60,0.9);
+        border-radius: 10px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.15s;
+    }
+    button:hover {
+        background: rgba(60,60,60,1);
+    }
+
+    canvas {
+        display: block;
+    }
 </style>
 </head>
 <body>
-<div id="app">
-  <!-- Main canvas layers (drawn in order) -->
-  <canvas id="main" style="width:900px;height:900px"></canvas>
-  <canvas id="glow" style="position:absolute;left:calc(50% - 450px);top:calc(50% - 450px);width:900px;height:900px;pointer-events:none"></canvas>
 
-  <div class="ui">
-    <button class="btn" id="spawn">Spawn</button>
-    <button class="btn" id="clear">Clear</button>
-    <button class="btn" id="rec">Start Recording</button>
-    <div style="width:10px"></div>
-    <div class="toggle small">
-      <label><input type="checkbox" id="perfect" /> Perfect Elasticity</label>
-      <label><input type="checkbox" id="shake" checked /> Camera Shake</label>
-      <label><input type="checkbox" id="autoLoop" checked /> Auto-loop</label>
-    </div>
-  </div>
+<canvas id="c"></canvas>
 
-  <div class="rightPanel" id="panel">
-    <div class="logo">NEON CHARACTER — Physics Lab</div>
-    <div class="muted">Pro physics, glow shaders, particles & procedural faces (client-side)</div>
-    <hr style="opacity:.05;margin:10px 0">
-    <div class="row"><div class="label">Gravity</div><input id="grav" type="range" min="-1" max="2" step="0.01" value="0.05"></div>
-    <div class="row"><div class="label">Restitution</div><input id="rest" type="range" min="0" max="1.2" step="0.01" value="0.98"></div>
-    <div class="row"><div class="label">Friction (rolling)</div><input id="fric" type="range" min="0" max="0.1" step="0.001" value="0.01"></div>
-    <div class="row"><div class="label">Trail length</div><input id="trail" type="range" min="0" max="40" step="1" value="20"></div>
-    <div class="row"><div class="label">Particle burst</div><input id="pburst" type="range" min="0" max="120" step="1" value="36"></div>
-    <div class="row"><div class="label">Camera zoom</div><input id="zoom" type="range" min="0.9" max="1.2" step="0.01" value="1"></div>
-    <hr style="opacity:.05;margin:10px 0">
-    <div class="muted">Export</div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn" id="size1">Square 1:1</button>
-      <button class="btn" id="size2">Vertical 9:16</button>
-    </div>
-    <div class="muted" style="margin-top:8px">Tip: press canvas to spawn ball. Use Perfect Elasticity for zero energy loss.</div>
-  </div>
-
-  <footer>Made for TikTok / Shorts — drag & drop to GitHub Pages • <span style="opacity:.6">No backend</span></footer>
+<div id="ui">
+    <button id="followBtn">Camera Follow: OFF</button>
+    <button id="addBallBtn">Add Ball</button>
 </div>
 
-<!-- Matter.js (physics) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-
 <script>
-/*
-  Modern Neon Character — single-file.
-  Uses Matter.js for physics. Multiple visual layers:
-   - main canvas: scene + shading
-   - glow canvas: blurred bright pass for bloom
-  Procedural faces/textures use simplex noise (inline).
-*/
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
 
-// ---------- Utilities: Simplex noise (fast, small) ----------
-/* Simplex / Perlin fallback: small 2D noise implementation */
-class Simplex {
-  constructor(seed=0){
-    this.p = new Uint8Array(512);
-    for (let i=0;i<256;i++) this.p[i]=i;
-    // simple LCG shuffle by seed
-    let s = seed>>>0 || 331;
-    for (let i=255;i>0;i--){
-      s = (s * 1664525 + 1013904223) >>> 0;
-      const j = s % (i+1);
-      const t = this.p[i]; this.p[i]=this.p[j]; this.p[j]=t;
+let W = window.innerWidth;
+let H = window.innerHeight;
+canvas.width = W;
+canvas.height = H;
+
+window.addEventListener("resize", () => {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+    computeCircle();
+});
+
+// Circle boundary
+let cx, cy, R;
+function computeCircle() {
+    cx = W / 2;
+    cy = H / 2;
+    R = Math.min(W, H) * 0.42;
+}
+computeCircle();
+
+class Ball {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 400 + Math.random() * 200;
+
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+
+        this.radius = 12;
+        this.trail = [];
+
+        this.hueOffset = Math.random() * 360;
+
+        this.glow = 0;         // 0 = low glow, 1 = collision peak
+        this.glowDecay = 0.92; // how fast glow returns to low
     }
-    for (let i=0;i<256;i++) this.p[i+256]=this.p[i];
-  }
-  grad(hash, x, y){
-    const h = hash & 7;
-    const u = h<4 ? x : y;
-    const v = h<4 ? y : x;
-    return ((h&1)?-u:u) + ((h&2)?-2*v:2*v);
-  }
-  noise(xin, yin){
-    // classic 2D simplex-ish
-    const F2 = 0.366025403;
-    const G2 = 0.211324865;
-    const s = (xin+yin)*F2;
-    const i = Math.floor(xin+s), j = Math.floor(yin+s);
-    const t = (i+j)*G2;
-    const X0 = i-t, Y0 = j-t;
-    const x0 = xin - X0, y0 = yin - Y0;
-    let i1=0,j1=0;
-    if (x0>y0) { i1=1; j1=0 } else { i1=0; j1=1 }
-    const x1 = x0 - i1 + G2, y1 = y0 - j1 + G2;
-    const x2 = x0 - 1 + 2*G2, y2 = y0 - 1 + 2*G2;
-    const ii = i & 255, jj = j & 255;
-    let n0=0,n1=0,n2=0;
-    let t0 = 0.5 - x0*x0 - y0*y0;
-    if (t0>0){ t0*=t0; n0 = t0*t0 * this.grad(this.p[ii+this.p[jj]], x0, y0); }
-    let t1 = 0.5 - x1*x1 - y1*y1;
-    if (t1>0){ t1*=t1; n1 = t1*t1 * this.grad(this.p[ii+i1+this.p[jj+j1]], x1, y1); }
-    let t2 = 0.5 - x2*x2 - y2*y2;
-    if (t2>0){ t2*=t2; n2 = t2*t2 * this.grad(this.p[ii+1+this.p[jj+1]], x2, y2); }
-    return 70 * (n0 + n1 + n2);
-  }
+
+    simulate(dt) {
+        const substeps = 5;
+        const step = dt / substeps;
+
+        for (let i = 0; i < substeps; i++) {
+            this.verlet(step);
+            this.collisionCheck();
+        }
+
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > 600) this.trail.shift();
+
+        this.glow *= this.glowDecay;
+    }
+
+    verlet(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+    }
+
+    collisionCheck() {
+        const dx = this.x - cx;
+        const dy = this.y - cy;
+        const dist = Math.hypot(dx, dy);
+        const maxDist = R - this.radius;
+
+        if (dist > maxDist) {
+            const nx = dx / dist;
+            const ny = dy / dist;
+
+            this.x = cx + nx * maxDist;
+            this.y = cy + ny * maxDist;
+
+            const dot = this.vx * nx + this.vy * ny;
+            this.vx -= 2 * dot * nx;
+            this.vy -= 2 * dot * ny;
+
+            this.glow = 1;
+        }
+    }
+
+    drawTrail() {
+        const len = this.trail.length;
+        for (let i = 1; i < len; i++) {
+            const p = this.trail[i];
+            const hue = (i * 0.8 + this.hueOffset) % 360;
+
+            const radius = this.radius;
+            const alpha = i / len;
+
+            ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    drawBall() {
+        ctx.shadowBlur = this.glow * 35;
+        ctx.shadowColor = "white";
+
+        ctx.fillStyle = `hsl(${this.hueOffset},100%,50%)`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+    }
 }
 
-(function(){
-  // canvases
-  const main = document.getElementById('main');
-  const glow = document.getElementById('glow');
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+let balls = [new Ball(cx, cy - R * 0.5)];
 
-  // responsive size defaults (square)
-  let mode = 'square'; // 'square' or 'vertical'
-  function setSize(w,h){
-    main.style.width = w+'px'; main.style.height = h+'px';
-    glow.style.width = w+'px'; glow.style.height = h+'px';
-    main.width = Math.round(w * dpr); main.height = Math.round(h * dpr);
-    glow.width = Math.round(w * dpr); glow.height = Math.round(h * dpr);
-    mainCtx.setTransform(dpr,0,0,dpr,0,0);
-    glowCtx.setTransform(dpr,0,0,dpr,0,0);
-    center.x = w/2; center.y = h/2;
-    outerR = Math.min(w,h)/2 - 18;
-  }
+document.getElementById("addBallBtn").onclick = () => {
+    balls.push(new Ball(cx, cy));
+};
 
-  // init contexts
-  const mainCtx = main.getContext('2d', { alpha: true });
-  const glowCtx = glow.getContext('2d', { alpha:true });
-  // scaling & layout data
-  const center = {x:450,y:450};
-  let outerR = 420;
+// Camera follow toggle
+let follow = false;
+document.getElementById("followBtn").onclick = () => {
+    follow = !follow;
+    document.getElementById("followBtn").textContent =
+        "Camera Follow: " + (follow ? "ON" : "OFF");
+};
 
-  // default set size
-  setSize(900,900);
-  window.addEventListener('resize', ()=>{
-    const W = Math.min(window.innerWidth-40, 900);
-    const H = (mode==='square') ? W : Math.min(Math.round(W*16/9), window.innerHeight-40);
-    setSize(W, H);
-    // position glow canvas centered
-    const rect = main.getBoundingClientRect();
-    glow.style.left = rect.left + 'px';
-    glow.style.top = rect.top + 'px';
-  });
+function drawBoundary(glowLevel) {
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = `rgba(0,255,120,${0.15 + glowLevel * 0.85})`;
+    ctx.shadowBlur = 25 * glowLevel;
+    ctx.shadowColor = "lime";
 
-  // Matter.js setup
-  const Engine = Matter.Engine,
-        Render = Matter.Render,
-        Runner = Matter.Runner,
-        Bodies = Matter.Bodies,
-        Body = Matter.Body,
-        Composite = Matter.Composite,
-        Events = Matter.Events;
-
-  const engine = Engine.create();
-  engine.world.gravity.y = 0.05; // default, controlled by UI
-  const runner = Runner.create();
-  runner.isFixed = false;
-
-  // high-quality solver settings
-  engine.positionIterations = 20;
-  engine.velocityIterations = 12;
-  engine.constraintIterations = 6;
-  // custom sub-step count
-  const SUBSTEPS = 4;
-
-  // container: circular static boundary (a static circle using many small static segments)
-  // Matter doesn't have an explicit circle wall; create a ring of static edges approximating circle
-  const ring = Composite.create();
-  const ringSegments = 72;
-  for (let i=0;i<ringSegments;i++){
-    const a1 = (i/ ringSegments) * Math.PI * 2;
-    const a2 = ((i+1)/ ringSegments) * Math.PI * 2;
-    const x1 = center.x + Math.cos(a1) * outerR, y1 = center.y + Math.sin(a1) * outerR;
-    const x2 = center.x + Math.cos(a2) * outerR, y2 = center.y + Math.sin(a2) * outerR;
-    const wall = Bodies.rectangle((x1+x2)/2, (y1+y2)/2, Math.hypot(x2-x1,y2-y1)+2, Math.max(6, outerR*0.02), {
-      isStatic: true, angle: Math.atan2(y2-y1,x2-x1), render: {visible:false}, friction:0.0, restitution:1
-    });
-    Composite.add(ring, wall);
-  }
-  Composite.add(engine.world, ring);
-
-  // ball template creation
-  let balls = [];
-  const noise = new Simplex(Math.floor(Math.random()*65535));
-
-  function makeBall(x,y, r=null, speed=null, hue=null){
-    r = r || (10 + Math.random()*24);
-    const mass = Math.max(0.0001, r/18);
-    const body = Bodies.circle(x, y, r, {
-      restitution: parseFloat(document.getElementById('rest').value),
-      friction: 0.001,
-      frictionAir: 0.0008,
-      frictionStatic: 0,
-      density: mass,
-      angularVelocity: (Math.random()-0.5)*6,
-      render: {visible:false}
-    });
-    // random push
-    const ang = Math.random()*Math.PI*2;
-    const sp = (speed === null) ? (160 + Math.random()*360) : speed;
-    Body.setVelocity(body, { x: Math.cos(ang+0.2)*sp, y: Math.sin(ang+0.18)*sp });
-    // aesthetic properties
-    body.__r = r;
-    body.__hue = hue ?? (200 + Math.random()*200);
-    body.__trail = [];
-    body.__noiseSeed = Math.random()*9999;
-    body.__lastImpact = 0;
-    Composite.add(engine.world, body);
-    balls.push(body);
-    return body;
-  }
-
-  // spawn initial character ball (center)
-  makeBall(center.x, center.y - outerR*0.25, 34, 420, 280);
-
-  // collision event -> particles & camera shake
-  const particles = [];
-  function spawnParticles(x,y, count, hue){
-    for (let i=0;i<count;i++){
-      particles.push({
-        x,y,
-        vx: (Math.random()*2-1)*6 + (Math.random()-0.5)*Math.random()*4,
-        vy: (Math.random()*2-1)*6 + (Math.random()-0.5)*Math.random()*4,
-        life: 0.5 + Math.random()*0.8,
-        r: 1 + Math.random()*3,
-        hue: hue + (Math.random()*40-20)
-      });
-    }
-  }
-
-  // detect collisions with ring segments => reflect handled by engine but we produce effects
-  Events.on(engine, 'collisionStart', (e) => {
-    const pairs = e.pairs;
-    for (const p of pairs){
-      const A = p.bodyA, B = p.bodyB;
-      // one of them is wall segment (isStatic true)
-      if ((A.isStatic && !B.isStatic) || (B.isStatic && !A.isStatic)){
-        const ball = A.isStatic ? B : A;
-        if (!ball.__r) continue;
-        const mag = Math.hypot(ball.velocity.x, ball.velocity.y);
-        const strength = Math.min(1, mag / 300);
-        // particle burst
-        const burst = parseInt(document.getElementById('pburst').value) || 32;
-        spawnParticles(ball.position.x, ball.position.y, Math.round(burst * (0.4 + strength)), ball.__hue);
-        // camera shake
-        ball.__lastImpact = performance.now();
-        // slight energy loss unless perfect mode
-        if (!document.getElementById('perfect').checked){
-          Body.setVelocity(ball, { x: ball.velocity.x * (0.96 - strength*0.02), y: ball.velocity.y * (0.96 - strength*0.02) });
-          Body.setAngularVelocity(ball, ball.angularVelocity * (0.98 - strength*0.02));
-        }
-      }
-      // ball-ball collisions -> small particle & spin transfer
-      if (!A.isStatic && !B.isStatic){
-        const m = Math.min(20, Math.hypot(A.velocity.x - B.velocity.x, A.velocity.y - B.velocity.y));
-        spawnParticles((A.position.x+B.position.x)/2, (A.position.y+B.position.y)/2, Math.round(6 + m*0.03), (A.__hue+B.__hue)/2);
-      }
-    }
-  });
-
-  // effect & render loop
-  let last = performance.now();
-  let recMedia = null;
-  let recChunks = [];
-  let recorder = null;
-  const recBtn = document.getElementById('rec');
-
-  recBtn.addEventListener('click', async ()=>{
-    if (!recorder){
-      // Start recording both canvases composited into one stream
-      const stream = main.captureStream(60);
-      recorder = new MediaRecorder(stream, {mimeType:'video/webm; codecs=vp9'});
-      recChunks = [];
-      recorder.ondataavailable = e => recChunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(recChunks, {type:'video/webm'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'neon-character.webm'; a.click();
-        URL.revokeObjectURL(url);
-        recorder = null;
-        recBtn.textContent = 'Start Recording';
-      };
-      recorder.start();
-      recBtn.textContent = 'Stop Recording';
-    } else {
-      recorder.stop();
-    }
-  });
-
-  function worldStep(dt){
-    // multiple small steps for stability
-    const subDt = dt / SUBSTEPS;
-    for (let i=0;i<SUBSTEPS;i++){
-      Engine.update(engine, subDt*1000);
-    }
-  }
-
-  // helpers: draw ball with glow + procedural face
-  function drawBall(ctx, b, trailLen){
-    const x = b.position.x, y = b.position.y, r = b.__r;
-    // trail handling
-    b.__trail.push({x,y,r,alpha:1});
-    if (b.__trail.length > trailLen) b.__trail.shift();
-
-    // trail rendering
-    for (let i=0;i<b.__trail.length;i++){
-      const t = b.__trail[i];
-      const p = i / b.__trail.length;
-      ctx.globalAlpha = Math.pow(p, 1.1) * 0.35;
-      ctx.beginPath();
-      ctx.fillStyle = `hsl(${b.__hue} 95% ${40 + (1-p)*30}%)`;
-      ctx.arc(t.x, t.y, t.r * (0.8 + p*1.4), 0, Math.PI*2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-
-    // main ball shading (3D-ish)
-    const grad = ctx.createRadialGradient(x - r*0.35, y - r*0.45, r*0.1, x, y, r*1.2);
-    grad.addColorStop(0, `hsla(${b.__hue} 95% 68% / 1)`);
-    grad.addColorStop(0.35, `hsla(${b.__hue} 85% 50% / 0.98)`);
-    grad.addColorStop(1, `hsla(${b.__hue} 90% 12% / 1)`);
     ctx.beginPath();
-    ctx.shadowColor = `hsla(${b.__hue} 95% 60% / 0.9)`;
-    ctx.shadowBlur = Math.max(12, r*0.9);
-    ctx.fillStyle = grad;
-    ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fill();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+
     ctx.shadowBlur = 0;
+}
 
-    // faux specular stripe
-    ctx.beginPath();
-    ctx.globalAlpha = 0.18;
-    ctx.fillStyle = 'white';
-    ctx.ellipse(x - r*0.25, y - r*0.45, r*0.45, r*0.18, Math.PI/5, 0, Math.PI*2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
+let last = performance.now();
 
-    // procedural face: eyes + mouth & texture via noise
-    // texture overlay
-    const noiseScale = 0.018;
-    const nx = b.__noiseSeed;
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(x,y,r-1,0,Math.PI*2);
-    ctx.clip();
-
-    // subtle dot texture
-    const step = Math.max(2, Math.round(r*0.6));
-    for (let yy = -r; yy < r; yy+=step){
-      for (let xx = -r; xx < r; xx+=step){
-        const px = x + xx;
-        const py = y + yy;
-        if ((xx*xx + yy*yy) > r*r) continue;
-        const n = noise.noise((px+nx)*noiseScale, (py+nx)*noiseScale);
-        const alpha = Math.max(0, Math.min(1, 0.45 + n*0.25));
-        ctx.globalAlpha = alpha*0.08;
-        ctx.fillStyle = `hsla(0 0% 100% / 1)`;
-        ctx.fillRect(px - (step*0.4)/2, py - (step*0.4)/2, step*0.4, step*0.4);
-      }
-    }
-    ctx.globalAlpha = 1;
-
-    // face lines
-    const eyeOff = r*0.35;
-    ctx.fillStyle = `rgba(0,0,0,0.9)`;
-    ctx.beginPath();
-    ctx.ellipse(x - eyeOff, y - r*0.05, r*0.18, r*0.12, 0, 0, Math.PI*2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(x + eyeOff, y - r*0.05, r*0.18, r*0.12, 0, 0, Math.PI*2);
-    ctx.fill();
-
-    // mouth that reacts to impact (simple)
-    const impact = Math.min(1, (Math.abs(b.angularVelocity) + Math.hypot(b.velocity.x, b.velocity.y)/200));
-    ctx.beginPath();
-    ctx.fillStyle = `rgba(10,10,12,0.95)`;
-    const mouthW = r*0.9, mouthH = r*0.22 * (0.6 + impact*0.9);
-    ctx.ellipse(x, y + r*0.28, mouthW, mouthH, 0, 0, Math.PI);
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  function render(now){
-    const W = main.width / dpr, H = main.height / dpr;
-    // clear
-    mainCtx.clearRect(0,0,W,H);
-    glowCtx.clearRect(0,0,W,H);
-
-    // background subtle radial
-    const g = mainCtx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0, '#060316');
-    g.addColorStop(1, '#04020a');
-    mainCtx.fillStyle = g;
-    mainCtx.fillRect(0,0,W,H);
-
-    // vignette + center glow
-    const vg = mainCtx.createRadialGradient(center.x, center.y, outerR*0.1, center.x, center.y, outerR*1.6);
-    vg.addColorStop(0, 'rgba(255,255,255,0.02)');
-    vg.addColorStop(1, 'rgba(0,0,0,0.55)');
-    mainCtx.fillStyle = vg;
-    mainCtx.fillRect(0,0,W,H);
-
-    // radial circle boundary subtle
-    mainCtx.beginPath();
-    mainCtx.lineWidth = Math.max(2, outerR*0.012);
-    mainCtx.strokeStyle = 'rgba(255,255,255,0.06)';
-    mainCtx.arc(center.x, center.y, outerR, 0, Math.PI*2);
-    mainCtx.stroke();
-
-    // camera transform (zoom + shake)
-    mainCtx.save();
-    const zoom = parseFloat(document.getElementById('zoom').value);
-    let shakeX = 0, shakeY = 0;
-    if (document.getElementById('shake').checked){
-      // shake depends on recent impacts
-      let maxShake = 0;
-      for (const b of balls){
-        const since = (performance.now() - b.__lastImpact) / 1000;
-        if (since < 0.4){
-          const s = Math.max(0, 0.24 - since*0.6); // fade
-          maxShake = Math.max(maxShake, s * Math.min(1, Math.hypot(b.velocity.x,b.velocity.y)/420));
-        }
-      }
-      const q = maxShake;
-      shakeX = (Math.random()*2-1)*q*8;
-      shakeY = (Math.random()*2-1)*q*8;
-    }
-    mainCtx.translate(shakeX, shakeY);
-    mainCtx.scale(zoom, zoom);
-
-    // draw particles (under balls) on main
-    for (let i = particles.length-1; i>=0; i--){
-      const p = particles[i];
-      p.life -= (1/60);
-      if (p.life <= 0){ particles.splice(i,1); continue; }
-      p.x += p.vx; p.y += p.vy; p.vy += 0.12; // subtle gravity on particles
-      mainCtx.globalAlpha = Math.max(0, Math.min(1, p.life));
-      mainCtx.beginPath();
-      mainCtx.fillStyle = `hsl(${p.hue} 95% 60%)`;
-      mainCtx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      mainCtx.fill();
-      mainCtx.globalAlpha = 1;
-    }
-
-    // balls sorted by y for soft occlusion
-    const sortedBalls = balls.slice().sort((a,b)=> (a.position.y - b.position.y));
-    const trailLen = parseInt(document.getElementById('trail').value,10) || 18;
-
-    // draw each ball
-    for (const b of sortedBalls) drawBall(mainCtx, b, trailLen);
-
-    mainCtx.restore();
-
-    // glow pass: draw bright parts with blur
-    glowCtx.clearRect(0,0,W,H);
-    // draw slightly larger luminous circles into glowCtx
-    for (const b of sortedBalls){
-      const x = b.position.x, y = b.position.y, r = b.__r;
-      glowCtx.beginPath();
-      glowCtx.globalAlpha = 0.65;
-      glowCtx.fillStyle = `hsl(${b.__hue} 95% 60%)`;
-      glowCtx.arc(x, y, r*1.35, 0, Math.PI*2);
-      glowCtx.fill();
-      glowCtx.globalAlpha = 1;
-    }
-    // blur the glow canvas by drawing scaled copy multiple times (cheap bloom)
-    // create an offscreen temporary canvas to blur with ctx.filter if supported
-    glowCtx.save();
-    glowCtx.filter = 'blur(18px) saturate(120%)';
-    const glowImg = glowCtx.getImageData(0,0,glow.width,glow.height);
-    glowCtx.putImageData(glowImg,0,0);
-    glowCtx.restore();
-
-    // additive composite glow onto main
-    mainCtx.save();
-    mainCtx.globalCompositeOperation = 'lighter';
-    mainCtx.drawImage(glow, 0, 0, W, H);
-    mainCtx.globalCompositeOperation = 'source-over';
-    mainCtx.restore();
-
-    // subtle vignette top layer
-    mainCtx.beginPath();
-    const v = mainCtx.createRadialGradient(center.x, center.y, outerR*0.2, center.x, center.y, outerR*1.6);
-    v.addColorStop(0, 'rgba(0,0,0,0)');
-    v.addColorStop(1, 'rgba(0,0,0,0.45)');
-    mainCtx.fillStyle = v;
-    mainCtx.fillRect(0,0,W,H);
-
-    // HUD small center sparkle
-    mainCtx.beginPath();
-    mainCtx.fillStyle = 'rgba(255,255,255,0.02)';
-    mainCtx.arc(center.x, center.y, 3,0,Math.PI*2);
-    mainCtx.fill();
-
-    // cleanup trails older than cap for each ball (keeps memory low)
-    mainCtx.globalAlpha = 1;
-  }
-
-  // main animation + physics tick
-  function tick(t){
-    const now = performance.now();
-    let dt = Math.min(0.05, (now - last)/1000);
+function animate(now) {
+    requestAnimationFrame(animate);
+    const dt = Math.min((now - last) / 1000, 0.02);
     last = now;
-    // world param updates from UI
-    engine.world.gravity.y = parseFloat(document.getElementById('grav').value);
-    const rest = parseFloat(document.getElementById('rest').value);
-    for (const b of balls){ b.restitution = rest; b.friction = parseFloat(document.getElementById('fric').value); b.__hue = b.__hue; }
-    // simulate physics with substeps
-    worldStep(dt);
-    // apply rolling friction and rolling/damping manually for realism
-    const rolling = parseFloat(document.getElementById('fric').value) || 0.01;
-    for (const b of balls){
-      // angular friction
-      Body.setAngularVelocity(b, b.angularVelocity * (1 - rolling*0.6));
-      // small linear rolling drag dependent on radius
-      Body.setVelocity(b, { x: b.velocity.x * (1 - rolling*0.35), y: b.velocity.y * (1 - rolling*0.35) });
-      // cap extreme velocities (stability)
-      const speed = Math.hypot(b.velocity.x, b.velocity.y);
-      const maxSpeed = 2400;
-      if (speed > maxSpeed){
-        Body.setVelocity(b, { x: b.velocity.x * (maxSpeed/speed), y: b.velocity.y * (maxSpeed/speed) });
-      }
-      // keep balls center-corrected if outside due to numerical drift
-      const dx = b.position.x - center.x, dy = b.position.y - center.y;
-      const dist = Math.hypot(dx,dy);
-      if (dist + b.__r > outerR - 2){
-        const nx = dx / dist, ny = dy / dist;
-        // nudge inside
-        Body.setPosition(b, { x: center.x + nx * (outerR - b.__r - 2), y: center.y + ny * (outerR - b.__r - 2) });
-      }
+
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, W, H);
+
+    if (follow) {
+        const target = balls[0];
+        const dx = cx - target.x;
+        const dy = cy - target.y;
+        ctx.save();
+        ctx.translate(dx, dy);
     }
 
-    // update & cull particles
-    for (let i = particles.length-1; i>=0; i--){
-      if (particles[i].life <= 0) particles.splice(i,1);
+    let boundaryGlow = 0;
+
+    for (let b of balls) {
+        b.simulate(dt);
+        if (b.glow > boundaryGlow) boundaryGlow = b.glow;
     }
 
-    // render visuals
-    render(now);
+    for (let b of balls) b.drawTrail();
+    drawBoundary(boundaryGlow);
+    for (let b of balls) b.drawBall();
 
-    // auto-loop: gently re-energize if system calms down
-    if (document.getElementById('autoLoop').checked){
-      const totalEnergy = balls.reduce((s,b)=> s + (0.5 * b.mass * (b.velocity.x*b.velocity.x + b.velocity.y*b.velocity.y)), 0);
-      if (totalEnergy < 6000 && balls.length < 12){
-        // spawn a burst
-        for (let i=0;i<2;i++){
-          const ang = Math.random()*Math.PI*2;
-          const px = center.x + Math.cos(ang)*(outerR*0.45);
-          const py = center.y + Math.sin(ang)*(outerR*0.45);
-          makeBall(px,py, 12 + Math.random()*26, 320 + Math.random()*420);
-        }
-      }
-    }
+    if (follow) ctx.restore();
+}
 
-    requestAnimationFrame(tick);
-  }
-
-  // UI events
-  document.getElementById('spawn').addEventListener('click', ()=> {
-    const ang = Math.random()*Math.PI*2;
-    const px = center.x + Math.cos(ang)*(outerR*0.45);
-    const py = center.y + Math.sin(ang)*(outerR*0.45);
-    makeBall(px,py);
-  });
-
-  document.getElementById('clear').addEventListener('click', ()=> {
-    for (const b of balls) Composite.remove(engine.world, b);
-    balls = [];
-  });
-
-  main.addEventListener('click', (e)=>{
-    const rect = main.getBoundingClientRect();
-    const x = (e.clientX - rect.left);
-    const y = (e.clientY - rect.top);
-    makeBall(x,y, 16 + Math.random()*28, 240 + Math.random()*420);
-  });
-
-  document.getElementById('size1').addEventListener('click', ()=> {
-    mode = 'square';
-    const W = Math.min(window.innerWidth-40, 900);
-    setSize(W, W);
-  });
-  document.getElementById('size2').addEventListener('click', ()=> {
-    mode = 'vertical';
-    const W = Math.min(window.innerWidth-40, 580);
-    const H = Math.min(window.innerHeight-40, Math.round(W*16/9));
-    setSize(W, Math.round(W*16/9));
-  });
-
-  // init positions for glow canvas overlay alignment
-  setTimeout(()=> {
-    const rect = main.getBoundingClientRect();
-    glow.style.left = rect.left + 'px';
-    glow.style.top = rect.top + 'px';
-  }, 50);
-
-  // start runner & animation
-  Runner.run(runner, engine);
-  requestAnimationFrame(tick);
-
-  // helpful: expose a function to add custom "character" messages (optional)
-  window.spawnCharacterLine = function(text){
-    // simple text overlay flash (not persisted)
-    mainCtx.save();
-    mainCtx.fillStyle = 'rgba(255,255,255,0.06)';
-    mainCtx.fillRect(center.x-outerR*0.6, center.y-outerR*0.92, outerR*1.2, 40);
-    mainCtx.restore();
-  }
-
-  // friendly resize to initial proper size
-  window.dispatchEvent(new Event('resize'));
-})();
+requestAnimationFrame(animate);
 </script>
+
 </body>
 </html>
