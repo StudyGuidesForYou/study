@@ -3,233 +3,172 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Modern Neon Physics</title>
+<title>Advanced Ball Sim</title>
 <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        background: #000;
-        height: 100%;
-        overflow: hidden;
-        font-family: system-ui, sans-serif;
-        user-select: none;
-    }
-
-    #ui {
-        position: fixed;
-        top: 14px;
-        left: 14px;
-        z-index: 10;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    button {
-        background: rgba(30,30,30,0.9);
-        color: white;
-        padding: 10px 16px;
-        border: 1px solid rgba(60,60,60,0.9);
-        border-radius: 10px;
-        font-size: 15px;
-        cursor: pointer;
-        transition: 0.15s;
-    }
-    button:hover {
-        background: rgba(60,60,60,1);
-    }
-
-    canvas {
-        display: block;
-    }
+  body {
+    margin: 0;
+    background: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
+  #ui {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(20,20,20,0.7);
+    padding: 15px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+  button, select {
+    width: 150px;
+    margin: 5px 0;
+    padding: 6px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: none;
+    background: #222;
+    color:white;
+  }
 </style>
 </head>
 <body>
-
 <canvas id="c"></canvas>
-
 <div id="ui">
-    <button id="followBtn">Camera Follow: OFF</button>
-    <button id="addBallBtn">Add Ball</button>
+  <button id="addBallBtn">Add Ball</button>
+  <button id="toggleCamBtn">Toggle Cam Follow</button>
+  <select id="mode">
+    <option value="none">Low Quality (No Gravity)</option>
+    <option value="gravity">Gravity</option>
+    <option value="blackhole">Gravity Ball</option>
+    <option value="double">Double Trouble</option>
+  </select>
 </div>
-
 <script>
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
-
-let W = window.innerWidth;
-let H = window.innerHeight;
-canvas.width = W;
-canvas.height = H;
-
-window.addEventListener("resize", () => {
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = W;
-    canvas.height = H;
-    computeCircle();
-});
-
-// Circle boundary
-let cx, cy, R;
-function computeCircle() {
-    cx = W / 2;
-    cy = H / 2;
-    R = Math.min(W, H) * 0.42;
+let w, h, cx, cy, radius;
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+  cx = w/2; cy = h/2;
+  radius = Math.min(w,h)*0.4;
 }
-computeCircle();
+window.onresize = resize; resize();
 
-class Ball {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 400 + Math.random() * 200;
-
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-
-        this.radius = 12;
-        this.trail = [];
-
-        this.hueOffset = Math.random() * 360;
-
-        this.glow = 0;         // 0 = low glow, 1 = collision peak
-        this.glowDecay = 0.92; // how fast glow returns to low
+class Ball{
+  constructor(){
+    this.x = cx + (Math.random()*2-1)*50;
+    this.y = cy + (Math.random()*2-1)*50;
+    const a = Math.random()*Math.PI*2;
+    const s = 3 + Math.random()*2;
+    this.vx = Math.cos(a)*s;
+    this.vy = Math.sin(a)*s;
+    this.trail=[];
+  }
+  update(){
+    const mode = modeSel.value;
+    if(mode=="gravity"){
+      this.vy += 0.15;
+    }
+    if(mode=="blackhole"){
+      const dx = blackhole.x - this.x;
+      const dy = blackhole.y - this.y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      const g = 2000/(d*d+50);
+      this.vx += dx/d*g;
+      this.vy += dy/d*g;
     }
 
-    simulate(dt) {
-        const substeps = 5;
-        const step = dt / substeps;
+    this.x += this.vx;
+    this.y += this.vy;
 
-        for (let i = 0; i < substeps; i++) {
-            this.verlet(step);
-            this.collisionCheck();
-        }
+    const dx = this.x - cx;
+    const dy = this.y - cy;
+    const dist = Math.sqrt(dx*dx+dy*dy);
 
-        this.trail.push({ x: this.x, y: this.y });
-        if (this.trail.length > 600) this.trail.shift();
+    if(dist > radius){
+      const nx = dx/dist;
+      const ny = dy/dist;
+      const dot = this.vx*nx + this.vy*ny;
+      this.vx -= 2*dot*nx;
+      this.vy -= 2*dot*ny;
 
-        this.glow *= this.glowDecay;
+      glow = 1.0;
+
+      if(mode=="double"){
+        spawnBall();
+      }
     }
 
-    verlet(dt) {
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
+    this.trail.push({x:this.x,y:this.y});
+    if(this.trail.length>50) this.trail.shift();
+  }
+  draw(){
+    for(let i=1;i<this.trail.length;i++){
+      const p = this.trail[i];
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,3,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${i*3},100%,50%,0.3)`;
+      ctx.fill();
     }
-
-    collisionCheck() {
-        const dx = this.x - cx;
-        const dy = this.y - cy;
-        const dist = Math.hypot(dx, dy);
-        const maxDist = R - this.radius;
-
-        if (dist > maxDist) {
-            const nx = dx / dist;
-            const ny = dy / dist;
-
-            this.x = cx + nx * maxDist;
-            this.y = cy + ny * maxDist;
-
-            const dot = this.vx * nx + this.vy * ny;
-            this.vx -= 2 * dot * nx;
-            this.vy -= 2 * dot * ny;
-
-            this.glow = 1;
-        }
-    }
-
-    drawTrail() {
-        const len = this.trail.length;
-        for (let i = 1; i < len; i++) {
-            const p = this.trail[i];
-            const hue = (i * 0.8 + this.hueOffset) % 360;
-
-            const radius = this.radius;
-            const alpha = i / len;
-
-            ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${alpha})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
-    drawBall() {
-        ctx.shadowBlur = this.glow * 35;
-        ctx.shadowColor = "white";
-
-        ctx.fillStyle = `hsl(${this.hueOffset},100%,50%)`;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-    }
-}
-
-let balls = [new Ball(cx, cy - R * 0.5)];
-
-document.getElementById("addBallBtn").onclick = () => {
-    balls.push(new Ball(cx, cy));
-};
-
-// Camera follow toggle
-let follow = false;
-document.getElementById("followBtn").onclick = () => {
-    follow = !follow;
-    document.getElementById("followBtn").textContent =
-        "Camera Follow: " + (follow ? "ON" : "OFF");
-};
-
-function drawBoundary(glowLevel) {
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = `rgba(0,255,120,${0.15 + glowLevel * 0.85})`;
-    ctx.shadowBlur = 25 * glowLevel;
-    ctx.shadowColor = "lime";
-
     ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
+    ctx.arc(this.x,this.y,10,0,Math.PI*2);
+    ctx.fillStyle = "lime";
+    ctx.fill();
+  }
 }
 
-let last = performance.now();
+let balls=[new Ball()];
+function spawnBall(){balls.push(new Ball());}
 
-function animate(now) {
-    requestAnimationFrame(animate);
-    const dt = Math.min((now - last) / 1000, 0.02);
-    last = now;
+let camFollow=false;
+let glow=0;
+let modeSel=document.getElementById("mode");
 
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, W, H);
+const blackhole={angle:0,x:0,y:0};
 
-    if (follow) {
-        const target = balls[0];
-        const dx = cx - target.x;
-        const dy = cy - target.y;
-        ctx.save();
-        ctx.translate(dx, dy);
-    }
+function loop(){
+  requestAnimationFrame(loop);
+  ctx.clearRect(0,0,w,h);
 
-    let boundaryGlow = 0;
+  if(glow>0.05) glow*=0.9; else glow=0.05;
 
-    for (let b of balls) {
-        b.simulate(dt);
-        if (b.glow > boundaryGlow) boundaryGlow = b.glow;
-    }
+  const mode = modeSel.value;
+  if(mode=="blackhole"){
+    blackhole.angle += 0.01;
+    blackhole.x = cx + Math.cos(blackhole.angle)*(radius-20);
+    blackhole.y = cy + Math.sin(blackhole.angle)*(radius-20);
+    ctx.beginPath();
+    ctx.arc(blackhole.x,blackhole.y,15,0,Math.PI*2);
+    ctx.fillStyle="white";
+    ctx.fill();
+  }
 
-    for (let b of balls) b.drawTrail();
-    drawBoundary(boundaryGlow);
-    for (let b of balls) b.drawBall();
+  let camX=0, camY=0;
+  if(camFollow && balls.length>0){
+    camX = cx - balls[0].x;
+    camY = cy - balls[0].y;
+  }
+  ctx.save();
+  ctx.translate(camX, camY);
 
-    if (follow) ctx.restore();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.strokeStyle=`rgba(0,255,0,${glow})`;
+  ctx.lineWidth=5;
+  ctx.stroke();
+
+  for(const b of balls){ b.update(); b.draw(); }
+
+  ctx.restore();
 }
+loop();
 
-requestAnimationFrame(animate);
+// UI
+addBallBtn.onclick=()=>spawnBall();
+toggleCamBtn.onclick=()=>camFollow=!camFollow;
 </script>
-
 </body>
 </html>
