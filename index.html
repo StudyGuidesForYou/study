@@ -117,7 +117,7 @@ body {
   min-height:520px; display:flex; flex-direction:column;
 }
 .embed-iframe {
-  flex:1; width:100%; border:none; background:#fff;
+  flex:1; width:100%; border:none; background:#fff; min-height:400px;
 }
 
 /* Top Buttons Overlay */
@@ -190,7 +190,7 @@ body {
 </header>
 
 <main class="embed-wrap">
-  <div class="embed-card glass">
+  <div class="embed-card glass" id="embedCard">
     <div class="ui-fade"></div>
 
     <div class="embed-controls">
@@ -223,7 +223,6 @@ body {
   <button class="game-btn" data-url="https://ev.io">ev.io</button>
   <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
   <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
-  <button class="game-btn" data-url="https://orteil.dashnet.org/cookieclicker")>eaglercraft</button>
   <button class="game-btn" data-url="https://html5games.com/">html5games</button>
 </div>
 </section>
@@ -235,6 +234,7 @@ const enter = document.getElementById('enterBtn');
 const loader = document.getElementById('loader');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const redirectBtn = document.getElementById('redirectBtn');
+const embedCard = document.getElementById('embedCard');
 
 function normalizeUrl(raw){
   raw = (raw||'').trim();
@@ -279,12 +279,23 @@ iframe.addEventListener('load', ()=>{ hideLoader(); });
 // Fullscreen button
 fullscreenBtn.addEventListener('click', ()=>{
   if(document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen();
+  else embedCard.requestFullscreen();
 });
 
 // Redirect button
 redirectBtn.addEventListener('click', ()=>{
   window.open(iframe.src,'_blank');
+});
+
+// Aurora interactive movement
+const auroras = document.querySelectorAll('.aurora-ribbon');
+document.addEventListener('mousemove', e => {
+  const x = e.clientX / window.innerWidth - 0.5;
+  const y = e.clientY / window.innerHeight - 0.5;
+  auroras.forEach((ribbon,i)=>{
+    ribbon.style.transform = `translate(${x*30*(i+1)}px, ${y*20*(i+1)}px) rotate(${i*5}deg)`;
+    ribbon.style.filter = `blur(80px) hue-rotate(${x*40 + i*50}deg)`;
+  });
 });
 
 // Initial loader hide
