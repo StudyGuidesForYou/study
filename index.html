@@ -1,253 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Modern Embed Launcher</title>
-  <style>
-    :root{
-      --bg-deep:#040612;
-      --bg-mid:#0a1526;
-      --glass-weak: rgba(255,255,255,0.04);
-      --glass-strong: rgba(255,255,255,0.08);
-      --accent-a:#3dd3c7; /* teal */
-      --accent-b:#2b82ff; /* blue */
-      --text:#eaf2ff;
-      --muted: rgba(230,235,255,0.48);
-      --radius:20px;
-      --max-width:1320px;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Modern Embed Launcher</title>
+<style>
+:root{
+  --bg-deep:#040612;
+  --bg-mid:#0a1526;
+  --glass-weak: rgba(255,255,255,0.04);
+  --glass-strong: rgba(255,255,255,0.08);
+  --accent-a:#3dd3c7;
+  --accent-b:#2b82ff;
+  --text:#eaf2ff;
+  --muted: rgba(230,235,255,0.48);
+  --radius:20px;
+  --max-width:1320px;
+}
 
-    /* Reset + base */
-    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
-    html,body{height:100%}
-    body{
-      min-height:100vh;
-      background:
-        radial-gradient(1200px 700px at 10% 10%, rgba(40,90,140,0.08), transparent 15%),
-        radial-gradient(900px 600px at 90% 80%, rgba(0,180,140,0.06), transparent 10%),
-        linear-gradient(180deg,var(--bg-deep),var(--bg-mid) 60%);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      display:flex;flex-direction:column;align-items:center;gap:28px;padding:36px 24px 120px 24px;background-attachment:fixed;overflow-x:hidden
-    }
+/* Reset + base */
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
+html,body{height:100%}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(1200px 700px at 10% 10%, rgba(40,90,140,0.08), transparent 15%),
+    radial-gradient(900px 600px at 90% 80%, rgba(0,180,140,0.06), transparent 10%),
+    linear-gradient(180deg,var(--bg-deep),var(--bg-mid) 60%);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;align-items:center;gap:28px;padding:36px 24px 120px 24px;background-attachment:fixed;overflow-x:hidden
+}
 
-    /* Aurora ribbons */
-    .aurora-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-    .ribbon{
-      position:absolute;left:-15%;width:130%;height:40%;border-radius:50%/30%;filter:blur(44px) saturate(140%);opacity:0.95;transform-origin:center;
-      background:linear-gradient(90deg, rgba(0,220,170,0.16), rgba(40,160,255,0.14), rgba(0,120,200,0.06));
-      mix-blend-mode:screen;
-      animation:float 22s linear infinite;
-    }
-    .ribbon.r2{top:28%;height:36%;animation-duration:30s;left:-5%;background:linear-gradient(90deg, rgba(0,200,140,0.12), rgba(20,140,230,0.12));}
-    .ribbon.r3{top:56%;height:30%;animation-duration:36s;left:-25%;background:linear-gradient(90deg, rgba(10,150,120,0.08), rgba(60,120,220,0.10));}
-    @keyframes float{
-      0%{transform:translateX(-18%) rotate(-6deg) scale(1)}
-      50%{transform:translateX(18%) rotate(6deg) scale(1.04);}
-      100%{transform:translateX(-18%) rotate(-6deg) scale(1)}
-    }
+/* Aurora ribbons */
+.aurora-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.ribbon{
+  position:absolute;left:-15%;width:130%;height:40%;border-radius:50%/30%;filter:blur(44px) saturate(140%);opacity:0.95;transform-origin:center;
+  background:linear-gradient(90deg, rgba(0,220,170,0.16), rgba(40,160,255,0.14), rgba(0,120,200,0.06));
+  mix-blend-mode:screen;
+  animation:float 22s linear infinite;
+}
+.ribbon.r2{top:28%;height:36%;animation-duration:30s;left:-5%;background:linear-gradient(90deg, rgba(0,200,140,0.12), rgba(20,140,230,0.12));}
+.ribbon.r3{top:56%;height:30%;animation-duration:36s;left:-25%;background:linear-gradient(90deg, rgba(10,150,120,0.08), rgba(60,120,220,0.10));}
 
-    /* subtle star specks */
-    .stars{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:400px 400px;opacity:0.12}
+@keyframes float{
+  0%{transform:translateX(-18%) rotate(-6deg) scale(1)}
+  50%{transform:translateX(18%) rotate(6deg) scale(1.04);}
+  100%{transform:translateX(-18%) rotate(-6deg) scale(1)}
+}
 
-    /* Top search bar */
-    .top-bar{position:relative;z-index:6;width:min(var(--max-width),96%);display:flex;justify-content:center}
-    .url-box{display:flex;width:100%;gap:14px;align-items:center}
-    .url-input{flex:1;padding:14px 16px;border-radius:14px;border:none;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);font-size:16px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);transition:all .2s}
-    .url-input::placeholder{color:var(--muted)}
-    .url-input:focus{outline:none;box-shadow:0 0 16px var(--accent-b)}
+/* subtle star specks */
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:400px 400px;opacity:0.12}
 
-    .enter-btn{
-      padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:white;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(43,130,255,0.14);transition:all .25s;
-      position:relative;overflow:hidden
-    }
-    .enter-btn::after{
-      content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 20px var(--accent-a),0 0 30px var(--accent-b);opacity:0;transition:opacity .25s
-    }
-    .enter-btn:hover::after{opacity:0.65}
-    .enter-btn:hover{transform:translateY(-3px)}
+/* Top search bar */
+.top-bar{position:relative;z-index:6;width:min(var(--max-width),96%);display:flex;justify-content:center}
+.url-box{display:flex;width:100%;gap:14px;align-items:center}
+.url-input{flex:1;padding:14px 16px;border-radius:14px;border:none;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);font-size:16px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);transition:all .2s}
+.url-input::placeholder{color:var(--muted)}
+.url-input:focus{outline:3px solid rgba(43,130,255,0.12)}
 
-    /* Main embed area card */
-    .embed-wrap{position:relative;z-index:5;width:min(var(--max-width),98%);max-width:var(--max-width)}
-    .embed-card{
-      border-radius:var(--radius);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.035);box-shadow:0 30px 90px rgba(2,6,18,0.7);
-      height:72vh;min-height:520px;display:block;position:relative
-    }
-    .embed-iframe{width:100%;height:100%;border:none;background:#fff;scroll-behavior:smooth}
+.enter-btn, .game-btn{
+  padding:12px 20px;
+  border-radius:12px;
+  border:none;
+  background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 10px 30px rgba(43,130,255,0.14);
+  transition:all .3s;
+  position:relative;
+  overflow:hidden;
+}
 
-    /* Loader overlay */
-    .loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(6,10,20,0.18), rgba(6,10,20,0.28));backdrop-filter:blur(6px);transition:opacity .3s;z-index:8;flex-direction:column;gap:12px}
-    .loader.hidden{opacity:0;visibility:hidden}
-    .spinner{
-      width:64px;height:64px;border-radius:50%;background:conic-gradient(from 180deg, var(--accent-b), var(--accent-a));filter:blur(2px);position:relative;box-shadow:0 8px 30px rgba(43,130,255,0.14);animation:spin 1.2s linear infinite
-    }
-    .spinner::after{content:'';position:absolute;inset:8px;border-radius:50%;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))}
-    .loader-text{color:var(--muted);font-size:14px;text-align:center}
-    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.game-btn{
+  padding:10px 18px;
+  border-radius:999px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  font-weight:600;
+  letter-spacing:0.2px;
+}
 
-    /* Games area */
-    .games{position:relative;z-index:5;width:min(1100px,96%);display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px}
-    .games h2{margin-top:6px;font-size:20px;color:var(--text);text-shadow:0 4px 18px rgba(0,0,0,0.6)}
-    .game-list{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px}
-    .game-btn{
-      padding:10px 18px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));cursor:pointer;backdrop-filter:blur(8px);transition:all .25s;color:var(--text);font-weight:600;letter-spacing:0.2px;position:relative;overflow:hidden;
-    }
-    .game-btn::after{
-      content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 20px var(--accent-a),0 0 30px var(--accent-b);opacity:0;transition:opacity .25s
-    }
-    .game-btn:hover::after{opacity:0.65}
-    .game-btn:hover{transform:translateY(-5px)}
+.enter-btn:hover, .game-btn:hover{
+  transform:translateY(-4px);
+  box-shadow:0 16px 40px rgba(4,8,18,0.6);
+}
 
-    /* Fades (adaptive for mobile/tablet) */
-    .embed-card .ui-fade {
-      position:absolute;left:0;right:0;top:0;height:72px;
-      background: linear-gradient(180deg, rgba(2,6,14,0.6), transparent);
-      pointer-events:none;
-    }
-    .embed-card .ui-bottom-fade {
-      position:absolute;left:0;right:0;bottom:0;height:120px;
-      background: linear-gradient(180deg, transparent, rgba(2,6,14,0.7));
-      pointer-events:none;
-    }
-    @media (max-width:1000px){
-      .embed-card .ui-fade {height:48px;background:linear-gradient(180deg, rgba(2,6,14,0.35), transparent);}
-      .embed-card .ui-bottom-fade {height:72px;background:linear-gradient(180deg, transparent, rgba(2,6,14,0.35));}
-    }
-    @media (max-width:600px){
-      .embed-card .ui-fade {height:36px;background:linear-gradient(180deg, rgba(2,6,14,0.25), transparent);}
-      .embed-card .ui-bottom-fade {height:48px;background:linear-gradient(180deg, transparent, rgba(2,6,14,0.25));}
-    }
+.enter-btn::after, .game-btn::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  border:2px solid transparent;
+  background:linear-gradient(90deg, var(--accent-a), var(--accent-b)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity:0;transition:opacity .4s;
+}
+.enter-btn:hover::after, .game-btn:hover::after{
+  opacity:1;
+}
 
-    /* Responsive */
-    @media (max-width:1000px){.embed-card{height:58vh}.url-box{width:100%}}
-    @media (max-width:600px){.embed-card{height:52vh}.enter-btn{padding:10px 14px}.url-input{padding:12px}}
+/* Main embed area card */
+.embed-wrap{position:relative;z-index:5;width:min(var(--max-width),98%);max-width:var(--max-width)}
+.embed-card{
+  border-radius:var(--radius);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.035);
+  box-shadow:0 30px 90px rgba(2,6,18,0.7);
+  height:72vh;min-height:520px;display:block;position:relative;
+}
+.embed-iframe{width:100%;height:100%;border:none;background:#fff}
 
-    /* keyboard focus */
-    .url-input:focus,.game-btn:focus,.enter-btn:focus{outline:3px solid rgba(43,130,255,0.12)}
-  </style>
+/* Black fade overlays - lighter on iPad/mobile */
+.embed-card .ui-fade, .embed-card .ui-bottom-fade{
+  pointer-events:none;
+  position:absolute;
+  left:0;right:0;
+  background:linear-gradient(180deg, rgba(2,6,14,0.4), transparent);
+}
+.embed-card .ui-bottom-fade{bottom:0;height:80px;background:linear-gradient(180deg, transparent, rgba(2,6,14,0.45));}
+.embed-card .ui-fade{top:0;height:50px;}
+
+@media (max-width:1000px){
+  .embed-card{height:58vh}
+  .url-box{width:100%}
+}
+@media (max-width:600px){
+  .embed-card{height:52vh}
+  .enter-btn{padding:10px 14px}
+  .url-input{padding:12px}
+}
+
+/* Loader */
+.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(6,10,20,0.18), rgba(6,10,20,0.28));backdrop-filter:blur(6px);transition:opacity .28s;z-index:8;flex-direction:column}
+.loader.hidden{opacity:0;visibility:hidden}
+.spinner{
+  width:64px;height:64px;border-radius:50%;background:conic-gradient(from 180deg, var(--accent-b), var(--accent-a));filter:blur(2px);position:relative;box-shadow:0 8px 30px rgba(43,130,255,0.14);animation:spin 1s linear infinite
+}
+.spinner::after{content:'';position:absolute;inset:8px;border-radius:50%;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))}
+.loader-text{margin-top:12px;color:var(--muted);font-size:13px;font-weight:500;text-shadow:0 1px 2px rgba(0,0,0,0.4)}
+
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+/* Games area */
+.games{position:relative;z-index:5;width:min(1100px,96%);display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px}
+.games h2{margin-top:6px;font-size:20px;color:var(--text);text-shadow:0 4px 18px rgba(0,0,0,0.6)}
+.game-list{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px}
+
+/* Focus outline */
+.enter-btn:focus, .game-btn:focus{outline:3px solid rgba(43,130,255,0.12)}
+</style>
 </head>
 <body>
-  <div class="aurora-wrap" aria-hidden="true">
-    <div class="ribbon"></div>
-    <div class="ribbon r2"></div>
-    <div a class="ribbon r3"></div>
-    <div class="stars" aria-hidden="true"></div>
+<div class="aurora-wrap" aria-hidden="true">
+  <div class="ribbon"></div>
+  <div class="ribbon r2"></div>
+  <div class="ribbon r3"></div>
+  <div class="stars" aria-hidden="true"></div>
+</div>
+
+<header class="top-bar">
+  <div class="url-box" role="search">
+    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="Enter URL to embed" />
+    <button class="enter-btn" id="enterBtn">Enter</button>
   </div>
+</header>
 
-  <header class="top-bar">
-    <div class="url-box" role="search">
-      <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="Enter URL to embed" />
-      <button class="enter-btn" id="enterBtn">Enter</button>
+<main class="embed-wrap">
+  <div class="embed-card glass">
+    <div class="ui-fade"></div>
+    <div class="loader" id="loader">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loader-text">Loading…</div>
     </div>
-  </header>
+    <iframe id="embedFrame" class="embed-iframe" src="about:blank" sandbox="allow-scripts allow-forms allow-same-origin allow-modals allow-popups"></iframe>
+    <div class="ui-bottom-fade"></div>
+  </div>
+</main>
 
-  <main class="embed-wrap">
-    <div class="embed-card glass">
-      <div class="ui-fade"></div>
-      <div class="loader" id="loader">
-        <div class="spinner" aria-hidden="true"></div>
-        <div class="loader-text">Loading…</div>
-      </div>
-      <iframe id="embedFrame" class="embed-iframe" src="about:blank" sandbox="allow-scripts allow-forms allow-same-origin allow-modals allow-popups"></iframe>
-      <div class="ui-bottom-fade"></div>
-    </div>
-  </main>
+<section class="games">
+<h2>Games</h2>
+<div class="game-list" role="list">
+  <!-- Existing + added games -->
+  <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
+  <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
+  <button class="game-btn" data-url="https://diep.io">diep.io</button>
+  <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
+  <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
+  <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
+  <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
+  <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
+  <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
+  <button class="game-btn" data-url="https://ev.io">ev.io</button>
+  <button class="game-btn" data-url="https://html5games.com/">html5games</button>
+  <button class="game-btn" data-url="https://playgama.com/">playgama</button>
+</div>
+</section>
 
-  <section class="games">
-    <h2>Games</h2>
-    <div class="game-list" role="list">
-      <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
-      <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
-      <button class="game-btn" data-url="https://diep.io">diep.io</button>
-      <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
-      <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
-      <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
-      <button class="game-btn" data-url="https://play.gidd.io">play.gidd.io</button>
-      <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
-      <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft.com</button>
-      <button class="game-btn" data-url="https://ev.io">ev.io</button>
-      <button class="game-btn" data-url="https://krunker.io">krunker.io</button>
-      <button class="game-btn" data-url="https://zombsroyale.io">zombsroyale.io</button>
-      <button class="game-btn" data-url="https://skribbl.io">skribbl.io</button>
-      <button class="game-btn" data-url="https://html5games.com">html5games.com</button>
-      <button class="game-btn"data-url="https://playgama.com">playgama.com</button>
-    </div>
-  </section>
+<script>
+const iframe = document.getElementById('embedFrame');
+const input = document.getElementById('urlInput');
+const enter = document.getElementById('enterBtn');
+const loader = document.getElementById('loader');
 
-  <script>
-    const iframe = document.getElementById('embedFrame');
-    const input = document.getElementById('urlInput');
-    const enter = document.getElementById('enterBtn');
-    const loader = document.getElementById('loader');
+function normalizeUrl(raw){
+  raw = (raw||'').trim();
+  if(!raw) return null;
+  try{
+    if(!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+    new URL(raw);
+    return raw;
+  }catch(e){return null}
+}
 
-    function normalizeUrl(raw){
-      raw = (raw||'').trim();
-      if(!raw) return null;
-      try{
-        if(!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
-        new URL(raw);
-        return raw;
-      } catch(e){
-        return null;
-      }
+function showLoader(){loader.classList.remove('hidden');loader.style.visibility='visible';loader.style.opacity='1'}
+function hideLoader(){loader.classList.add('hidden');setTimeout(()=>{loader.style.visibility='hidden'},350)}
+
+function loadUrl(url){
+  const normalized = normalizeUrl(url);
+  if(!normalized) return;
+  input.value = url;
+  showLoader();
+  iframe.src = normalized;
+}
+
+// Top input
+enter.addEventListener('click', ()=>{ loadUrl(input.value); });
+input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') enter.click(); });
+
+// Game buttons
+document.querySelectorAll('.game-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{ loadUrl(btn.dataset.url); });
+});
+
+// Auto-update input on iframe navigation (catch clicks in embedded sites)
+iframe.addEventListener('load', ()=>{
+  try {
+    const currentUrl = iframe.contentWindow.location.href;
+    if(currentUrl && currentUrl !== 'about:blank'){
+      input.value = currentUrl;
     }
+  } catch(e){ /* cross-origin, ignore */ }
+  hideLoader();
+});
 
-    function showLoader(){
-      loader.classList.remove('hidden');
-      loader.style.visibility = 'visible';
-      loader.style.opacity = '1';
-    }
-    function hideLoader(){
-      loader.classList.add('hidden');
-      setTimeout(()=>{ loader.style.visibility = 'hidden'; }, 350);
-    }
+// Listen to postMessage for sites that support messaging
+window.addEventListener('message', (event)=>{
+  const allowed = ["https://playgama.com"];
+  if(!allowed.some(domain=>event.origin.includes(domain))) return;
+  if(typeof event.data==='string') loadUrl(event.data);
+});
 
-    function navigate(url){
-      showLoader();
-
-      // If sandboxels or special full scroll site
-      if(url.includes("sandboxels.r74n.com")){
-        iframe.removeAttribute("sandbox");
-        iframe.style.height = window.innerHeight + "px";
-      } else {
-        iframe.setAttribute("sandbox","allow-scripts allow-forms allow-same-origin allow-modals allow-popups");
-        iframe.style.height = "72vh";
-      }
-
-      iframe.src = url;
-    }
-
-    enter.addEventListener('click', ()=>{
-      const url = normalizeUrl(input.value);
-      if(!url){
-        input.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:240,iterations:1});
-        input.focus();
-        return;
-      }
-      navigate(url);
-    });
-
-    input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') enter.click(); });
-
-    document.querySelectorAll('.game-btn').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const url = normalizeUrl(btn.dataset.url);
-        if(!url) return;
-        navigate(url);
-      });
-    });
-
-    iframe.addEventListener('load', ()=>{ hideLoader(); });
-    iframe.addEventListener('load', ()=>{ setTimeout(()=>hideLoader(),200); });
-    window.addEventListener('resize', ()=>{
-      if(iframe.src.includes("sandboxels.r74n.com")){
-        iframe.style.height = window.innerHeight + "px";
-      }
-    });
-
-    // Init
-    hideLoader();
-  </script>
+// Initialize
+hideLoader();
+</script>
 </body>
 </html>
