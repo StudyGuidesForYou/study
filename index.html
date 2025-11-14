@@ -1,83 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Modern Embed Launcher</title>
 <style>
-:root{
-  --bg-deep:#040612;
-  --bg-mid:#0a1526;
-  --accent-a:#3dd3c7;
-  --accent-b:#2b82ff;
-  --text:#eaf2ff;
+:root {
+  --bg-deep: #040612;
+  --bg-mid: #0a1526;
+  --accent-a: #3dd3c7;
+  --accent-b: #2b82ff;
+  --text: #eaf2ff;
   --muted: rgba(230,235,255,0.48);
-  --radius:20px;
-  --max-width:1320px;
+  --radius: 20px;
+  --max-width: 1320px;
 }
 
-/* Reset + base */
-*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
-html,body{height:100%}
-body{
-  min-height:100vh;
+/* Reset & base */
+* {box-sizing: border-box; margin:0; padding:0; font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;}
+html, body {height:100%;}
+body {
+  min-height: 100vh;
   background: linear-gradient(180deg,var(--bg-deep),var(--bg-mid));
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  display:flex;flex-direction:column;align-items:center;gap:28px;padding:36px 24px 120px 24px;overflow-x:hidden;
+  color: var(--text);
+  display:flex; flex-direction:column; align-items:center;
+  gap:28px; padding:36px 24px 120px 24px; overflow-x:hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Aurora background canvas */
-canvas#aurora-bg{
-  position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;
+/* Aurora canvas */
+canvas#aurora-bg {
+  position: fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;
 }
 
 /* Top search bar */
-.top-bar{position:relative;z-index:6;width:min(var(--max-width),96%);display:flex;justify-content:center}
-.url-box{display:flex;width:100%;gap:14px;align-items:center}
-.url-input{flex:1;padding:14px 16px;border-radius:14px;border:none;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);font-size:16px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);transition:all .2s}
-.url-input::placeholder{color:var(--muted)}
-.url-input:hover, .url-input:focus{box-shadow:0 0 20px var(--accent-b);outline:none}
+.top-bar {position: relative; z-index:6; width:min(var(--max-width),96%); display:flex; justify-content:center;}
+.url-box {display:flex; width:100%; gap:14px; align-items:center;}
+.url-input {
+  flex:1; padding:14px 16px; border-radius:14px; border:none;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: var(--text); font-size:16px; backdrop-filter: blur(8px); box-shadow:0 10px 30px rgba(2,6,14,0.6);
+  transition: all .2s;
+}
+.url-input::placeholder {color: var(--muted);}
+.url-input:hover, .url-input:focus {box-shadow:0 0 20px var(--accent-b); outline:none;}
 
 /* Buttons */
-.enter-btn, .game-btn, .iframe-btn{
-  padding:12px 16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
-  color:white;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(43,130,255,0.14);transition:all .25s;position:relative;font-size:14px;
+.enter-btn, .game-btn, .iframe-btn {
+  padding:12px 16px; border-radius:12px; border:none;
+  color:white; font-weight:700; cursor:pointer; transition:all .25s; position:relative;
+  font-size:14px; display:flex; align-items:center; justify-content:center;
 }
-.enter-btn:hover, .game-btn:hover, .iframe-btn:hover{
-  transform:translateY(-3px);
-  box-shadow:0 0 20px var(--accent-b),0 0 40px var(--accent-a);
+.enter-btn {background: linear-gradient(135deg,var(--accent-a),var(--accent-b)); box-shadow:0 10px 30px rgba(43,130,255,0.14);}
+.enter-btn:hover {transform:translateY(-3px); box-shadow:0 0 20px var(--accent-b),0 0 40px var(--accent-a);}
+.game-btn {
+  border-radius:999px; font-weight:600; letter-spacing:0.2px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  color:var(--text); backdrop-filter:blur(8px); box-shadow:0 6px 20px rgba(0,0,0,0.2);
 }
-.game-btn{border-radius:999px;font-weight:600;letter-spacing:0.2px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));color:var(--text);backdrop-filter:blur(8px)}
-.game-btn:hover{color:white}
+.game-btn:hover {color:white; transform:translateY(-3px); box-shadow:0 0 20px var(--accent-b),0 0 40px var(--accent-a);}
+.iframe-btn {background:rgba(0,0,0,0.2); border-radius:8px; padding:6px;}
 
 /* Main embed card */
-.embed-wrap{position:relative;z-index:5;width:min(var(--max-width),98%);max-width:var(--max-width)}
-.embed-card{
-  border-radius:var(--radius);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.035);box-shadow:0 30px 90px rgba(2,6,18,0.7);
-  height:72vh;min-height:520px;position:relative;display:flex;flex-direction:column
+.embed-wrap {position:relative; z-index:5; width:min(var(--max-width),98%); max-width: var(--max-width);}
+.embed-card {
+  border-radius:var(--radius); overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.035); box-shadow:0 30px 90px rgba(2,6,18,0.7);
+  height:72vh; min-height:520px; position:relative; display:flex; flex-direction:column;
 }
-.embed-iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
+
+/* Iframe */
+.embed-iframe {width:100%; height:100%; border:none; flex:1; background:#fff;}
 
 /* Loader */
-.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.2);backdrop-filter:blur(6px);transition:opacity .28s;z-index:8;pointer-events:none}
-.loader.hidden{opacity:0;visibility:hidden}
-.spinner{
-  width:60px;height:60px;border-radius:50%;border:6px solid rgba(255,255,255,0.1);border-top:6px solid var(--accent-b);animation:spin 1s linear infinite;
+.loader {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(6px); background: rgba(0,0,0,0.2); transition: opacity .28s;
+  z-index:8; pointer-events:none;
 }
-@keyframes spin{100%{transform:rotate(360deg)}}
-.loader-text{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+.loader.hidden {opacity:0; visibility:hidden;}
+.loader-inner {display:flex; flex-direction:column; align-items:center; text-align:center;}
+.loader-text {margin-top:12px; color: var(--muted); font-size:13px;}
+
+/* Glowing ring loader */
+.loader-ring {
+  width:60px; height:60px; border-radius:50%; border:6px solid rgba(255,255,255,0.1);
+  border-top:6px solid var(--accent-b); animation: spin 1s linear infinite; box-shadow: 0 0 20px var(--accent-b);
+}
+@keyframes spin {100% {transform:rotate(360deg);}}
 
 /* Button container inside embed */
-.iframe-btns{display:flex;gap:6px;padding:6px;background:rgba(0,0,0,0.05);backdrop-filter:blur(6px);position:absolute;top:6px;right:6px;border-radius:12px;z-index:10;}
-
-/* Icon buttons */
-.iframe-btn svg{width:20px;height:20px;fill:white;vertical-align:middle;pointer-events:none}
+.iframe-btns {display:flex; gap:6px; padding:6px; background: rgba(0,0,0,0.05); backdrop-filter:blur(6px); position:absolute; top:6px; right:6px; border-radius:12px; z-index:10;}
+.iframe-btn svg {width:20px; height:20px; fill:white; vertical-align:middle; pointer-events:none;}
 
 /* Games section */
-.games{position:relative;z-index:5;width:min(1100px,96%);display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px}
-.games h2{margin-top:6px;font-size:20px;color:var(--text);text-shadow:0 4px 18px rgba(0,0,0,0.6)}
-.game-list{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px}
+.games {position:relative; z-index:5; width:min(1100px,96%); display:flex; flex-direction:column; align-items:center; gap:14px; margin-top:6px;}
+.games h2 {margin-top:6px; font-size:20px; color: var(--text); text-shadow:0 4px 18px rgba(0,0,0,0.6);}
+.game-list {display:flex; flex-wrap:wrap; gap:12px; justify-content:center; padding:12px;}
 
 /* Responsive */
 @media (max-width:1000px){.embed-card{height:58vh}.url-box{width:100%}}
@@ -90,7 +110,7 @@ canvas#aurora-bg{
 
 <header class="top-bar">
   <div class="url-box">
-    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" />
+    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)">
     <button class="enter-btn" id="enterBtn">Enter</button>
   </div>
 </header>
@@ -106,8 +126,8 @@ canvas#aurora-bg{
       </button>
     </div>
     <div class="loader hidden" id="loader">
-      <div style="display:flex;flex-direction:column;align-items:center">
-        <div class="spinner"></div>
+      <div class="loader-inner">
+        <div class="loader-ring"></div>
         <div class="loader-text">Loading…</div>
       </div>
     </div>
@@ -129,41 +149,52 @@ canvas#aurora-bg{
     <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
     <button class="game-btn" data-url="https://ev.io">ev.io</button>
     <button class="game-btn" data-url="https://html5games.com">html5games</button>
-    <button class="game-btn" data-url="https://littlealchemy2.com">Little Alchemy 2</button>
+    <button class="game-btn" data-url="https://littlealchemy2.com">littlealchemy2</button>
     <button class="game-btn" data-url="https://play2048.co">2048</button>
-    <button class="game-btn" data-url="https://slopegame.com">Slope</button>
-    <button class="game-btn" data-url="https://tetris.com/play-tetris">Tetris</button>
-    <button class="game-btn" data-url="https://superhotgame.com/play/demo">Superhot Demo</button>
-    <button class="game-btn" data-url="https://hexar.io">Hexar.io</button>
-    <button class="game-btn" data-url="https://tanktrouble.com">Tank Trouble</button>
-    <button class="game-btn" data-url="https://www.linerider.com">Line Rider</button>
-    <button class="game-btn" data-url="https://playsnake.org">Google Snake</button>
-    <button class="game-btn" data-url="https://ponggame.org">Pong</button>
+    <button class="game-btn" data-url="https://slopegame.com">slope</button>
+    <button class="game-btn" data-url="https://tetris.com/play-tetris">tetris</button>
+    <button class="game-btn" data-url="https://superhotgame.com/play/demo">superhot</button>
+    <button class="game-btn" data-url="https://hexar.io">hexar</button>
+    <button class="game-btn" data-url="https://tanktrouble.com">tanktrouble</button>
+    <button class="game-btn" data-url="https://www.linerider.com">linerider</button>
+    <button class="game-btn" data-url="https://playsnake.org">snake</button>
+    <button class="game-btn" data-url="https://ponggame.org">pong</button>
   </div>
 </section>
 
 <script>
-// Aurora canvas
-const canvas=document.getElementById('aurora-bg');
-const ctx=canvas.getContext('2d');
-let w=canvas.width=window.innerWidth,h=canvas.height=window.innerHeight;
-window.addEventListener('resize',()=>{w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight;});
+// Aurora background
+const canvas = document.getElementById('aurora-bg');
+const ctx = canvas.getContext('2d');
+let w = canvas.width = window.innerWidth;
+let h = canvas.height = window.innerHeight;
+window.addEventListener('resize', ()=>{ w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; });
+
 const ribbons=[];
-for(let i=0;i<8;i++){
-  ribbons.push({x:Math.random()*w,y:Math.random()*h,rx:Math.random()*300+200,ry:Math.random()*100+50,angle:Math.random()*Math.PI*2,speed:0.001+Math.random()*0.003,colors:[`hsla(${Math.random()*60+180},80%,60%,0.25)`,`hsla(${Math.random()*60+180},80%,60%,0)`]}));
+for(let i=0;i<12;i++){
+  ribbons.push({
+    x:Math.random()*w,
+    y:Math.random()*h,
+    rx:Math.random()*400+200,
+    ry:Math.random()*150+50,
+    angle:Math.random()*Math.PI*2,
+    speed:0.001+Math.random()*0.004,
+    colors:[`hsla(${Math.random()*60+180},80%,60%,0.35)`,`hsla(${Math.random()*60+180},80%,60%,0)`]
+  });
 }
+
 function drawAurora(){
   ctx.clearRect(0,0,w,h);
   ribbons.forEach(r=>{
-    r.angle+=r.speed;
-    const x=w/2+r.rx*Math.cos(r.angle);
-    const y=h/2+r.ry*Math.sin(r.angle);
-    const grad=ctx.createRadialGradient(x,y,0,x,y,r.rx/2);
+    r.angle += r.speed;
+    const x=w/2 + r.rx * Math.cos(r.angle);
+    const y=h/2 + r.ry * Math.sin(r.angle);
+    const grad = ctx.createRadialGradient(x,y,0,x,y,r.rx/2);
     grad.addColorStop(0,r.colors[0]);
     grad.addColorStop(1,r.colors[1]);
-    ctx.fillStyle=grad;
+    ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.ellipse(x,y,r.rx/2,r.ry/4,0,0,Math.PI*2);
+    ctx.ellipse(x,y,r.rx/2,r.ry/3,0,0,Math.PI*2);
     ctx.fill();
   });
   requestAnimationFrame(drawAurora);
@@ -171,31 +202,54 @@ function drawAurora(){
 drawAurora();
 
 // Iframe logic
-const iframe=document.getElementById('embedFrame');
-const input=document.getElementById('urlInput');
-const enter=document.getElementById('enterBtn');
-const loader=document.getElementById('loader');
-const fullscreenBtn=document.getElementById('fullscreenBtn');
-const redirectBtn=document.getElementById('redirectBtn');
+const iframe = document.getElementById('embedFrame');
+const input = document.getElementById('urlInput');
+const enter = document.getElementById('enterBtn');
+const loader = document.getElementById('loader');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const redirectBtn = document.getElementById('redirectBtn');
 
-function normalizeUrl(raw){raw=(raw||'').trim();if(!raw)return null;try{if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;new URL(raw);return raw}catch(e){return null}}
-function showLoader(){loader.classList.remove('hidden');loader.style.visibility='visible';loader.style.opacity='1'}
-function hideLoader(){loader.classList.add('hidden');setTimeout(()=>{loader.style.visibility='hidden'},350)}
-function loadUrl(url){const nUrl=normalizeUrl(url);if(!nUrl)return;showLoader();iframe.src=nUrl}
+function normalizeUrl(raw){
+  raw = (raw||'').trim();
+  if(!raw) return null;
+  try{
+    if(!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+    new URL(raw);
+    return raw;
+  }catch(e){return null;}
+}
+function showLoader(){loader.classList.remove('hidden');}
+function hideLoader(){loader.classList.add('hidden');}
 
-// Event listeners
-enter.addEventListener('click',()=>{const url=input.value.trim();if(!url)return;loadUrl(url)})
-input.addEventListener('keydown',(e)=>{if(e.key==='Enter'){const url=input.value.trim();if(!url)return;loadUrl(url)}})
-document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{loadUrl(btn.dataset.url)})})
+function loadUrl(url){
+  const nUrl = normalizeUrl(url);
+  if(!nUrl) return;
+  showLoader();
+  iframe.src = nUrl;
+}
 
-// Fullscreen button
-fullscreenBtn.addEventListener('click',()=>{if(document.fullscreenElement){document.exitFullscreen()}else{document.querySelector('.embed-card').requestFullscreen()}});
+// Enter / input
+enter.addEventListener('click', ()=>loadUrl(input.value));
+input.addEventListener('keydown', (e)=>{if(e.key==='Enter') loadUrl(input.value);});
 
-// Redirect button
-redirectBtn.addEventListener('click',()=>{const src=iframe.src;if(src && src!=="about:blank"){window.open(src,'_blank')}});
+// Game buttons
+document.querySelectorAll('.game-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>loadUrl(btn.dataset.url));
+});
 
-// Hide loader when iframe finishes loading
-iframe.addEventListener('load',()=>{hideLoader()});
+// Fullscreen
+fullscreenBtn.addEventListener('click', ()=>{
+  if(document.fullscreenElement){document.exitFullscreen();}
+  else{document.querySelector('.embed-card').requestFullscreen();}
+});
+
+// Redirect
+redirectBtn.addEventListener('click', ()=>{
+  if(iframe.src && iframe.src!=='about:blank'){window.open(iframe.src,'_blank');}
+});
+
+// Hide loader when iframe loads
+iframe.addEventListener('load', ()=>hideLoader());
 </script>
 
 </body>
