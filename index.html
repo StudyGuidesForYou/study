@@ -6,75 +6,98 @@
   <title>Aurora Embedded Launcher</title>
   <style>
     :root{
-      --bg:#050915;
-      --glass:rgba(255,255,255,0.06);
-      --border:rgba(255,255,255,0.12);
+      --bg:#030711;
+      --glass:rgba(255,255,255,0.08);
+      --border:rgba(255,255,255,0.18);
       --text:#fff;
+      --radius:14px;
+      --shadow:0 20px 40px rgba(0,0,0,0.35);
       font-family:Inter,system-ui;
     }
     body{
       margin:0;
-      background:radial-gradient(circle at top left,rgba(80,120,255,0.25),transparent 60%),
-                 radial-gradient(circle at bottom right,rgba(255,80,180,0.25),transparent 60%),
-                 var(--bg);
+      background:radial-gradient(circle at 20% 0%,rgba(100,140,255,0.32),transparent 60%),
+                 radial-gradient(circle at 80% 100%,rgba(255,120,200,0.28),transparent 60%),
+                 linear-gradient(180deg,#050b18,#03060d 70%);
       color:var(--text);
       display:flex;
       flex-direction:column;
       align-items:center;
-      padding:30px;
-      gap:20px;
+      padding:40px 20px;
+      gap:28px;
     }
     .bar{
       display:flex;
-      width:95%;max-width:900px;
-      gap:10px;
+      width:95%;max-width:950px;
+      gap:12px;
     }
     .bar input{
       flex:1;
-      padding:14px;
-      font-size:17px;
-      border-radius:10px;
+      padding:16px;
+      font-size:18px;
+      border-radius:var(--radius);
       background:var(--glass);
       border:1px solid var(--border);
       color:var(--text);
-      backdrop-filter:blur(8px);
+      backdrop-filter:blur(14px) saturate(160%);
+      box-shadow:var(--shadow);
     }
     .bar button{
-      padding:14px 20px;
-      font-size:16px;
-      border-radius:10px;
+      padding:16px 26px;
+      font-size:17px;
+      border-radius:var(--radius);
       background:var(--glass);
       border:1px solid var(--border);
       color:var(--text);
       cursor:pointer;
-      backdrop-filter:blur(8px);
+      backdrop-filter:blur(14px) saturate(160%);
+      box-shadow:var(--shadow);
+      transition:0.2s ease;
+    }
+    .bar button:hover{
+      background:rgba(255,255,255,0.14);
+      transform:translateY(-2px);
     }
     .embed-box{
-      width:95%;max-width:900px;
-      height:500px;
+      width:95%;max-width:950px;
+      height:540px;
       background:var(--glass);
       border:1px solid var(--border);
-      border-radius:12px;
-      backdrop-filter:blur(10px);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(16px) saturate(180%);
       overflow:hidden;
     }
     iframe{width:100%;height:100%;border:none;}
+    h2{
+      width:95%;max-width:950px;
+      margin:0;
+      font-size:22px;
+      opacity:0.9;
+    }
     .games{
-      width:95%;max-width:900px;
+      width:95%;max-width:950px;
       display:flex;
       flex-wrap:wrap;
-      gap:10px;
-      margin-top:10px;
+      gap:12px;
+      margin-top:6px;
     }
     .games button{
-      flex:1 1 150px;
-      padding:12px;
-      border-radius:10px;
+      flex:1 1 160px;
+      padding:14px;
+      border-radius:var(--radius);
       background:var(--glass);
       border:1px solid var(--border);
       color:var(--text);
       cursor:pointer;
-      backdrop-filter:blur(8px);
+      backdrop-filter:blur(14px) saturate(160%);
+      box-shadow:var(--shadow);
+      transition:0.2s ease;
+      font-size:16px;
+    }
+    .games button:hover{
+      background:rgba(255,255,255,0.13);
+      transform:translateY(-3px);
     }
   </style>
 </head>
@@ -96,7 +119,7 @@
     <button onclick="loadUrl('https://sandboxels.r74n.com')">sandboxels</button>
     <button onclick="loadUrl('https://jellymar.io')">jellymar.io</button>
     <button onclick="loadUrl('https://gamesnacks.com')">gamesnacks</button>
-    <button onclick="loadUrl('https://addictinggames.com')">addictinggames</button>
+    
   </div>
 
 <script>
