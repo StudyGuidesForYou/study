@@ -31,17 +31,37 @@
       display:flex;flex-direction:column;align-items:center;gap:28px;padding:36px 24px 120px 24px;background-attachment:fixed;overflow-x:hidden
     }
 
-    /* Aurora ribbons */
+    /* Aurora ribbons enhanced */
     .aurora-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
     .ribbon{
-      position:absolute;left:-15%;width:130%;height:40%;border-radius:50%/30%;filter:blur(44px) saturate(140%);opacity:0.95;transform-origin:center;
-      background:linear-gradient(90deg, rgba(0,220,170,0.16), rgba(40,160,255,0.14), rgba(0,120,200,0.06));
+      position:absolute;left:-15%;width:130%;height:40%;border-radius:50%/25%;
+      filter:blur(20px) saturate(160%);
+      opacity:0.9;
+      transform-origin:center;
+      background:linear-gradient(90deg, rgba(0,220,170,0.3), rgba(40,160,255,0.25), rgba(0,120,200,0.15));
       mix-blend-mode:screen;
       animation:float 22s linear infinite;
     }
-    .ribbon.r2{top:28%;height:36%;animation-duration:30s;left:-5%;background:linear-gradient(90deg, rgba(0,200,140,0.12), rgba(20,140,230,0.12));}
-    .ribbon.r3{top:56%;height:30%;animation-duration:36s;left:-25%;background:linear-gradient(90deg, rgba(10,150,120,0.08), rgba(60,120,220,0.10));}
-    @keyframes float{0%{transform:translateX(-18%) rotate(-6deg) scale(1)}50%{transform:translateX(18%) rotate(6deg) scale(1.04);}100%{transform:translateX(-18%) rotate(-6deg) scale(1)}}
+    .ribbon.r2{
+      top:28%;
+      height:36%;
+      animation-duration:28s;
+      left:-5%;
+      background:linear-gradient(90deg, rgba(0,200,140,0.25), rgba(20,140,230,0.25));
+    }
+    .ribbon.r3{
+      top:56%;
+      height:30%;
+      animation-duration:34s;
+      left:-25%;
+      background:linear-gradient(90deg, rgba(10,150,120,0.2), rgba(60,120,220,0.22));
+    }
+
+    @keyframes float{
+      0%{transform:translateX(-18%) rotate(-6deg) scale(1)}
+      50%{transform:translateX(18%) rotate(6deg) scale(1.03);}
+      100%{transform:translateX(-18%) rotate(-6deg) scale(1)}
+    }
 
     .stars{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:400px 400px;opacity:0.12}
 
@@ -215,7 +235,6 @@ document.querySelectorAll('.game-btn').forEach(btn=>{
   btn.addEventListener('click',()=>launchUrl(btn.dataset.url));
 });
 
-// hide loader when iframe finishes loading
 iframe.addEventListener('load', ()=>{ hideLoader(); });
 hideLoader();
 </script>
