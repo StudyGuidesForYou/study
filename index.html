@@ -41,8 +41,8 @@ canvas#aurora-bg{
 
 /* Buttons */
 .enter-btn, .game-btn, .iframe-btn{
-  padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
-  color:white;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(43,130,255,0.14);transition:all .25s;position:relative;
+  padding:12px 16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
+  color:white;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(43,130,255,0.14);transition:all .25s;position:relative;font-size:14px;
 }
 .enter-btn:hover, .game-btn:hover, .iframe-btn:hover{
   transform:translateY(-3px);
@@ -69,7 +69,10 @@ canvas#aurora-bg{
 .loader-text{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
 
 /* Button container inside embed */
-.iframe-btns{display:flex;gap:10px;padding:6px;background:rgba(0,0,0,0.12);backdrop-filter:blur(6px);}
+.iframe-btns{display:flex;gap:6px;padding:6px;background:rgba(0,0,0,0.05);backdrop-filter:blur(6px);position:absolute;top:6px;right:6px;border-radius:12px;z-index:10;}
+
+/* Icon buttons */
+.iframe-btn svg{width:20px;height:20px;fill:white;vertical-align:middle;pointer-events:none}
 
 /* Games section */
 .games{position:relative;z-index:5;width:min(1100px,96%);display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px}
@@ -78,7 +81,7 @@ canvas#aurora-bg{
 
 /* Responsive */
 @media (max-width:1000px){.embed-card{height:58vh}.url-box{width:100%}}
-@media (max-width:600px){.embed-card{height:52vh}.enter-btn{padding:10px 14px}.url-input{padding:12px}}
+@media (max-width:600px){.embed-card{height:52vh}.enter-btn{padding:10px 12px}.url-input{padding:12px}}
 </style>
 </head>
 <body>
@@ -95,8 +98,12 @@ canvas#aurora-bg{
 <main class="embed-wrap">
   <div class="embed-card">
     <div class="iframe-btns">
-      <button class="iframe-btn" id="fullscreenBtn">Fullscreen</button>
-      <button class="iframe-btn" id="redirectBtn">Go to Site</button>
+      <button class="iframe-btn" id="fullscreenBtn" title="Fullscreen">
+        <svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zm0 10h2v4h4v2h-6v-6zm-10 6h4v2H4v-6h2v4z"/></svg>
+      </button>
+      <button class="iframe-btn" id="redirectBtn" title="Open Site">
+        <svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42L17.59 5H14V3z"/></svg>
+      </button>
     </div>
     <div class="loader hidden" id="loader">
       <div style="display:flex;flex-direction:column;align-items:center">
@@ -132,7 +139,6 @@ canvas#aurora-bg{
     <button class="game-btn" data-url="https://www.linerider.com">Line Rider</button>
     <button class="game-btn" data-url="https://playsnake.org">Google Snake</button>
     <button class="game-btn" data-url="https://ponggame.org">Pong</button>
-    <button class="game-btn" data-url="https://agar.io/en">Agar.io</button>
   </div>
 </section>
 
@@ -144,7 +150,7 @@ let w=canvas.width=window.innerWidth,h=canvas.height=window.innerHeight;
 window.addEventListener('resize',()=>{w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight;});
 const ribbons=[];
 for(let i=0;i<8;i++){
-  ribbons.push({x:Math.random()*w,y:Math.random()*h,rx:Math.random()*300+200,ry:Math.random()*100+50,angle:Math.random()*Math.PI*2,speed:0.001+Math.random()*0.002,colors:[`hsla(${Math.random()*60+180},80%,60%,0.25)`,`hsla(${Math.random()*60+180},80%,60%,0)`]}));
+  ribbons.push({x:Math.random()*w,y:Math.random()*h,rx:Math.random()*300+200,ry:Math.random()*100+50,angle:Math.random()*Math.PI*2,speed:0.001+Math.random()*0.003,colors:[`hsla(${Math.random()*60+180},80%,60%,0.25)`,`hsla(${Math.random()*60+180},80%,60%,0)`]}));
 }
 function drawAurora(){
   ctx.clearRect(0,0,w,h);
@@ -177,17 +183,18 @@ function showLoader(){loader.classList.remove('hidden');loader.style.visibility=
 function hideLoader(){loader.classList.add('hidden');setTimeout(()=>{loader.style.visibility='hidden'},350)}
 function loadUrl(url){const nUrl=normalizeUrl(url);if(!nUrl)return;showLoader();iframe.src=nUrl}
 
-// Only show loader when actually loading a URL
-enter.addEventListener('click',()=>{const url=input.value.trim();if(!url)return;loadUrl(url)});
-input.addEventListener('keydown',(e)=>{if(e.key==='Enter'){const url=input.value.trim();if(!url)return;loadUrl(url)}});
-document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{loadUrl(btn.dataset.url)})});
+// Event listeners
+enter.addEventListener('click',()=>{const url=input.value.trim();if(!url)return;loadUrl(url)})
+input.addEventListener('keydown',(e)=>{if(e.key==='Enter'){const url=input.value.trim();if(!url)return;loadUrl(url)}})
+document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{loadUrl(btn.dataset.url)})})
 
 // Fullscreen button
 fullscreenBtn.addEventListener('click',()=>{if(document.fullscreenElement){document.exitFullscreen()}else{document.querySelector('.embed-card').requestFullscreen()}});
 
 // Redirect button
-redirectBtn.addEventListener('click',()=>{window.open(iframe.src,'_blank')});
+redirectBtn.addEventListener('click',()=>{const src=iframe.src;if(src && src!=="about:blank"){window.open(src,'_blank')}});
 
+// Hide loader when iframe finishes loading
 iframe.addEventListener('load',()=>{hideLoader()});
 </script>
 
