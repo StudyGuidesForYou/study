@@ -1,135 +1,197 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Aurora Embedded Launcher</title>
-  <style>
-    :root{
-      --bg:#030711;
-      --glass:rgba(255,255,255,0.08);
-      --border:rgba(255,255,255,0.18);
-      --text:#fff;
-      --radius:14px;
-      --shadow:0 20px 40px rgba(0,0,0,0.35);
-      font-family:Inter,system-ui;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ultra Modern Embed Portal</title>
+<style>
+    /* ===== GLOBAL RESET ===== */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
     }
-    body{
-      margin:0;
-      background:radial-gradient(circle at 20% 0%,rgba(100,140,255,0.32),transparent 60%),
-                 radial-gradient(circle at 80% 100%,rgba(255,120,200,0.28),transparent 60%),
-                 linear-gradient(180deg,#050b18,#03060d 70%);
-      color:var(--text);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding:40px 20px;
-      gap:28px;
+
+    body {
+        height: 100vh;
+        width: 100vw;
+        overflow-x: hidden;
+        background: radial-gradient(circle at 20% 20%, #182646, #0a0f1d 60%, #06060d);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        position: relative;
     }
-    .bar{
-      display:flex;
-      width:95%;max-width:950px;
-      gap:12px;
+
+    /* ===== AURORA BACKGROUND ===== */
+    .aurora {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        background: conic-gradient(
+            from 0deg,
+            rgba(0,255,255,0.2),
+            rgba(255,0,255,0.25),
+            rgba(0,150,255,0.25),
+            rgba(0,255,255,0.2)
+        );
+        filter: blur(120px) brightness(1.4);
+        animation: auroraMove 18s linear infinite;
+        opacity: 0.35;
     }
-    .bar input{
-      flex:1;
-      padding:16px;
-      font-size:18px;
-      border-radius:var(--radius);
-      background:var(--glass);
-      border:1px solid var(--border);
-      color:var(--text);
-      backdrop-filter:blur(14px) saturate(160%);
-      box-shadow:var(--shadow);
+
+    @keyframes auroraMove {
+        0% { transform: rotate(0deg) scale(1.3); }
+        50% { transform: rotate(180deg) scale(1.35); }
+        100% { transform: rotate(360deg) scale(1.3); }
     }
-    .bar button{
-      padding:16px 26px;
-      font-size:17px;
-      border-radius:var(--radius);
-      background:var(--glass);
-      border:1px solid var(--border);
-      color:var(--text);
-      cursor:pointer;
-      backdrop-filter:blur(14px) saturate(160%);
-      box-shadow:var(--shadow);
-      transition:0.2s ease;
+
+    /* ===== URL BAR ===== */
+    .url-box {
+        margin-top: 40px;
+        display: flex;
+        gap: 12px;
+        backdrop-filter: blur(12px);
+        background: rgba(255,255,255,0.07);
+        padding: 14px 20px;
+        border-radius: 18px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.4), inset 0 0 12px rgba(255,255,255,0.05);
     }
-    .bar button:hover{
-      background:rgba(255,255,255,0.14);
-      transform:translateY(-2px);
+
+    .url-input {
+        width: 420px;
+        padding: 12px 16px;
+        border: none;
+        background: rgba(255,255,255,0.1);
+        color: white;
+        border-radius: 12px;
+        outline: none;
+        font-size: 16px;
+        backdrop-filter: blur(8px);
+        transition: 0.25s;
     }
-    .embed-box{
-      width:95%;max-width:950px;
-      height:540px;
-      background:var(--glass);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      backdrop-filter:blur(16px) saturate(180%);
-      overflow:hidden;
+
+    .url-input:focus {
+        background: rgba(255,255,255,0.2);
+        box-shadow: 0 0 12px rgba(255,255,255,0.18);
     }
-    iframe{width:100%;height:100%;border:none;}
-    h2{
-      width:95%;max-width:950px;
-      margin:0;
-      font-size:22px;
-      opacity:0.9;
+
+    .go-btn {
+        padding: 12px 24px;
+        border: none;
+        background: linear-gradient(135deg, #6b9bff, #b86bff);
+        color: white;
+        font-weight: bold;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.25s;
     }
-    .games{
-      width:95%;max-width:950px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:12px;
-      margin-top:6px;
+
+    .go-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(150,150,255,0.5);
     }
-    .games button{
-      flex:1 1 160px;
-      padding:14px;
-      border-radius:var(--radius);
-      background:var(--glass);
-      border:1px solid var(--border);
-      color:var(--text);
-      cursor:pointer;
-      backdrop-filter:blur(14px) saturate(160%);
-      box-shadow:var(--shadow);
-      transition:0.2s ease;
-      font-size:16px;
+
+    /* ===== IFRAME WRAPPER ===== */
+    .frame-wrapper {
+        width: 80%;
+        height: 520px;
+        margin-top: 35px;
+        border-radius: 20px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.08);
+        box-shadow: 0 0 45px rgba(0,0,0,0.65);
+        backdrop-filter: blur(14px);
+        animation: frameGlow 10s ease-in-out infinite alternate;
     }
-    .games button:hover{
-      background:rgba(255,255,255,0.13);
-      transform:translateY(-3px);
+
+    @keyframes frameGlow {
+        0% { box-shadow: 0 0 50px rgba(90,120,255,0.4); }
+        100% { box-shadow: 0 0 70px rgba(170,70,255,0.45); }
     }
-  </style>
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    /* ===== GAMES SECTION ===== */
+    .games-title {
+        margin-top: 40px;
+        font-size: 24px;
+        font-weight: 600;
+        text-shadow: 0 0 12px rgba(255,255,255,0.3);
+    }
+
+    .game-list {
+        margin-top: 18px;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 80%;
+    }
+
+    .game-btn {
+        padding: 12px 28px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.1);
+        cursor: pointer;
+        color: white;
+        transition: 0.25s;
+        box-shadow: inset 0 0 12px rgba(255,255,255,0.05);
+    }
+
+    .game-btn:hover {
+        transform: scale(1.08);
+        background: rgba(255,255,255,0.16);
+        box-shadow: 0 0 15px rgba(255,255,255,0.2);
+    }
+</style>
 </head>
 <body>
-  <div class="bar">
-    <input id="url" placeholder="Enter URL" />
-    <button onclick="loadUrl()">Enter</button>
-  </div>
 
-  <div class="embed-box">
-    <iframe id="frame" src="about:blank"></iframe>
-  </div>
+<div class="aurora"></div>
 
-  <h2 style="width:95%;max-width:900px;margin:0;">Games</h2>
-  <div class="games">
-    <button onclick="loadUrl('https://slowroads.io')">slowroads.io</button>
-    <button onclick="loadUrl('https://bloxd.io')">bloxd.io</button>
-    <button onclick="loadUrl('https://diep.io')">diep.io</button>
-    <button onclick="loadUrl('https://sandboxels.r74n.com')">sandboxels</button>
-    <button onclick="loadUrl('https://jellymar.io')">jellymar.io</button>
-    <button onclick="loadUrl('https://gamesnacks.com')">gamesnacks</button>
-    
-  </div>
+<div class="url-box">
+    <input id="urlInput" class="url-input" placeholder="Enter URL..." />
+    <button class="go-btn" onclick="loadURL()">Enter</button>
+</div>
+
+<div class="frame-wrapper">
+    <iframe id="embedFrame" src="https://sandspiel.club"></iframe>
+</div>
+
+<div class="games-title">Games</div>
+<div class="game-list">
+    <button class="game-btn" onclick="openGame('https://slowroads.io')">slowroads.io</button>
+    <button class="game-btn" onclick="openGame('https://bloxd.io')">bloxd.io</button>
+    <button class="game-btn" onclick="openGame('https://diep.io')">diep.io</button>
+    <button class="game-btn" onclick="openGame('https://sandboxels.r74n.com')">sandboxels</button>
+    <button class="game-btn" onclick="openGame('https://jellymar.io')">jellymar.io</button>
+    <button class="game-btn" onclick="openGame('https://gamesnacks.com')">gamesnacks</button>
+</div>
 
 <script>
-function loadUrl(u){
-  const input = document.getElementById('url');
-  let val = u || input.value.trim();
-  if(!val) return;
-  if(!val.startsWith('http')) val = 'https://' + val;
-  document.getElementById('frame').src = val;
-}
+    function loadURL() {
+        const url = document.getElementById('urlInput').value;
+        if (!url) return;
+        document.getElementById('embedFrame').src = url.startsWith('http') ? url : 'https://' + url;
+    }
+
+    function openGame(url) {
+        document.getElementById('embedFrame').src = url;
+    }
 </script>
+
 </body>
 </html>
