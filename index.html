@@ -31,7 +31,7 @@ body{
   position:relative;
 }
 
-/* Aurora Background */
+/* Aurora Background - real flowing effect */
 .aurora-wrap {
   position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
 }
@@ -39,14 +39,14 @@ body{
   position: absolute;
   width: 200%;
   height: 50%;
-  top: -20%;
+  top: -30%;
   left: -50%;
   border-radius: 45% 55% 55% 45% / 40% 50% 50% 40%;
   background: linear-gradient(120deg, rgba(0,220,170,0.25), rgba(40,160,255,0.2), rgba(0,120,200,0.15));
-  filter: blur(36px) brightness(1.2);
+  filter: blur(40px) brightness(1.2);
   opacity: 0.85;
   mix-blend-mode: screen;
-  animation: aurora-drift 35s linear infinite, aurora-color 20s ease-in-out infinite alternate;
+  animation: aurora-drift 35s linear infinite, aurora-color 25s ease-in-out infinite alternate, aurora-wave 10s ease-in-out infinite alternate;
 }
 .aurora-ribbon.r2 {
   top: 20%; animation-duration: 42s;
@@ -56,12 +56,22 @@ body{
   top: 50%; animation-duration: 50s;
   background: linear-gradient(120deg, rgba(10,150,120,0.18), rgba(60,120,220,0.14), rgba(20,80,160,0.08));
 }
+
 @keyframes aurora-drift {
   0% { transform: translateX(-50%) rotate(-5deg) scale(1); }
   50% { transform: translateX(50%) rotate(5deg) scale(1.05); }
   100% { transform: translateX(-50%) rotate(-5deg) scale(1); }
 }
-@keyframes aurora-color { 0% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(60deg); } 100% { filter: hue-rotate(0deg); } }
+@keyframes aurora-color {
+  0% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(60deg); }
+  100% { filter: hue-rotate(0deg); }
+}
+@keyframes aurora-wave {
+  0% { border-radius: 45% 55% 55% 45% / 40% 50% 50% 40%; }
+  50% { border-radius: 50% 50% 50% 50% / 45% 55% 55% 45%; }
+  100% { border-radius: 45% 55% 55% 45% / 40% 50% 50% 40%; }
+}
 
 /* Stars */
 .stars{
@@ -118,7 +128,7 @@ body{
 .spinner{
   width:64px;height:64px;border-radius:50%;
   background:conic-gradient(from 0deg, var(--accent-b), var(--accent-a), var(--accent-b));
-  animation: spin 1s linear infinite;filter:blur(2px);position:relative;
+  animation: spin 1s linear infinite;filter:blur(4px);position:relative;
 }
 @keyframes spin {100%{transform:rotate(360deg)}}
 .loader-text{margin-top:12px;color:var(--muted);font-size:13px;}
@@ -139,7 +149,6 @@ backdrop-filter:blur(8px);letter-spacing:0.2px;font-weight:600;}
 /* Responsive */
 @media (max-width:1000px){.embed-card{height:58vh}.url-box{width:100%}}
 @media (max-width:600px){.embed-card{height:52vh}.enter-btn{padding:10px 14px}.url-input{padding:12px}}
-
 </style>
 </head>
 <body>
@@ -190,51 +199,27 @@ backdrop-filter:blur(8px);letter-spacing:0.2px;font-weight:600;}
 </section>
 
 <script>
-const iframe = document.getElementById('embedFrame');
-const input = document.getElementById('urlInput');
-const enter = document.getElementById('enterBtn');
-const loader = document.getElementById('loader');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const redirectBtn = document.getElementById('redirectBtn');
+const iframe=document.getElementById('embedFrame');
+const input=document.getElementById('urlInput');
+const enter=document.getElementById('enterBtn');
+const loader=document.getElementById('loader');
+const fullscreenBtn=document.getElementById('fullscreenBtn');
+const redirectBtn=document.getElementById('redirectBtn');
 
-function normalizeUrl(raw){
-  raw=(raw||'').trim();
-  if(!raw) return null;
-  try{
-    if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;
-    new URL(raw);
-    return raw;
-  }catch(e){return null;}
-}
-
+function normalizeUrl(raw){raw=(raw||'').trim();if(!raw) return null;try{if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;new URL(raw);return raw;}catch(e){return null;}}
 function showLoader(){loader.classList.remove('hidden');loader.style.visibility='visible';loader.style.opacity='1'}
 function hideLoader(){loader.classList.add('hidden');setTimeout(()=>{loader.style.visibility='hidden'},350)}
+function loadUrl(url){if(!url) return;showLoader();iframe.src=url;}
 
-function loadUrl(url){
-  if(!url) return;
-  showLoader();
-  iframe.src=url;
-}
-
-enter.addEventListener('click', ()=>{const url=normalizeUrl(input.value);if(!url){input.focus();return;}loadUrl(url);});
+enter.addEventListener('click',()=>{const url=normalizeUrl(input.value);if(!url){input.focus();return;}loadUrl(url);});
 input.addEventListener('keydown',(e)=>{if(e.key==='Enter')enter.click();});
 document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{loadUrl(btn.dataset.url);});});
+iframe.addEventListener('load',()=>{hideLoader();});iframe.addEventListener('load',()=>{setTimeout(()=>hideLoader(),200);});
 
-iframe.addEventListener('load',()=>{hideLoader();});
-iframe.addEventListener('load',()=>{setTimeout(()=>hideLoader(),200);});
-
-fullscreenBtn.addEventListener('click',()=>{
-  if(document.fullscreenElement){document.exitFullscreen();}else{document.documentElement.requestFullscreen();}
-});
-
-redirectBtn.addEventListener('click',()=>{
-  if(iframe.src && iframe.src!=="about:blank"){window.open(iframe.src,"_blank");}
-});
-
-// Prevent initial load
+fullscreenBtn.addEventListener('click',()=>{if(document.fullscreenElement){document.exitFullscreen();}else{document.documentElement.requestFullscreen();}});
+redirectBtn.addEventListener('click',()=>{if(iframe.src && iframe.src!=="about:blank"){window.open(iframe.src,"_blank");}});
 iframe.src="about:blank";
 hideLoader();
 </script>
-
 </body>
 </html>
