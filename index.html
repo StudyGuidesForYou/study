@@ -122,22 +122,30 @@ canvas#aurora-bg{
     <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
     <button class="game-btn" data-url="https://ev.io">ev.io</button>
     <button class="game-btn" data-url="https://html5games.com">html5games</button>
-    <button class="game-btn" data-url="https://krunker.io">Krunker.io</button>
+    <button class="game-btn" data-url="https://littlealchemy2.com">Little Alchemy 2</button>
+    <button class="game-btn" data-url="https://play2048.co">2048</button>
+    <button class="game-btn" data-url="https://slopegame.com">Slope</button>
+    <button class="game-btn" data-url="https://tetris.com/play-tetris">Tetris</button>
+    <button class="game-btn" data-url="https://superhotgame.com/play/demo">Superhot Demo</button>
+    <button class="game-btn" data-url="https://hexar.io">Hexar.io</button>
+    <button class="game-btn" data-url="https://tanktrouble.com">Tank Trouble</button>
+    <button class="game-btn" data-url="https://www.linerider.com">Line Rider</button>
+    <button class="game-btn" data-url="https://playsnake.org">Google Snake</button>
+    <button class="game-btn" data-url="https://ponggame.org">Pong</button>
+    <button class="game-btn" data-url="https://agar.io/en">Agar.io</button>
   </div>
 </section>
 
 <script>
 // Aurora canvas
-const canvas = document.getElementById('aurora-bg');
-const ctx = canvas.getContext('2d');
+const canvas=document.getElementById('aurora-bg');
+const ctx=canvas.getContext('2d');
 let w=canvas.width=window.innerWidth,h=canvas.height=window.innerHeight;
 window.addEventListener('resize',()=>{w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight;});
-
 const ribbons=[];
-for(let i=0;i<6;i++){
-  ribbons.push({x:Math.random()*w,y:Math.random()*h,rx:Math.random()*300+200,ry:Math.random()*100+50,angle:Math.random()*Math.PI*2,speed:0.001+Math.random()*0.002,colors:[`hsla(${Math.random()*60+180},80%,60%,0.2)`,`hsla(${Math.random()*60+180},80%,60%,0)`]}));
+for(let i=0;i<8;i++){
+  ribbons.push({x:Math.random()*w,y:Math.random()*h,rx:Math.random()*300+200,ry:Math.random()*100+50,angle:Math.random()*Math.PI*2,speed:0.001+Math.random()*0.002,colors:[`hsla(${Math.random()*60+180},80%,60%,0.25)`,`hsla(${Math.random()*60+180},80%,60%,0)`]}));
 }
-
 function drawAurora(){
   ctx.clearRect(0,0,w,h);
   ribbons.forEach(r=>{
@@ -165,23 +173,13 @@ const fullscreenBtn=document.getElementById('fullscreenBtn');
 const redirectBtn=document.getElementById('redirectBtn');
 
 function normalizeUrl(raw){raw=(raw||'').trim();if(!raw)return null;try{if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;new URL(raw);return raw}catch(e){return null}}
-
 function showLoader(){loader.classList.remove('hidden');loader.style.visibility='visible';loader.style.opacity='1'}
 function hideLoader(){loader.classList.add('hidden');setTimeout(()=>{loader.style.visibility='hidden'},350)}
-
-function loadUrl(url){
-  const nUrl=normalizeUrl(url);
-  if(!nUrl)return;
-  showLoader();
-  iframe.src=nUrl;
-}
+function loadUrl(url){const nUrl=normalizeUrl(url);if(!nUrl)return;showLoader();iframe.src=nUrl}
 
 enter.addEventListener('click',()=>{loadUrl(input.value)});
 input.addEventListener('keydown',(e)=>{if(e.key==='Enter') enter.click()});
-
 document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{loadUrl(btn.dataset.url)})});
-
-iframe.addEventListener('load',()=>{hideLoader()});
 
 // Fullscreen button
 fullscreenBtn.addEventListener('click',()=>{if(document.fullscreenElement){document.exitFullscreen()}else{document.querySelector('.embed-card').requestFullscreen()}});
