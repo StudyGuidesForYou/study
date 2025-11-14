@@ -57,7 +57,7 @@
     .url-box{display:flex;width:100%;gap:14px;align-items:center}
     .url-input{flex:1;padding:14px 16px;border-radius:14px;border:none;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);font-size:16px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6)}
     .url-input::placeholder{color:var(--muted)}
-    .enter-btn{padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:white;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(43,130,255,0.14);transition:transform .18s}
+    .enter-btn{padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:white;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(43,130,255,0.14);transition:all .18s}
     .enter-btn:hover{transform:translateY(-3px)}
 
     /* Main embed area card */
@@ -83,6 +83,41 @@
     .game-list{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px}
     .game-btn{padding:10px 18px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));cursor:pointer;backdrop-filter:blur(8px);transition:all .18s;color:var(--text);font-weight:600;letter-spacing:0.2px}
     .game-btn:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(4,8,18,0.6)}
+
+    /* Hover outline effects A+B+C */
+    .game-btn:hover,
+    .enter-btn:hover {
+      box-shadow:
+        0 0 12px var(--accent-a),
+        0 0 24px var(--accent-b),
+        0 0 40px rgba(60,220,255,0.3);
+      border: 2px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(4px);
+      position: relative;
+    }
+    .game-btn:hover::after,
+    .enter-btn:hover::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: inherit;
+      padding: 2px;
+      background: linear-gradient(90deg, var(--accent-a), var(--accent-b), var(--accent-a));
+      background-size: 200% 200%;
+      animation: auroraStroke 3s linear infinite;
+      -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: -1;
+    }
+    @keyframes auroraStroke {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
     /* Readability helpers */
     .embed-card .ui-fade{position:absolute;left:0;right:0;top:0;height:72px;background:linear-gradient(180deg, rgba(2,6,14,0.6), transparent);pointer-events:none}
@@ -172,7 +207,6 @@
       return;
     }
     showLoader();
-    // navigate iframe and hide loader after load (or after timeout)
     iframe.src = url;
   });
 
@@ -187,14 +221,10 @@
     });
   });
 
-  // hide loader when iframe finishes loading
   iframe.addEventListener('load', ()=>{ hideLoader(); });
-
-  // UX: if iframe takes too long, still hide after 12s
   iframe.addEventListener('load', ()=>{ setTimeout(()=>hideLoader(),200) });
-  window.addEventListener('resize', ()=>{ /* layout remains fluid */ });
+  window.addEventListener('resize', ()=>{ });
 
-  // init: ensure loader hidden
   hideLoader();
 </script>
 </body>
