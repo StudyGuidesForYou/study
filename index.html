@@ -16,55 +16,18 @@
   --max-width:1320px;
 }
 
+/* Reset */
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;}
-html,body{height:100%;overflow:hidden;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));}
+html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;align-items:center;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));}
+body{-webkit-font-smoothing:antialiased;}
 
-/* Aurora Background */
+/* Aurora background */
 .aurora-wrap{
-  position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;
-  overflow:hidden;
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;pointer-events:none;
 }
-.aurora-canvas{
-  width:100%;
-  height:100%;
-  display:block;
-  filter:blur(60px);
-}
+.aurora-canvas{width:100%;height:100%;display:block;}
 
-/* Embed Card */
-.embed-card{
-  position:absolute;
-  left:0; top:0;
-  width:80%; height:70%;
-  max-width:1200px; min-width:320px;
-  min-height:400px;
-  border-radius:20px;
-  overflow:hidden;
-  background:rgba(255,255,255,0.01);
-  border:1px solid rgba(255,255,255,0.035);
-  box-shadow:0 30px 90px rgba(2,6,18,0.7);
-  display:flex;
-  flex-direction:column;
-}
-
-/* Iframe */
-.embed-iframe{width:100%;height:100%;border:none;flex:1;display:block;}
-
-/* Loader */
-.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,10,20,0.28);backdrop-filter:blur(10px);z-index:10;transition:opacity .3s;}
-.loader.hidden{opacity:0;pointer-events:none;}
-.spinner{width:60px;height:60px;border:6px solid rgba(255,255,255,0.1);border-top:6px solid var(--accent-b);border-radius:50%;animation:spin 1s linear infinite;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-
-/* Controls */
-.embed-controls{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:11;}
-.control-btn{width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;}
-.control-btn:hover{background:rgba(255,255,255,0.12);}
-
-/* Resize handle */
-.resize-handle{position:absolute;width:16px;height:16px;right:4px;bottom:4px;cursor:se-resize;z-index:12;background:rgba(255,255,255,0.1);border-radius:4px;}
-
-/* Top bar */
+/* Top search bar */
 .top-bar{position:relative;z-index:5;width:min(var(--max-width),96%);display:flex;justify-content:center;margin-top:20px;}
 .url-box{display:flex;width:100%;gap:12px;align-items:center;}
 .url-input{flex:1;padding:12px 16px;border-radius:14px;border:none;background:rgba(255,255,255,0.02);color:var(--text);font-size:16px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);transition:all .2s;}
@@ -72,6 +35,55 @@ html,body{height:100%;overflow:hidden;background:linear-gradient(180deg,var(--bg
 .url-input::placeholder{color:var(--muted);}
 .enter-btn{padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:white;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 10px 30px rgba(43,130,255,0.14);}
 .enter-btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(4,8,18,0.6);}
+
+/* Embed card container */
+.embed-wrap{position:relative;z-index:2;width:100%;flex:1;display:flex;justify-content:center;align-items:center;margin-top:12px;}
+.embed-card{
+  position:absolute;
+  width:80%;
+  max-width:1200px;
+  min-width:320px;
+  height:70%;
+  min-height:400px;
+  border-radius:var(--radius);
+  overflow:hidden;
+  background:rgba(255,255,255,0.01);
+  border:1px solid rgba(255,255,255,0.035);
+  box-shadow:0 30px 90px rgba(2,6,18,0.7);
+  display:flex;
+  flex-direction:column;
+  touch-action:none;
+}
+
+/* Iframe fills the card fully */
+.embed-iframe{width:100%;height:100%;border:none;flex:1;display:block;}
+
+/* Loader */
+.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,10,20,0.28);backdrop-filter:blur(10px);z-index:10;transition:opacity .3s;}
+.loader.hidden{opacity:0;pointer-events:none;}
+.spinner{
+  width:60px;height:60px;border:6px solid rgba(255,255,255,0.1);
+  border-top:6px solid var(--accent-b);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+
+/* Embed controls */
+.embed-controls{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:11;}
+.control-btn{
+  width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;
+}
+.control-btn:hover{background:rgba(255,255,255,0.12);}
+
+/* Resize handle (bottom-right) */
+.resize-handle{
+  position:absolute;
+  width:16px;height:16px;
+  right:4px;bottom:4px;
+  cursor:se-resize;
+  z-index:12;
+}
 
 /* Game buttons */
 .games{position:relative;z-index:2;width:min(1100px,96%);display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:12px;}
@@ -81,6 +93,10 @@ html,body{height:100%;overflow:hidden;background:linear-gradient(180deg,var(--bg
 .game-btn::after{content:'';position:absolute;inset:0;border-radius:999px;background:linear-gradient(90deg,var(--accent-a),var(--accent-b));opacity:0;transition:opacity .3s;}
 .game-btn:hover::after{opacity:0.25;}
 .game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.6);}
+
+/* Responsive */
+@media(max-width:1000px){.embed-card{height:60%;}}
+@media(max-width:600px){.embed-card{height:50%;}.enter-btn{padding:10px 14px;}.url-input{padding:12px;}}
 </style>
 </head>
 <body>
@@ -96,126 +112,130 @@ html,body{height:100%;overflow:hidden;background:linear-gradient(180deg,var(--bg
   </div>
 </header>
 
-<div class="embed-card" id="embedCard">
-  <div class="embed-controls">
-    <button id="fullscreenBtn" class="control-btn" title="Fullscreen">&#x26F6;</button>
-    <button id="redirectBtn" class="control-btn" title="Open in new tab">&#x21AA;</button>
+<main class="embed-wrap">
+  <div class="embed-card" id="embedCard">
+    <div class="embed-controls">
+      <button id="fullscreenBtn" class="control-btn" title="Fullscreen">&#x26F6;</button>
+      <button id="redirectBtn" class="control-btn" title="Open in new tab">&#x21AA;</button>
+    </div>
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+    </div>
+    <iframe id="embedFrame" class="embed-iframe" src="about:blank" sandbox="allow-scripts allow-forms allow-same-origin allow-modals allow-popups"></iframe>
+    <div class="resize-handle" id="resizeHandle"></div>
   </div>
-  <div class="loader" id="loader"><div class="spinner"></div></div>
-  <iframe id="embedFrame" class="embed-iframe" src="about:blank" sandbox="allow-scripts allow-forms allow-same-origin allow-modals allow-popups"></iframe>
-  <div class="resize-handle" id="resizeHandle"></div>
-</div>
+</main>
 
 <section class="games">
-<h2>Games</h2>
-<div class="game-list">
-  <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
-  <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
-  <button class="game-btn" data-url="https://diep.io">diep.io</button>
-  <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
-  <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
-  <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
-  <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
-  <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
-  <button class="game-btn" data-url="https://ev.io">ev.io</button>
-  <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
-  <button class="game-btn" data-url="https://html5games.com/">html5games</button>
-  <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">Browser</button>
-</div>
+  <h2>Games</h2>
+  <div class="game-list">
+    <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
+    <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
+    <button class="game-btn" data-url="https://diep.io">diep.io</button>
+    <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
+    <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
+    <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
+    <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
+    <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
+    <button class="game-btn" data-url="https://ev.io">ev.io</button>
+    <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
+    <button class="game-btn" data-url="https://html5games.com/">html5games</button>
+    <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">Browser</button>
+  </div>
 </section>
 
 <script>
-// Canvas aurora
-const canvas = document.getElementById('auroraCanvas');
+// ----------------- DEBUGGING SECTION -----------------
+console.group("Embed Launcher Debug Info");
+console.log("Window size:", window.innerWidth, window.innerHeight);
+console.log("Document body size:", document.body.offsetWidth, document.body.offsetHeight);
+const canvas=document.getElementById('auroraCanvas');
+const embedCard=document.getElementById('embedCard');
+const iframe=document.getElementById('embedFrame');
+const loader=document.getElementById('loader');
+console.log("Aurora canvas:", canvas, "Embed card:", embedCard, "Iframe:", iframe, "Loader:", loader);
+console.groupEnd();
+
+// ----------------- AURORA -----------------
 const ctx = canvas.getContext('2d');
 let width,height;
-
 function resizeCanvas(){width=canvas.width=window.innerWidth;height=canvas.height=window.innerHeight;}
 resizeCanvas();
 window.addEventListener('resize',resizeCanvas);
 
 class Aurora{
   constructor(){
-    this.reset();
-  }
-  reset(){
     this.x=Math.random()*width;
     this.y=Math.random()*height;
     this.w=400+Math.random()*400;
-    this.h=120+Math.random()*200;
-    this.hue=160+Math.random()*40;
-    this.alpha=0.08+Math.random()*0.12;
-    this.speedX=0.05+Math.random()*0.08;
-    this.hueDir=Math.random()<0.5?-1:1;
+    this.h=120+Math.random()*180;
+    this.hue=160+Math.random()*60;
+    this.speedX=0.2+Math.random()*0.3;
+    this.alpha=0.08+Math.random()*0.1;
   }
   update(){
     this.x-=this.speedX;
     if(this.x<-this.w)this.x=width+this.w;
-    this.hue+=0.02*this.hueDir;
-    if(this.hue>200)this.hue=160;
-    if(this.hue<160)this.hue=200;
+    this.hue+=0.05;
   }
   draw(){
-    let grad=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);
-    grad.addColorStop(0,`hsla(${this.hue},90%,50%,${this.alpha})`);
-    grad.addColorStop(1,'hsla(160,80%,10%,0)');
+    const grad=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);
+    grad.addColorStop(0,`hsla(${this.hue},80%,60%,${this.alpha})`);
+    grad.addColorStop(1,'hsla(200,50%,10%,0)');
     ctx.fillStyle=grad;
     ctx.beginPath();
     ctx.ellipse(this.x,this.y,this.w,this.h,0,0,2*Math.PI);
     ctx.fill();
   }
 }
-const auroras = Array.from({length:10},()=>new Aurora());
-function animate(){
+
+const auroras=Array.from({length:12},()=>new Aurora());
+function animateAurora(){
   ctx.clearRect(0,0,width,height);
   auroras.forEach(a=>{a.update();a.draw();});
-  requestAnimationFrame(animate);
+  requestAnimationFrame(animateAurora);
 }
-animate();
+animateAurora();
 
-// Embed logic
-const iframe = document.getElementById('embedFrame');
-const input = document.getElementById('urlInput');
-const enter = document.getElementById('enterBtn');
-const loader = document.getElementById('loader');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const redirectBtn = document.getElementById('redirectBtn');
-const embedCard = document.getElementById('embedCard');
+// ----------------- IFRAME LOGIC -----------------
+const inputEl=document.getElementById('urlInput');
+const enterEl=document.getElementById('enterBtn');
+const fullscreenBtn=document.getElementById('fullscreenBtn');
+const redirectBtn=document.getElementById('redirectBtn');
+const resizeHandle=document.getElementById('resizeHandle');
 
-function normalizeUrl(raw){
-  raw=(raw||'').trim();
-  if(!raw)return null;
-  try{
-    if(!/^https?:\/\//i.test(raw))raw='https://'+raw;
-    new URL(raw);
-    return raw;
-  }catch(e){return null;}
-}
+function normalizeUrl(raw){raw=(raw||'').trim();if(!raw)return null;try{if(!/^https?:\/\//i.test(raw))raw='https://'+raw;new URL(raw);return raw;}catch(e){return null;}}
 
 function showLoader(){loader.classList.remove('hidden');}
 function hideLoader(){loader.classList.add('hidden');}
 
-enter.addEventListener('click',()=>{
-  const url = normalizeUrl(input.value);
-  if(!url){input.focus();return;}
-  showLoader(); iframe.src=url;
+enterEl.addEventListener('click',()=>{
+  const url=normalizeUrl(inputEl.value);
+  if(!url){inputEl.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:240,iterations:1});inputEl.focus();return;}
+  showLoader();
+  iframe.src=url;
 });
-input.addEventListener('keydown',e=>{if(e.key==='Enter')enter.click();});
+inputEl.addEventListener('keydown',e=>{if(e.key==='Enter')enterEl.click();});
+
 document.querySelectorAll('.game-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const url=normalizeUrl(btn.dataset.url);
     if(!url)return;
-    showLoader(); iframe.src=url;
+    showLoader();
+    iframe.src=url;
   });
 });
+
 iframe.addEventListener('load',()=>{hideLoader();});
 
-// Fullscreen & redirect
-fullscreenBtn.addEventListener('click',()=>{embedCard.requestFullscreen?.();});
+// ----------------- FULLSCREEN & REDIRECT -----------------
+fullscreenBtn.addEventListener('click',()=>{
+  if(iframe.requestFullscreen){iframe.requestFullscreen();}
+  else if(iframe.webkitRequestFullscreen){iframe.webkitRequestFullscreen();}
+});
 redirectBtn.addEventListener('click',()=>{if(iframe.src)window.open(iframe.src,'_blank');});
 
-// Resizing & dragging
-const resizeHandle = document.getElementById('resizeHandle');
+// ----------------- RESIZE & DRAG -----------------
 let isResizing=false;
 resizeHandle.addEventListener('mousedown',e=>{isResizing=true;e.preventDefault();});
 window.addEventListener('mousemove',e=>{
@@ -229,28 +249,14 @@ window.addEventListener('mousemove',e=>{
 window.addEventListener('mouseup',()=>{isResizing=false;});
 
 let isDragging=false, offsetX=0, offsetY=0;
-embedCard.addEventListener('mousedown',e=>{
-  if(e.target===resizeHandle)return;
-  isDragging=true;
-  offsetX=e.clientX-embedCard.getBoundingClientRect().left;
-  offsetY=e.clientY-embedCard.getBoundingClientRect().top;
-});
-window.addEventListener('mousemove',e=>{
-  if(!isDragging)return;
-  let left=e.clientX-offsetX;
-  let top=e.clientY-offsetY;
-  left=Math.max(0,Math.min(window.innerWidth-embedCard.offsetWidth,left));
-  top=Math.max(0,Math.min(window.innerHeight-embedCard.offsetHeight,top));
-  embedCard.style.left=left+'px';
-  embedCard.style.top=top+'px';
-});
+embedCard.addEventListener('mousedown',e=>{if(e.target===resizeHandle)return;isDragging=true;offsetX=e.clientX-embedCard.getBoundingClientRect().left;offsetY=e.clientY-embedCard.getBoundingClientRect().top;});
+window.addEventListener('mousemove',e=>{if(!isDragging)return;let left=e.clientX-offsetX;let top=e.clientY-offsetY;left=Math.max(0,Math.min(window.innerWidth-embedCard.offsetWidth,left));top=Math.max(0,Math.min(window.innerHeight-embedCard.offsetHeight,top));embedCard.style.left=left+'px';embedCard.style.top=top+'px';});
 window.addEventListener('mouseup',()=>{isDragging=false;});
 
-// Initialize position
-embedCard.style.left='0px';
-embedCard.style.top='0px';
-embedCard.style.width='80%';
-embedCard.style.height='70%';
+// Center embed
+function centerEmbed(){embedCard.style.left=(window.innerWidth-embedCard.offsetWidth)/2+'px';embedCard.style.top=(window.innerHeight-embedCard.offsetHeight)/2+'px';}
+window.addEventListener('resize',centerEmbed);
+centerEmbed();
 </script>
 </body>
 </html>
