@@ -18,7 +18,7 @@
 
 /* Reset */
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;}
-html,body{height:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));overflow-x:hidden;display:flex;flex-direction:column;align-items:center;}
+html,body{height:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));overflow:hidden;display:flex;flex-direction:column;align-items:center;}
 body{-webkit-font-smoothing:antialiased;}
 
 /* Aurora background */
@@ -44,23 +44,22 @@ body{-webkit-font-smoothing:antialiased;}
 .enter-btn{padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:white;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 10px 30px rgba(43,130,255,0.14);}
 .enter-btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(4,8,18,0.6);}
 
-/* Embed card */
-.embed-wrap{position:relative;z-index:2;width:min(var(--max-width),96%);max-width:var(--max-width);}
+/* Embed card centered */
+.embed-wrap{position:relative;z-index:2;width:100%;display:flex;justify-content:center;align-items:center;margin-top:12px;}
 .embed-card{
-  position:relative;
-  width:100%;
+  position:absolute;
+  width:80%;
+  max-width:1200px;
   min-width:300px;
+  height:70vh;
   min-height:300px;
   border-radius:var(--radius);
   overflow:hidden;
   background:rgba(255,255,255,0.01);
   border:1px solid rgba(255,255,255,0.035);
   box-shadow:0 30px 90px rgba(2,6,18,0.7);
-  height:72vh;
   display:flex;
   flex-direction:column;
-  resize: both;
-  overflow: hidden;
 }
 
 /* Resize handle (bottom-right) */
@@ -150,54 +149,22 @@ body{-webkit-font-smoothing:antialiased;}
 </section>
 
 <script>
-// Aurora canvas setup
-const canvas = document.getElementById('auroraCanvas');
-const ctx = canvas.getContext('2d');
-let width, height;
+// Aurora canvas
+const canvas=document.getElementById('auroraCanvas');
+const ctx=canvas.getContext('2d');
+let width,height;
 function resizeCanvas(){width=canvas.width=window.innerWidth;height=canvas.height=window.innerHeight;}
 resizeCanvas();
 window.addEventListener('resize',resizeCanvas);
 
-// Aurora ribbons
 class AuroraRibbon{
-  constructor(){
-    this.points = [];
-    this.speed = 0.3 + Math.random()*0.5;
-    this.hue = 160 + Math.random()*60; // blue-green range
-    this.init();
-  }
-  init(){
-    for(let i=0;i<8;i++){
-      this.points.push({x:Math.random()*width,y:Math.random()*height});
-    }
-  }
-  update(){
-    for(let p of this.points){
-      p.x -= this.speed;
-      if(p.x<-200) p.x=width+200;
-    }
-  }
-  draw(){
-    ctx.beginPath();
-    ctx.moveTo(this.points[0].x,this.points[0].y);
-    for(let i=1;i<this.points.length;i++){
-      ctx.lineTo(this.points[i].x,this.points[i].y);
-    }
-    ctx.strokeStyle=`hsla(${this.hue},80%,60%,0.15)`;
-    ctx.lineWidth=50;
-    ctx.shadowBlur=60;
-    ctx.shadowColor=`hsla(${this.hue},80%,60%,0.35)`;
-    ctx.stroke();
-    this.hue += 0.1;
-  }
-}
-
-const ribbons = Array.from({length:5},()=>new AuroraRibbon());
-function animateAurora(){
-  ctx.clearRect(0,0,width,height);
-  ribbons.forEach(r=>{r.update(); r.draw();});
-  requestAnimationFrame(animateAurora);
-}
+  constructor(){this.points=[];this.speed=0.3+Math.random()*0.5;this.hue=160+Math.random()*60;this.init();}
+  init(){for(let i=0;i<8;i++){this.points.push({x:Math.random()*width,y:Math.random()*height});}}
+  update(){for(let p of this.points){p.x-=this.speed;if(p.x<-200)p.x=width+200;}}
+  draw(){ctx.beginPath();ctx.moveTo(this.points[0].x,this.points[0].y);for(let i=1;i<this.points.length;i++){ctx.lineTo(this.points[i].x,this.points[i].y);}
+    ctx.strokeStyle=`hsla(${this.hue},80%,60%,0.15)`;ctx.lineWidth=50;ctx.shadowBlur=60;ctx.shadowColor=`hsla(${this.hue},80%,60%,0.35)`;ctx.stroke();this.hue+=0.1;}}
+const ribbons=Array.from({length:5},()=>new AuroraRibbon());
+function animateAurora(){ctx.clearRect(0,0,width,height);ribbons.forEach(r=>{r.update();r.draw();});requestAnimationFrame(animateAurora);}
 animateAurora();
 
 // Embed logic
@@ -222,18 +189,26 @@ iframe.addEventListener('load',()=>{hideLoader();});
 fullscreenBtn.addEventListener('click',()=>{if(embedCard.requestFullscreen){embedCard.requestFullscreen();}else if(embedCard.webkitRequestFullscreen){embedCard.webkitRequestFullscreen();}});
 redirectBtn.addEventListener('click',()=>{if(iframe.src)window.open(iframe.src,'_blank');});
 
-// Resizable embed
+// Resizable embed, centered & bounded
 const resizeHandle=document.getElementById('resizeHandle');
 let isResizing=false;
 resizeHandle.addEventListener('mousedown',(e)=>{isResizing=true;e.preventDefault();});
 window.addEventListener('mousemove',(e)=>{
   if(!isResizing) return;
-  let newWidth=e.clientX-embedCard.getBoundingClientRect().left;
-  let newHeight=e.clientY-embedCard.getBoundingClientRect().top;
+  let rect=embedCard.getBoundingClientRect();
+  let maxWidth=window.innerWidth-rect.left-20;
+  let maxHeight=window.innerHeight-rect.top-20;
+  let newWidth=Math.min(e.clientX-rect.left,maxWidth);
+  let newHeight=Math.min(e.clientY-rect.top,maxHeight);
   embedCard.style.width=newWidth+'px';
   embedCard.style.height=newHeight+'px';
 });
 window.addEventListener('mouseup',()=>{isResizing=false;});
+
+// Center embed initially
+function centerEmbed(){embedCard.style.left=(window.innerWidth-embedCard.offsetWidth)/2+'px';embedCard.style.top=(window.innerHeight-embedCard.offsetHeight)/2+'px';}
+window.addEventListener('resize',centerEmbed);
+centerEmbed();
 </script>
 </body>
 </html>
