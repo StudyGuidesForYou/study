@@ -91,9 +91,6 @@ body{-webkit-font-smoothing:antialiased;}
 .game-btn:hover::after{opacity:0.25;}
 .game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.6);}
 
-/* Debug console section */
-.debug-console{position:fixed;bottom:0;left:0;width:100%;height:180px;background:rgba(0,0,0,0.6);color:#0f0;font-family:monospace;overflow:auto;z-index:999;}
-
 /* Responsive */
 @media(max-width:1000px){.embed-card{height:60%;} .aurora-canvas{filter:blur(50px);}}
 @media(max-width:600px){.embed-card{height:50%;}.enter-btn{padding:10px 14px;}.url-input{padding:12px;} .aurora-canvas{filter:blur(40px);}}
@@ -144,10 +141,8 @@ body{-webkit-font-smoothing:antialiased;}
   </div>
 </section>
 
-<div class="debug-console" id="debugConsole"></div>
-
 <script>
-// Aurora canvas
+// --- Aurora Canvas ---
 const canvas=document.getElementById('auroraCanvas');
 const ctx=canvas.getContext('2d');
 let width,height;
@@ -172,7 +167,7 @@ class AuroraOval{
     if(this.x<-this.w) this.x=width+this.w;
     if(this.y<-this.h)this.y=height+this.h;
     if(this.y>height+this.h)this.y= -this.h;
-    this.hue+=0.02; // slow hue shift
+    this.hue+=0.02;
   }
   draw(){
     const grad=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);
@@ -185,14 +180,10 @@ class AuroraOval{
   }
 }
 const auroras=Array.from({length:12},()=>new AuroraOval());
-function animateAurora(){
-  ctx.clearRect(0,0,width,height);
-  auroras.forEach(a=>{a.update();a.draw();});
-  requestAnimationFrame(animateAurora);
-}
+function animateAurora(){ctx.clearRect(0,0,width,height);auroras.forEach(a=>{a.update();a.draw();});requestAnimationFrame(animateAurora);}
 animateAurora();
 
-// Embed iframe logic
+// --- Embed logic ---
 const iframe=document.getElementById('embedFrame');
 const input=document.getElementById('urlInput');
 const enter=document.getElementById('enterBtn');
@@ -201,54 +192,50 @@ const fullscreenBtn=document.getElementById('fullscreenBtn');
 const redirectBtn=document.getElementById('redirectBtn');
 const embedCard=document.getElementById('embedCard');
 
-// Debug console logging
-const debugConsole=document.getElementById('debugConsole');
-function logDebug(...args){debugConsole.innerText+=args.map(a=>typeof a==='object'?JSON.stringify(a):a).join(' ')+'\n';debugConsole.scrollTop=debugConsole.scrollHeight;}
-function logEvent(evt,info=''){logDebug(`[${new Date().toLocaleTimeString()}] Event: ${evt} ${info}`);}
-
-// Normalize URL
-function normalizeUrl(raw){raw=(raw||'').trim();if(!raw)return null;try{if(!/^https?:\/\//i.test(raw))raw='https://'+raw;new URL(raw);return raw;}catch(e){return null;}}
-
-function showLoader(){loader.classList.remove('hidden');logEvent('Loader shown');}
-function hideLoader(){loader.classList.add('hidden');logEvent('Loader hidden');}
-
-// Iframe events
-iframe.addEventListener('load',()=>{hideLoader();logEvent('Iframe loaded',iframe.src);});
-iframe.addEventListener('error',()=>{hideLoader();logEvent('Iframe error',iframe.src);});
-
-// Buttons
-enter.addEventListener('click',()=>{const url=normalizeUrl(input.value);if(!url){input.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:240,iterations:1});input.focus();logEvent('Invalid URL input',input.value);return;}showLoader();iframe.src=url;logEvent('URL loaded',url);});
-input.addEventListener('keydown',(e)=>{if(e.key==='Enter')enter.click();});
-document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{const url=normalizeUrl(btn.dataset.url);if(!url)return;showLoader();iframe.src=url;logEvent('Game loaded',url);});});
-
-// Fullscreen & redirect
-fullscreenBtn.addEventListener('click',()=>{if(embedCard.requestFullscreen){embedCard.requestFullscreen();}else if(embedCard.webkitRequestFullscreen){embedCard.webkitRequestFullscreen();}logEvent('Fullscreen toggled');});
-redirectBtn.addEventListener('click',()=>{if(iframe.src)window.open(iframe.src,'_blank');logEvent('Redirect clicked',iframe.src);});
-
-// Resizable & draggable
-const resizeHandle=document.getElementById('resizeHandle');
-let isResizing=false;
-resizeHandle.addEventListener('mousedown',e=>{isResizing=true;e.preventDefault();logEvent('Resize started');});
-window.addEventListener('mousemove',e=>{if(!isResizing)return;let rect=embedCard.getBoundingClientRect();let maxW=window.innerWidth-rect.left-20;let maxH=window.innerHeight-rect.top-20;embedCard.style.width=Math.min(e.clientX-rect.left,maxW)+'px';embedCard.style.height=Math.min(e.clientY-rect.top,maxH)+'px';});
-window.addEventListener('mouseup',()=>{if(isResizing)logEvent('Resize ended');isResizing=false;});
-
-let isDragging=false, offsetX=0, offsetY=0;
-embedCard.addEventListener('mousedown',e=>{if(e.target===resizeHandle)return;isDragging=true;offsetX=e.clientX-embedCard.getBoundingClientRect().left;offsetY=e.clientY-embedCard.getBoundingClientRect().top;logEvent('Drag started');});
-window.addEventListener('mousemove',e=>{if(!isDragging)return;let left=e.clientX-offsetX;let top=e.clientY-offsetY;left=Math.max(0,Math.min(window.innerWidth-embedCard.offsetWidth,left));top=Math.max(0,Math.min(window.innerHeight-embedCard.offsetHeight,top));embedCard.style.left=left+'px';embedCard.style.top=top+'px';});
-window.addEventListener('mouseup',()=>{if(isDragging)logEvent('Drag ended');isDragging=false;});
-
-// Center embed
-function centerEmbed(){embedCard.style.left=(window.innerWidth-embedCard.offsetWidth)/2+'px';embedCard.style.top=(window.innerHeight-embedCard.offsetHeight)/2+'px';logEvent('Embed centered');}
-window.addEventListener('resize',centerEmbed);
-centerEmbed();
-
-// Initial debug
+// --- Debug logging ---
+function logDebug(...args){console.log(`[EmbedLauncher ${new Date().toLocaleTimeString()}]`,...args);}
 logDebug("Window size:",window.innerWidth,window.innerHeight);
 logDebug("Document body size:",document.body.offsetWidth,document.body.offsetHeight);
 logDebug("Aurora canvas:",canvas);
 logDebug("Embed card:",embedCard);
 logDebug("Iframe:",iframe);
 logDebug("Loader:",loader);
+
+// Normalize URL
+function normalizeUrl(raw){raw=(raw||'').trim();if(!raw)return null;try{if(!/^https?:\/\//i.test(raw))raw='https://'+raw;new URL(raw);return raw;}catch(e){return null;}}
+
+function showLoader(){loader.classList.remove('hidden');logDebug('Loader shown');}
+function hideLoader(){loader.classList.add('hidden');logDebug('Loader hidden');}
+
+// Iframe events
+iframe.addEventListener('load',()=>{hideLoader();logDebug('Iframe loaded',iframe.src);});
+iframe.addEventListener('error',()=>{hideLoader();logDebug('Iframe error',iframe.src);});
+
+// Buttons
+enter.addEventListener('click',()=>{const url=normalizeUrl(input.value);if(!url){input.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:240,iterations:1});input.focus();logDebug('Invalid URL input',input.value);return;}showLoader();iframe.src=url;logDebug('URL loaded',url);});
+input.addEventListener('keydown',(e)=>{if(e.key==='Enter')enter.click();});
+document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{const url=normalizeUrl(btn.dataset.url);if(!url)return;showLoader();iframe.src=url;logDebug('Game loaded',url);});});
+
+// Fullscreen & redirect
+fullscreenBtn.addEventListener('click',()=>{if(embedCard.requestFullscreen){embedCard.requestFullscreen();}else if(embedCard.webkitRequestFullscreen){embedCard.webkitRequestFullscreen();}logDebug('Fullscreen toggled');});
+redirectBtn.addEventListener('click',()=>{if(iframe.src)window.open(iframe.src,'_blank');logDebug('Redirect clicked',iframe.src);});
+
+// Resizable & draggable
+const resizeHandle=document.getElementById('resizeHandle');
+let isResizing=false;
+resizeHandle.addEventListener('mousedown',e=>{isResizing=true;e.preventDefault();logDebug('Resize started');});
+window.addEventListener('mousemove',e=>{if(!isResizing)return;let rect=embedCard.getBoundingClientRect();let maxW=window.innerWidth-rect.left-20;let maxH=window.innerHeight-rect.top-20;embedCard.style.width=Math.min(e.clientX-rect.left,maxW)+'px';embedCard.style.height=Math.min(e.clientY-rect.top,maxH)+'px';});
+window.addEventListener('mouseup',()=>{if(isResizing)logDebug('Resize ended');isResizing=false;});
+
+let isDragging=false, offsetX=0, offsetY=0;
+embedCard.addEventListener('mousedown',e=>{if(e.target===resizeHandle)return;isDragging=true;offsetX=e.clientX-embedCard.getBoundingClientRect().left;offsetY=e.clientY-embedCard.getBoundingClientRect().top;logDebug('Drag started');});
+window.addEventListener('mousemove',e=>{if(!isDragging)return;let left=e.clientX-offsetX;let top=e.clientY-offsetY;left=Math.max(0,Math.min(window.innerWidth-embedCard.offsetWidth,left));top=Math.max(0,Math.min(window.innerHeight-embedCard.offsetHeight,top));embedCard.style.left=left+'px';embedCard.style.top=top+'px';});
+window.addEventListener('mouseup',()=>{if(isDragging)logDebug('Drag ended');isDragging=false;});
+
+// Center embed
+function centerEmbed(){embedCard.style.left=(window.innerWidth-embedCard.offsetWidth)/2+'px';embedCard.style.top=(window.innerHeight-embedCard.offsetHeight)/2+'px';logDebug('Embed centered');}
+window.addEventListener('resize',centerEmbed);
+centerEmbed();
 </script>
 
 </body>
