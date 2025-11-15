@@ -23,6 +23,7 @@ html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;align-i
 /* Aurora background */
 .aurora-wrap{
   position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;pointer-events:none;overflow:hidden;
+  backdrop-filter:blur(40px);
 }
 .aurora-canvas{width:100%;height:100%;display:block;}
 
@@ -157,34 +158,41 @@ window.addEventListener('resize',resizeCanvas);
 
 class AuroraOval{
   constructor(){
+    this.reset();
+  }
+  reset(){
     this.x=Math.random()*width;
     this.y=Math.random()*height;
-    this.w=400+Math.random()*500;
-    this.h=150+Math.random()*250;
-    this.hue=160+Math.random()*60;
-    this.speedX=0.01+Math.random()*0.02;
-    this.alpha=0.1+Math.random()*0.2;
-    this.colorDir=Math.random()<0.5?-1:1;
+    this.w=400+Math.random()*400;
+    this.h=100+Math.random()*200;
+    this.hue=160+Math.random()*40;
+    this.alpha=0.08+Math.random()*0.15;
+    this.speedX=0.1+Math.random()*0.15;
+    this.hueDir=Math.random()<0.5?-1:1;
   }
   update(){
     this.x-=this.speedX;
     if(this.x<-this.w)this.x=width+this.w;
-    this.hue+=0.02*this.colorDir;
-    if(this.hue>220)this.hue=160;
-    if(this.hue<160)this.hue=220;
+    this.hue+=0.05*this.hueDir;
+    if(this.hue>200)this.hue=160;
+    if(this.hue<160)this.hue=200;
   }
   draw(){
     const grad=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);
-    grad.addColorStop(0,`hsla(${this.hue},80%,60%,${this.alpha})`);
-    grad.addColorStop(1,'hsla(200,50%,10%,0)');
+    grad.addColorStop(0,`hsla(${this.hue},90%,50%,${this.alpha})`);
+    grad.addColorStop(1,'hsla(160,80%,10%,0)');
     ctx.fillStyle=grad;
     ctx.beginPath();
-    ctx.ellipse(this.x,this.y,this.w,this.h,0,0,2*Math.PI);
+    ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2);
     ctx.fill();
   }
 }
-const auroras=Array.from({length:8},()=>new AuroraOval());
-function animateAurora(){ctx.clearRect(0,0,width,height);auroras.forEach(a=>{a.update();a.draw();});requestAnimationFrame(animateAurora);}
+const auroras=Array.from({length:10},()=>new AuroraOval());
+function animateAurora(){
+  ctx.clearRect(0,0,width,height);
+  auroras.forEach(a=>{a.update();a.draw();});
+  requestAnimationFrame(animateAurora);
+}
 animateAurora();
 
 // Embed iframe logic
