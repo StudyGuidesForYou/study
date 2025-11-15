@@ -21,9 +21,19 @@
 html,body{height:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));overflow-x:hidden;display:flex;flex-direction:column;align-items:center;}
 body{-webkit-font-smoothing:antialiased;}
 
-/* Aurora */
-.aurora-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;}
-.aurora-canvas{width:100%;height:100%;display:block;}
+/* Aurora background */
+.aurora-wrap{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+}
+.aurora-canvas{
+  width:100%;
+  height:100%;
+  display:block;
+  filter:blur(60px);
+}
 
 /* Top search bar */
 .top-bar{position:relative;z-index:5;width:min(var(--max-width),96%);display:flex;justify-content:center;margin-top:20px;}
@@ -140,33 +150,54 @@ body{-webkit-font-smoothing:antialiased;}
 </section>
 
 <script>
-// Aurora
+// Aurora canvas setup
 const canvas = document.getElementById('auroraCanvas');
 const ctx = canvas.getContext('2d');
-let width,height;
+let width, height;
 function resizeCanvas(){width=canvas.width=window.innerWidth;height=canvas.height=window.innerHeight;}
 resizeCanvas();
 window.addEventListener('resize',resizeCanvas);
 
-class Ribbon{
-  constructor(){this.points=[];this.speed=0.3+Math.random()*0.5;this.hue=Math.random()*360;this.init();}
-  init(){for(let i=0;i<8;i++){this.points.push({x:Math.random()*width,y:Math.random()*height});}}
-  update(){for(let p of this.points){p.x-=this.speed;if(p.x<-200)p.x=width+200;}}
+// Aurora ribbons
+class AuroraRibbon{
+  constructor(){
+    this.points = [];
+    this.speed = 0.3 + Math.random()*0.5;
+    this.hue = 160 + Math.random()*60; // blue-green range
+    this.init();
+  }
+  init(){
+    for(let i=0;i<8;i++){
+      this.points.push({x:Math.random()*width,y:Math.random()*height});
+    }
+  }
+  update(){
+    for(let p of this.points){
+      p.x -= this.speed;
+      if(p.x<-200) p.x=width+200;
+    }
+  }
   draw(){
     ctx.beginPath();
     ctx.moveTo(this.points[0].x,this.points[0].y);
-    for(let i=1;i<this.points.length;i++){ctx.lineTo(this.points[i].x,this.points[i].y);}
-    ctx.strokeStyle=`hsla(${this.hue},80%,60%,0.18)`;
-    ctx.lineWidth=40;
-    ctx.shadowBlur=50;
-    ctx.shadowColor=`hsla(${this.hue},80%,60%,0.5)`;
+    for(let i=1;i<this.points.length;i++){
+      ctx.lineTo(this.points[i].x,this.points[i].y);
+    }
+    ctx.strokeStyle=`hsla(${this.hue},80%,60%,0.15)`;
+    ctx.lineWidth=50;
+    ctx.shadowBlur=60;
+    ctx.shadowColor=`hsla(${this.hue},80%,60%,0.35)`;
     ctx.stroke();
-    this.hue+=0.1;
+    this.hue += 0.1;
   }
 }
 
-const ribbons = Array.from({length:5},()=>new Ribbon());
-function animateAurora(){ctx.clearRect(0,0,width,height);ribbons.forEach(r=>{r.update();r.draw();});requestAnimationFrame(animateAurora);}
+const ribbons = Array.from({length:5},()=>new AuroraRibbon());
+function animateAurora(){
+  ctx.clearRect(0,0,width,height);
+  ribbons.forEach(r=>{r.update(); r.draw();});
+  requestAnimationFrame(animateAurora);
+}
 animateAurora();
 
 // Embed logic
@@ -187,16 +218,14 @@ input.addEventListener('keydown',(e)=>{if(e.key==='Enter')enter.click();});
 document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{const url=normalizeUrl(btn.dataset.url);if(!url)return;showLoader();iframe.src=url;});});
 iframe.addEventListener('load',()=>{hideLoader();});
 
-// Fullscreen
+// Fullscreen & redirect
 fullscreenBtn.addEventListener('click',()=>{if(embedCard.requestFullscreen){embedCard.requestFullscreen();}else if(embedCard.webkitRequestFullscreen){embedCard.webkitRequestFullscreen();}});
 redirectBtn.addEventListener('click',()=>{if(iframe.src)window.open(iframe.src,'_blank');});
 
 // Resizable embed
 const resizeHandle=document.getElementById('resizeHandle');
 let isResizing=false;
-resizeHandle.addEventListener('mousedown',(e)=>{
-  isResizing=true; e.preventDefault();
-});
+resizeHandle.addEventListener('mousedown',(e)=>{isResizing=true;e.preventDefault();});
 window.addEventListener('mousemove',(e)=>{
   if(!isResizing) return;
   let newWidth=e.clientX-embedCard.getBoundingClientRect().left;
