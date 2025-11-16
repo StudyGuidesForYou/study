@@ -1,578 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Modern Embed Launcher — Glass + Aurora</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GL Launcher</title>
+
 <style>
-  :root{
-    --bg-deep: #030718;
-    --glass-weak: rgba(255,255,255,0.04);
-    --glass-strong: rgba(255,255,255,0.08);
-    --accent-a: #3dd3c7; /* teal */
-    --accent-b: #2b82ff; /* blue */
-    --neon: linear-gradient(90deg, #3dd3c7, #2b82ff);
-    --text: #eaf2ff;
-    --muted: rgba(230,235,255,0.52);
-    --card-radius: 18px;
-    --max-width: 1320px;
-    --embed-min-w: 320px;
-    --embed-min-h: 320px;
-    --ui-gap: 12px;
-  }
+    /* --------------------
+       GLOBAL RESET
+    -------------------- */
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        font-family: Arial, sans-serif;
+    }
 
-  /* -------- Base & reset -------- */
-  *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
-  html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep),#07102a);color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
-  a{color:inherit}
+    /* --------------------
+       AURORA BACKGROUND
+    -------------------- */
+    #auroraBg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -3;
+        pointer-events: none;
+        filter: blur(90px);
+    }
 
-  /* -------- Aurora background canvas -------- */
-  .aurora {
-    position: fixed; inset: 0; z-index: -30; pointer-events: none;
-    /* backdrop for subtle vignette */
-  }
-  canvas#auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(40px) saturate(120%);transform:scale(1.035);}
+    /* --------------------
+       CENTER CONTAINER
+    -------------------- */
+    #launcherWrapper {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        z-index: 20;
+        max-width: 95vw;
+    }
 
-  /* soft vignette + stars */
-  .bg-overlay {
-    position: fixed; inset: 0; z-index:-25; pointer-events:none;
-    background-image:
-      radial-gradient(800px 400px at 10% 15%, rgba(30,80,150,0.06), transparent 12%),
-      radial-gradient(700px 360px at 90% 80%, rgba(0,180,140,0.04), transparent 10%),
-      linear-gradient(180deg, rgba(2,6,18,0.18), rgba(2,6,18,0.24));
-    opacity: 0.95;
-  }
+    /* --------------------
+       BUTTON BAR
+    -------------------- */
+    #buttonBar {
+        display: flex;
+        gap: 10px;
+    }
 
-  /* subtle speck stars */
-  .stars {
-    position: fixed; inset:0; z-index:-24; pointer-events:none; opacity:0.12;
-    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 520px 520px;
-  }
+    button {
+        padding: 10px 18px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        transition: 0.2s;
+    }
+    button:hover {
+        background: rgba(255,255,255,0.18);
+    }
 
-  /* -------- Top bar (glass) -------- */
-  .top-wrap{
-    position: fixed; left: 50%; transform: translateX(-50%); top: 18px; z-index: 80;
-    width: min(var(--max-width), 96%); display:flex; align-items:center; gap:var(--ui-gap);
-    padding:10px; border-radius:14px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255,255,255,0.03); box-shadow: 0 8px 30px rgba(2,6,18,0.45);
-    backdrop-filter: blur(10px) saturate(120%);
-  }
+    /* --------------------
+       IFRAME CARD
+    -------------------- */
+    #frameContainer {
+        position: relative;
+        background: rgba(20,20,20,0.6);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 12px;
+        overflow: hidden;
+        backdrop-filter: blur(8px);
+        width: 900px;      /* default */
+        height: 600px;     /* default */
+        max-width: 95vw;
+        max-height: 85vh;
+    }
 
-  .url-box { display:flex; gap:10px; flex:1; align-items:center; }
-  .url-input{
-    flex:1; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.03);
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    color:var(--text); font-size:15px; outline:none; min-width:160px;
-    box-shadow: 0 6px 20px rgba(2,6,18,0.32);
-  }
-  .url-input::placeholder{ color: var(--muted); }
-  .action-btn {
-    display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px;
-    border:none; cursor:pointer; color:#fff; font-weight:700; font-size:14px;
-    background: linear-gradient(135deg, rgba(61,211,199,0.14), rgba(43,130,255,0.12));
-    box-shadow: 0 8px 30px rgba(43,130,255,0.08);
-    transition: transform .14s ease, box-shadow .14s ease;
-  }
-  .action-btn:active { transform: translateY(1px); }
-  .small-muted { font-size:13px; color:var(--muted); margin-left:8px; }
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }
 
-  /* -------- Main area (embed) -------- */
-  .main-wrap{ position: absolute; inset: 90px 0 110px 0; display:flex; align-items:center; justify-content:center; z-index:70; padding:18px; }
+    /* --------------------
+       RESIZE HANDLE (HORIZONTAL)
+    -------------------- */
+    #resizeHandle {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 12px;
+        height: 100%;
+        cursor: ew-resize;
+        background: rgba(255,255,255,0.03);
+    }
 
-  .embed-card{
-    width: 84vw; max-width: 1180px; min-width: var(--embed-min-w);
-    height: 70vh; min-height: var(--embed-min-h);
-    border-radius: var(--card-radius); overflow:hidden; position:relative;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255,255,255,0.04);
-    box-shadow: 0 40px 110px rgba(6,10,20,0.7), 0 2px 0 rgba(255,255,255,0.02) inset;
-    display:flex; flex-direction:column;
-    transition: box-shadow .18s ease, transform .18s ease;
-    backdrop-filter: blur(8px) saturate(120%);
-  }
-
-  /* floating top controls (glass strip) - placed above iframe */
-  .embed-top {
-    display:flex; gap:12px; align-items:center; padding:10px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-    border-bottom: 1px solid rgba(255,255,255,0.02);
-  }
-
-  .top-icon-btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700;
-    color:var(--text); background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border:1px solid rgba(255,255,255,0.03);
-    transition: transform .12s ease, box-shadow .12s ease;
-  }
-  .top-icon-btn:hover{ transform: translateY(-3px); box-shadow: 0 14px 40px rgba(43,130,255,0.06); }
-
-  .top-icon { width:18px; height:18px; display:inline-block; opacity:0.95; }
-
-  /* iframe area */
-  .embed-frame { flex:1; position:relative; display:block; background:#0a0a0a; }
-  iframe.embed-iframe{ width:100%; height:100%; border:0; background:#000; }
-
-  /* loader overlay centered over iframe */
-  .loader-overlay {
-    position:absolute; inset:56px 0 0 0; display:flex; align-items:center; justify-content:center; pointer-events:none;
-    transition: opacity .22s ease; opacity:0;
-    z-index:120;
-  }
-  .loader-overlay.visible{ opacity:1; pointer-events:auto; background: linear-gradient(180deg, rgba(6,10,20,0.22), rgba(6,10,20,0.32)); backdrop-filter: blur(6px); }
-  .loader-spinner{
-    width:64px; height:64px; border-radius:50%; border:8px solid rgba(255,255,255,0.06); border-top-color: var(--accent-b);
-    animation: spin 0.95s linear infinite; box-shadow: 0 10px 40px rgba(43,130,255,0.12);
-  }
-  @keyframes spin{ to { transform: rotate(360deg); } }
-
-  /* horizontal resize (right edge) */
-  .resize-edge {
-    position:absolute; top:0; bottom:0; right:-8px; width:16px; cursor: ew-resize; z-index:200;
-    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.02));
-  }
-  /* display a subtle grab area on hover */
-  .resize-edge::after{
-    content:''; position:absolute; left:3px; top:50%; transform:translateY(-50%); width:6px; height:48px; border-radius:6px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    box-shadow: 0 6px 18px rgba(0,0,0,0.35) inset;
-  }
-
-  /* games list (bottom) */
-  .games-wrap{
-    position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:75; width: min(var(--max-width), 96%);
-    display:flex; justify-content:center; padding:8px;
-  }
-  .game-list{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  .game-btn{
-    padding:10px 14px; border-radius:999px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border:1px solid rgba(255,255,255,0.03); color:var(--text); font-weight:700; cursor:pointer;
-    transition: transform .12s ease;
-  }
-  .game-btn:hover{ transform: translateY(-4px); box-shadow: 0 18px 40px rgba(4,8,18,0.5); }
-
-  /* message bubble for framing issues (centered) */
-  .msg-box{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:210;
-    background: linear-gradient(180deg, rgba(6,10,20,0.6), rgba(8,12,20,0.72)); color:var(--muted);
-    padding:12px 16px; border-radius:12px; display:none; max-width:86%; text-align:center;
-    border: 1px solid rgba(255,255,255,0.02);
-  }
-  .msg-box.visible{ display:block; }
-
-  /* responsive tweaks */
-  @media (max-width: 1000px){
-    .embed-card{ width:92vw; height:62vh; }
-    .top-wrap{ padding:8px; }
-  }
-  @media (max-width:540px){
-    .embed-card{ width:96vw; height:55vh; min-width:240px; min-height:260px; }
-    .top-wrap{ top:10px; left:50%; transform:translateX(-50%); }
-    .url-input{ font-size:14px; }
-    .top-icon-btn{ padding:8px 10px; font-size:13px; }
-  }
+    #loader {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(6px);
+        color: white;
+        font-size: 20px;
+        z-index: 10;
+        display: none;
+    }
 </style>
 </head>
 <body>
 
-  <!-- Background -->
-  <div class="aurora" aria-hidden="true"><canvas id="auroraCanvas"></canvas></div>
-  <div class="bg-overlay" aria-hidden="true"></div>
-  <div class="stars" aria-hidden="true"></div>
+<canvas id="auroraBg"></canvas>
 
-  <!-- Top search (glass) -->
-  <div class="top-wrap" role="search" aria-label="URL launcher">
-    <div class="url-box">
-      <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
-      <button id="enterBtn" class="action-btn" aria-label="Load URL">
-        <svg class="top-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Load
-      </button>
-      <div class="small-muted" aria-hidden="true">Glass • Aurora • Smart-center</div>
+<div id="launcherWrapper">
+
+    <div id="buttonBar">
+        <button onclick="loadURL('https://slowroads.io')">Slowroads</button>
+        <button onclick="loadURL('https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev')">Browser</button>
+        <button onclick="loadURL('https://study.info.north-kazakhstan.su.cdn.cloudflare.net/')">Browser 2</button>
+        <button onclick="loadURL('https://worufjddjdj.bank.si/')">Browser 3</button>
+        <button onclick="loadURL('https://chejfnreeje.vets.co.il/')">Browser 4</button>
+        <button onclick="loadURL('https://zearn.buzz.cdn.cloudflare.net/')">Browser 5</button>
+        <button onclick="recenter()">Recenter</button>
     </div>
-  </div>
 
-  <!-- Main embed card -->
-  <main class="main-wrap" role="main">
-    <section class="embed-card" id="embedCard" aria-label="Embed area">
-      <!-- top control strip -->
-      <div class="embed-top" role="toolbar" aria-label="Embed controls">
-        <button id="recenterBtn" class="top-icon-btn" title="Recenter">
-          <svg class="top-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2v4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 18v4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12h4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 12h4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Re-center
-        </button>
-
-        <div style="flex:1"></div>
-
-        <button id="fullscreenBtn" class="top-icon-btn" title="Make fullscreen">
-          <svg class="top-icon" viewBox="0 0 24 24" fill="none"><path d="M4 6h6" stroke="white" stroke-width="1.6" stroke-linecap="round"/><path d="M4 6v6" stroke="white" stroke-width="1.6" stroke-linecap="round"/><path d="M20 18h-6" stroke="white" stroke-width="1.6" stroke-linecap="round"/><path d="M20 18v-6" stroke="white" stroke-width="1.6" stroke-linecap="round"/></svg>
-        </button>
-
-        <button id="openBtn" class="top-icon-btn" title="Open in new tab">
-          <svg class="top-icon" viewBox="0 0 24 24" fill="none"><path d="M14 3h7v7" stroke="white" stroke-width="1.6" stroke-linecap="round"/><path d="M10 14L21 3" stroke="white" stroke-width="1.6" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-
-      <!-- iframe area & loader -->
-      <div class="embed-frame" role="document" aria-label="Embedded content area">
-        <div id="loaderOverlay" class="loader-overlay" aria-hidden="true">
-          <div>
-            <div class="loader-spinner" aria-hidden="true"></div>
-          </div>
-        </div>
-
-        <iframe id="embedFrame" class="embed-iframe"
-                src="about:blank"
-                title="Embedded content"
-                sandbox="allow-same-origin allow-scripts allow-pointer-lock allow-popups allow-forms allow-modals"
-                allow="fullscreen; autoplay; accelerometer; camera; microphone">
-        </iframe>
-
-        <div id="msgBox" class="msg-box" role="alert" aria-live="polite"></div>
-
-        <!-- horizontal resize edge -->
-        <div class="resize-edge" id="resizeEdge" aria-hidden="true"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Games list -->
-  <div class="games-wrap" aria-label="Games">
-    <div class="game-list" role="list">
-      <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
-      <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
-      <button class="game-btn" data-url="https://diep.io">diep.io</button>
-      <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
-      <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
-      <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
-      <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
-      <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
-      <button class="game-btn" data-url="https://ev.io">ev.io</button>
-      <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
-      <button class="game-btn" data-url="https://html5games.com">html5games</button>
-
-      <!-- Browser 1-5 (your added sites) -->
-      <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">Browser 1</button>
-      <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">Browser 2</button>
-      <button class="game-btn" data-url="https://worufjddjdj.bank.si/">Browser 3</button>
-      <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">Browser 4</button>
-      <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Browser 5</button>
+    <div id="frameContainer">
+        <iframe id="embedFrame" sandbox="allow-scripts allow-forms allow-presentation allow-popups allow-downloads"></iframe>
+        <div id="loader">Loading…</div>
+        <div id="resizeHandle"></div>
     </div>
-  </div>
+
+</div>
+
 
 <script>
-/* ======================
-   Glass + Aurora Launcher
-   - Center locked by default
-   - No dragging
-   - Horizontal resize via right-edge
-   - Loader + retry + framing message
-   - Console-only debug
-   ====================== */
-
-const DBG = {
-  info: (...a)=>console.log('%c[GL-Launcher]','color:#bfefff;background:#012;padding:2px 6px;border-radius:4px;',...a),
-  warn: (...a)=>console.warn('%c[GL-Launcher WARN]','color:#ffdd66;background:#331a00;padding:2px 6px;border-radius:4px;',...a),
-  error:(...a)=>console.error('%c[GL-Launcher ERR]','color:#ff9fb5;background:#33000a;padding:2px 6px;border-radius:4px;',...a)
-};
-
-DBG.info('Launcher boot');
-
-// ---------------------- Aurora Canvas ----------------------
-const canvas = document.getElementById('auroraCanvas');
-const ctx = canvas.getContext('2d', { alpha: true });
-let W = canvas.width = innerWidth;
-let H = canvas.height = innerHeight;
-window.addEventListener('resize', ()=>{ W = canvas.width = innerWidth; H = canvas.height = innerHeight; });
-
-class Oval {
-  constructor(){
-    this.reset();
-  }
-  reset(){
-    this.x = Math.random()*W;
-    this.y = Math.random()*H;
-    this.w = 300 + Math.random()*900;
-    this.h = 80 + Math.random()*380;
-    this.hue = 150 + Math.random()*80;
-    this.alpha = 0.06 + Math.random()*0.16;
-    this.vx = 0.02 + Math.random()*0.2;
-    this.vy = (Math.random()-0.5) * 0.08;
-    this.drift = (Math.random()<0.5?-1:1)*(0.01 + Math.random()*0.03);
-  }
-  update(){
-    this.x -= this.vx;
-    this.y += this.vy;
-    this.hue += this.drift * 0.2;
-    if(this.hue > 240) this.hue = 150;
-    if(this.hue < 150) this.hue = 240;
-    if(this.x < -this.w) this.x = W + this.w;
-    if(this.y < -this.h) this.y = H + this.h;
-    if(this.y > H + this.h) this.y = -this.h;
-  }
-  draw(){
-    const g = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);
-    g.addColorStop(0, `hsla(${this.hue},86%,56%,${this.alpha})`);
-    g.addColorStop(0.6, `hsla(${this.hue+24},78%,44%,${this.alpha*0.8})`);
-    g.addColorStop(1, `hsla(200,40%,10%,0)`);
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2);
-    ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-  }
+/* -----------------------------------------------------
+   DEBUG LOGGER (IMPROVED)
+----------------------------------------------------- */
+function log(...msg) {
+    console.log("%c[GL-Launcher]", "color:#5cf", ...msg);
+}
+function warn(...msg) {
+    console.warn("%c[GL-Launcher WARN]", "color:#f55", ...msg);
 }
 
-const ovals = Array.from({length:14}, ()=> new Oval());
-(function auroraLoop(){
-  ctx.clearRect(0,0,W,H);
-  // subtle dark wash for depth
-  const bg = ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0, 'rgba(2,8,20,0.22)');
-  bg.addColorStop(1, 'rgba(2,6,12,0.44)');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-  for(const o of ovals){ o.update(); o.draw(); }
-  requestAnimationFrame(auroraLoop);
+/* -----------------------------------------------------
+   ALWAYS CENTER
+----------------------------------------------------- */
+function recenter() {
+    const wrapper = document.getElementById("launcherWrapper");
+    wrapper.style.top = "50%";
+    wrapper.style.left = "50%";
+    wrapper.style.transform = "translate(-50%, -50%)";
+    log("Recentered");
+}
+
+/* -----------------------------------------------------
+   ON LOAD — auto center
+----------------------------------------------------- */
+window.addEventListener("load", () => {
+    setTimeout(recenter, 60);
+});
+
+/* -----------------------------------------------------
+   IFRAME LOADER
+----------------------------------------------------- */
+function loadURL(url) {
+    const frame = document.getElementById("embedFrame");
+    const loader = document.getElementById("loader");
+
+    loader.style.display = "flex";
+    log("Start loading", url);
+
+    frame.src = url;
+
+    frame.onload = () => {
+        loader.style.display = "none";
+        log("Loaded", url);
+    };
+}
+
+/* -----------------------------------------------------
+   HORIZONTAL RESIZER
+----------------------------------------------------- */
+(function initResize() {
+    const container = document.getElementById("frameContainer");
+    const handle = document.getElementById("resizeHandle");
+
+    let resizing = false;
+
+    handle.addEventListener("mousedown", e => {
+        resizing = true;
+        document.body.style.userSelect = "none";
+    });
+
+    window.addEventListener("mousemove", e => {
+        if (!resizing) return;
+
+        let newWidth = e.clientX - container.getBoundingClientRect().left;
+
+        newWidth = Math.max(280, Math.min(newWidth, window.innerWidth * 0.95));
+
+        container.style.width = newWidth + "px";
+    });
+
+    window.addEventListener("mouseup", () => {
+        resizing = false;
+        document.body.style.userSelect = "";
+    });
 })();
 
-// ---------------------- Core elements & state ----------------------
-const embedCard = document.getElementById('embedCard');
-const iframe = document.getElementById('embedFrame');
-const loaderOverlay = document.getElementById('loaderOverlay');
-const msgBox = document.getElementById('msgBox');
-const resizeEdge = document.getElementById('resizeEdge');
-
-const urlInput = document.getElementById('urlInput');
-const enterBtn = document.getElementById('enterBtn');
-const recenterBtn = document.getElementById('recenterBtn');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const openBtn = document.getElementById('openBtn');
-
-let wasCentered = true;
-const MIN_W = 320, MIN_H = 260;
-const PAD = 12;
-
-// loader / retry
-const LOAD_TIMEOUT = 12000;
-const LOAD_RETRIES = 2;
-let loadTimer = null;
-let retries = 0;
-
-// helper: normalize URL & upgrade http -> https
-function normalizeUrl(raw){
-  raw = (raw||'').trim();
-  if(!raw) return null;
-  if(!/^https?:\/\//i.test(raw)) raw = 'https://'+raw;
-  if(/^http:\/\//i.test(raw)) raw = raw.replace(/^http:\/\//i, 'https://');
-  try{ new URL(raw); return raw; }catch(e){ return null; }
-}
-
-// loader
-function showLoader(){
-  loaderOverlay.classList.add('visible');
-  DBG.info('Loader shown');
-}
-function hideLoader(){
-  loaderOverlay.classList.remove('visible');
-  DBG.info('Loader hidden');
-}
-
-// messages
-function showMsg(text, timeout=8000){
-  msgBox.textContent = text;
-  msgBox.classList.add('visible');
-  if(timeout>0){
-    clearTimeout(msgBox._hide);
-    msgBox._hide = setTimeout(()=> msgBox.classList.remove('visible'), timeout);
-  }
-  DBG.warn("User message:", text);
-}
-
-// attempt load with timeout/retry
-function attemptLoad(url){
-  if(!url) return;
-  const n = normalizeUrl(url);
-  if(!n){ showMsg('Invalid URL'); return; }
-  retries = 0;
-  _startLoad(n);
-}
-function _startLoad(n){
-  iframe.src = n;
-  showLoader();
-  DBG.info('Start loading', n, {retries});
-  if(loadTimer) { clearTimeout(loadTimer); loadTimer=null; }
-  loadTimer = setTimeout(()=>{
-    retries++;
-    hideLoader();
-    DBG.warn('Load timeout', n, {retries});
-    if(retries <= LOAD_RETRIES){
-      DBG.info('Retrying load', retries);
-      showLoader();
-      iframe.src = n + (n.includes('?')? '&': '?') + 'retry=' + Date.now();
-      loadTimer = setTimeout(()=> _onLoadGiveUp(n), LOAD_TIMEOUT);
-    } else {
-      _onLoadGiveUp(n);
+/* -----------------------------------------------------
+   AURORA ANIMATION  — smooth, slow, blurred
+----------------------------------------------------- */
+(function aurora() {
+    const canvas = document.getElementById("auroraBg");
+    const ctx = canvas.getContext("2d");
+    
+    let w, h;
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
     }
-  }, LOAD_TIMEOUT);
-}
-function _onLoadGiveUp(n){
-  hideLoader();
-  showMsg('This site refused to load in the embed (likely blocks framing). Use Open in new tab.', 12000);
-  DBG.error('Give up loading', n);
-}
+    resize();
+    window.addEventListener("resize", resize);
 
-// iframe events
-iframe.addEventListener('load', ()=>{
-  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
-  hideLoader();
-  DBG.info('iframe loaded:', iframe.src);
-  // if same-origin we can do a basic content check
-  try {
-    const doc = iframe.contentDocument;
-    if(doc && doc.body){
-      const txt = (doc.body.textContent||'').trim();
-      if(doc.body.children.length === 0 && txt.length < 8){
-        DBG.warn('iframe same-origin but empty');
-        showMsg('Embedded page loaded but looks empty. Open in new tab if needed.', 8000);
-      }
+    const blobs = new Array(5).fill(0).map(() => ({
+        x: Math.random()*w,
+        y: Math.random()*h,
+        r: 300 + Math.random()*300,
+        dx: (Math.random()*2 - 1) * 0.15,
+        dy: (Math.random()*2 - 1) * 0.15,
+        hue: Math.random()*60 + 120
+    }));
+
+    function draw() {
+        ctx.clearRect(0,0,w,h);
+
+        blobs.forEach(b => {
+            b.x += b.dx;
+            b.y += b.dy;
+            b.hue += 0.02;
+
+            if (b.x < -200) b.x = w+200;
+            if (b.x > w+200) b.x = -200;
+            if (b.y < -200) b.y = h+200;
+            if (b.y > h+200) b.y = -200;
+
+            const grd = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
+            grd.addColorStop(0, `hsla(${b.hue}, 80%, 60%, 0.8)`);
+            grd.addColorStop(1, `hsla(${b.hue+40}, 90%, 50%, 0)`);
+
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+            ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
     }
-  } catch (e) {
-    DBG.info('iframe cross-origin or inaccessible (normal for many sites)');
-  }
-});
-iframe.addEventListener('error', ()=>{
-  if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; }
-  hideLoader();
-  showMsg('Failed to load content (network/CORS). Open in new tab.', 9000);
-  DBG.error('iframe error', iframe.src);
-});
-
-// wiring UI
-enterBtn.addEventListener('click', ()=> attemptLoad(urlInput.value));
-urlInput.addEventListener('keydown', e=> e.key==='Enter' && attemptLoad(urlInput.value));
-
-document.querySelectorAll('.game-btn').forEach(b=>{
-  b.addEventListener('click', ()=> {
-    const url = b.dataset.url;
-    urlInput.value = url;
-    attemptLoad(url);
-  });
-});
-
-// recenter (restore centered mode & reasonable width/height)
-function recenter(){
-  embedCard.style.width = '';
-  embedCard.style.height = '';
-  embedCard.style.left = '';
-  embedCard.style.top = '';
-  embedCard.style.transform = 'translate(-50%,-50%)';
-  wasCentered = true;
-  DBG.info('Recentered to default');
-}
-recenterBtn.addEventListener('click', recenter);
-
-// fullscreen
-fullscreenBtn.addEventListener('click', ()=>{
-  if(embedCard.requestFullscreen) embedCard.requestFullscreen();
-  else if(embedCard.webkitRequestFullscreen) embedCard.webkitRequestFullscreen();
-  DBG.info('Requested fullscreen for embed card');
-});
-
-// open in new tab
-openBtn.addEventListener('click', ()=>{
-  const src = iframe.src;
-  if(!src || src==='about:blank'){ showMsg('No embed loaded to open'); return; }
-  window.open(src, '_blank');
-  DBG.info('Opened embed in new tab', src);
-});
-
-// horizontal resize logic
-let isResizing = false;
-let startW = 0;
-let startX = 0;
-
-resizeEdge.addEventListener('pointerdown', (e)=>{
-  e.preventDefault();
-  isResizing = true;
-  startW = embedCard.offsetWidth;
-  startX = e.clientX;
-  // When user resizes, remove center transform & set absolute left/top to maintain position
-  if(wasCentered){
-    const rect = embedCard.getBoundingClientRect();
-    embedCard.style.transform = 'none';
-    embedCard.style.left = rect.left + 'px';
-    embedCard.style.top = rect.top + 'px';
-    wasCentered = false;
-  }
-  document.body.style.cursor = 'ew-resize';
-});
-window.addEventListener('pointermove', (e)=>{
-  if(!isResizing) return;
-  e.preventDefault();
-  const dx = e.clientX - startX;
-  let newW = Math.round(startW + dx);
-  newW = Math.max(newW, MIN_W);
-  newW = Math.min(newW, window.innerWidth - (PAD*2));
-  embedCard.style.width = newW + 'px';
-  // ensure card stays fully visible horizontally
-  const rect = embedCard.getBoundingClientRect();
-  if(rect.left < PAD) embedCard.style.left = PAD + 'px';
-  if(rect.left + rect.width > window.innerWidth - PAD) embedCard.style.left = (window.innerWidth - rect.width - PAD) + 'px';
-});
-window.addEventListener('pointerup', ()=>{
-  if(isResizing){
-    isResizing = false;
-    document.body.style.cursor = '';
-    DBG.info('Resize ended, width=', embedCard.offsetWidth);
-  }
-});
-
-// touch support for horizontal resize
-resizeEdge.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; resizeEdge.dispatchEvent(new PointerEvent('pointerdown', {clientX:t.clientX})); });
-window.addEventListener('touchmove', e => { if(isResizing){ const t = e.touches[0]; window.dispatchEvent(new PointerEvent('pointermove', {clientX: t.clientX})); } }, {passive:false});
-window.addEventListener('touchend', ()=> { if(isResizing) window.dispatchEvent(new PointerEvent('pointerup')); });
-
-// ensure center on load & when viewport changes while center-mode active
-function ensureCentered(){
-  if(wasCentered){
-    embedCard.style.transform = 'translate(-50%,-50%)';
-    embedCard.style.left = '50%';
-    embedCard.style.top = '50%';
-  } else {
-    // clamp inside viewport if absolute
-    const rect = embedCard.getBoundingClientRect();
-    let left = rect.left;
-    let top = rect.top;
-    left = Math.max(PAD, Math.min(left, window.innerWidth - rect.width - PAD));
-    top = Math.max(PAD, Math.min(top, window.innerHeight - rect.height - PAD));
-    embedCard.style.left = left + 'px';
-    embedCard.style.top = top + 'px';
-  }
-}
-window.addEventListener('resize', ()=>{ W = canvas.width = innerWidth; H = canvas.height = innerHeight; ensureCentered(); });
-
-// initial center after layout loaded (fixes top-left start)
-window.addEventListener('load', ()=> {
-  requestAnimationFrame(()=> {
-    recenter();
-    DBG.info('Initial recenter on load');
-  });
-});
-
-// small API for debugging
-window.EmbedLauncher = {
-  recenter,
-  attemptLoad: (u)=>attemptLoad(u),
-  report: ()=> {
-    DBG.info('Report:', {winW:window.innerWidth, winH:window.innerHeight, embedRect: embedCard.getBoundingClientRect(), iframeSrc: iframe.src});
-  }
-};
-
-DBG.info('Ready — check console for logs');
-
+    draw();
+})();
 </script>
+
 </body>
 </html>
