@@ -1,280 +1,507 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GL Launcher</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Modern Embed Launcher — Glass + Aurora (Fixed)</title>
 <style>
-    /* --------------------
-       GLOBAL RESET
-    -------------------- */
-    html, body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        width: 100%;
-        height: 100%;
-        background: #000;
-        font-family: Arial, sans-serif;
-    }
+:root{
+  --bg-deep:#040612;
+  --bg-mid:#071028;
+  --accent-a:#3dd3c7;
+  --accent-b:#2b82ff;
+  --glass-weak: rgba(255,255,255,0.03);
+  --glass-strong: rgba(255,255,255,0.06);
+  --text:#eaf2ff;
+  --muted: rgba(230,235,255,0.48);
+  --radius:18px;
+  --max-width:1280px;
+  --embed-min-w:320px;
+  --embed-min-h:300px;
+  --ui-gap:12px;
+}
 
-    /* --------------------
-       AURORA BACKGROUND
-    -------------------- */
-    #auroraBg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -3;
-        pointer-events: none;
-        filter: blur(90px);
-    }
+/* --- Reset + Base --- */
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
+html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
+a{color:inherit}
 
-    /* --------------------
-       CENTER CONTAINER
-    -------------------- */
-    #launcherWrapper {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-items: center;
-        z-index: 20;
-        max-width: 95vw;
-    }
+/* --- Aurora background (canvas + overlays) --- */
+.aurora-wrap{
+  position:fixed;inset:0;z-index:-30;pointer-events:none;
+}
+#auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(44px) saturate(120%);transform:scale(1.02);opacity:0.98}
 
-    /* --------------------
-       BUTTON BAR
-    -------------------- */
-    #buttonBar {
-        display: flex;
-        gap: 10px;
-    }
+.bg-vignette{
+  position:fixed;inset:0;z-index:-28;pointer-events:none;
+  background-image:
+    radial-gradient(800px 420px at 10% 12%, rgba(40,90,140,0.06), transparent 12%),
+    radial-gradient(700px 360px at 90% 80%, rgba(0,180,140,0.05), transparent 10%),
+    linear-gradient(180deg, rgba(2,6,18,0.08), rgba(2,6,18,0.18));
+  opacity:1;
+}
 
-    button {
-        padding: 10px 18px;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.2);
-        color: white;
-        border-radius: 8px;
-        cursor: pointer;
-        backdrop-filter: blur(10px);
-        transition: 0.2s;
-    }
-    button:hover {
-        background: rgba(255,255,255,0.18);
-    }
+/* subtle star specks */
+.stars{position:fixed;inset:0;z-index:-27;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:520px 520px;opacity:0.12}
 
-    /* --------------------
-       IFRAME CARD
-    -------------------- */
-    #frameContainer {
-        position: relative;
-        background: rgba(20,20,20,0.6);
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 12px;
-        overflow: hidden;
-        backdrop-filter: blur(8px);
-        width: 900px;      /* default */
-        height: 600px;     /* default */
-        max-width: 95vw;
-        max-height: 85vh;
-    }
+/* --- Top bar (glass) --- */
+.top-wrap{
+  position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:70;
+  width:min(var(--max-width),96%);display:flex;align-items:center;gap:var(--ui-gap);
+  padding:10px;border-radius:14px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(2,6,18,0.45);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+.url-box{display:flex;gap:12px;align-items:center;width:100%}
+.url-input{
+  flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
+  background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+  color:var(--text);font-size:15px;min-width:160px;outline:none;box-shadow:0 6px 20px rgba(2,6,18,0.28)
+}
+.url-input::placeholder{color:var(--muted)}
+.btn-primary{
+  padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--accent-a),var(--accent-b));box-shadow:0 8px 28px rgba(43,130,255,0.12);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.btn-primary:hover{transform:translateY(-3px)}
 
-    iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-        display: block;
-    }
+/* --- Main centered area --- */
+.main-wrap{position:fixed;inset:94px 0 112px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
 
-    /* --------------------
-       RESIZE HANDLE (HORIZONTAL)
-    -------------------- */
-    #resizeHandle {
-        position: absolute;
-        right: 0;
-        top: 0;
-        width: 12px;
-        height: 100%;
-        cursor: ew-resize;
-        background: rgba(255,255,255,0.03);
-    }
+/* embed card (center-locked) */
+.embed-card{
+  position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
+  height:70vh;min-height:var(--embed-min-h);border-radius:var(--radius);
+  overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.035);box-shadow:0 40px 110px rgba(2,6,18,0.7);display:flex;flex-direction:column;
+  backdrop-filter: blur(8px) saturate(120%);
+  left:50%;top:50%;transform:translate(-50%,-50%); /* center locked by default */
+}
 
-    #loader {
-        position: absolute;
-        inset: 0;
-        background: rgba(0,0,0,0.55);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(6px);
-        color: white;
-        font-size: 20px;
-        z-index: 10;
-        display: none;
-    }
+/* top controls (outside iframe) */
+.embed-top{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01))}
+.control{
+  display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
+  background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);cursor:pointer;font-weight:700;
+}
+.control:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(43,130,255,0.06)}
+
+/* message bubble center (in-card) */
+.msg-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:140;background:rgba(6,10,20,0.64);padding:12px 16px;border-radius:12px;color:var(--muted);display:none;border:1px solid rgba(255,255,255,0.02)}
+.msg-box.visible{display:block}
+
+/* iframe area */
+.embed-frame{flex:1;position:relative;display:block;background:#000}
+iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
+
+/* loader overlay */
+.loader-overlay{position:absolute;inset:56px 0 0 0;display:flex;align-items:center;justify-content:center;z-index:130;pointer-events:none;opacity:0;transition:opacity .22s ease}
+.loader-overlay.visible{opacity:1;pointer-events:auto;background:linear-gradient(180deg, rgba(6,10,20,0.22), rgba(6,10,20,0.32));backdrop-filter:blur(6px)}
+.loader-spinner{width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 0.95s linear infinite;box-shadow:0 10px 40px rgba(43,130,255,0.12)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* horizontal resize edge on the right */
+.resize-edge{position:absolute;top:0;bottom:0;right:-10px;width:20px;cursor:ew-resize;z-index:180}
+.resize-edge::after{content:'';position:absolute;left:4px;top:50%;transform:translateY(-50%);width:6px;height:48px;border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))}
+
+/* games list bottom */
+.games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:70;width:min(var(--max-width),96%);display:flex;justify-content:center;padding:8px}
+.game-list{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.game-btn{padding:10px 14px;border-radius:999px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);color:var(--text);cursor:pointer;font-weight:700;backdrop-filter: blur(6px)}
+.game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.5)}
+
+/* responsive */
+@media (max-width:1000px){.embed-card{height:60vh;width:92vw}.top-wrap{top:12px}.games{bottom:12px}}
+@media (max-width:540px){.embed-card{height:55vh;width:96vw}.url-input{font-size:14px}}
 </style>
 </head>
 <body>
 
-<canvas id="auroraBg"></canvas>
+  <!-- Aurora + overlays -->
+  <div class="aurora-wrap" aria-hidden="true">
+    <canvas id="auroraCanvas"></canvas>
+  </div>
+  <div class="bg-vignette" aria-hidden="true"></div>
+  <div class="stars" aria-hidden="true"></div>
 
-<div id="launcherWrapper">
-
-    <div id="buttonBar">
-        <button onclick="loadURL('https://slowroads.io')">Slowroads</button>
-        <button onclick="loadURL('https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev')">Browser</button>
-        <button onclick="loadURL('https://study.info.north-kazakhstan.su.cdn.cloudflare.net/')">Browser 2</button>
-        <button onclick="loadURL('https://worufjddjdj.bank.si/')">Browser 3</button>
-        <button onclick="loadURL('https://chejfnreeje.vets.co.il/')">Browser 4</button>
-        <button onclick="loadURL('https://zearn.buzz.cdn.cloudflare.net/')">Browser 5</button>
-        <button onclick="recenter()">Recenter</button>
+  <!-- Top bar -->
+  <div class="top-wrap" role="search" aria-label="URL bar">
+    <div class="url-box">
+      <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
+      <button id="enterBtn" class="btn-primary" aria-label="Load URL">Load</button>
+      <div style="color:var(--muted);font-size:13px;margin-left:8px">Glass • Aurora • Centered</div>
     </div>
+  </div>
 
-    <div id="frameContainer">
-        <iframe id="embedFrame" sandbox="allow-scripts allow-forms allow-presentation allow-popups allow-downloads"></iframe>
-        <div id="loader">Loading…</div>
-        <div id="resizeHandle"></div>
+  <!-- Main area -->
+  <main class="main-wrap">
+    <section class="embed-card" id="embedCard" role="region" aria-label="Embed area">
+      <div class="embed-top" role="toolbar" aria-label="Embed controls">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="recenterBtn" class="control" title="Re-center">Re-center</button>
+        </div>
+        <div style="flex:1"></div>
+        <button id="fullscreenBtn" class="control" title="Fullscreen">Fullscreen</button>
+        <button id="redirectBtn" class="control" title="Open in new tab">Open</button>
+      </div>
+
+      <div class="embed-frame" id="embedFrameWrap" aria-live="polite">
+        <div id="loaderOverlay" class="loader-overlay" aria-hidden="true">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div class="loader-spinner" role="status" aria-label="Loading"></div>
+            <div style="color:var(--muted);font-size:13px">Loading…</div>
+          </div>
+        </div>
+
+        <!-- NOTE: allow-same-origin is required for many games to work (localStorage, service workers, etc.) -->
+        <iframe id="embedFrame" class="embed-iframe" src="about:blank"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                allow="fullscreen; autoplay; microphone; camera; encrypted-media"
+                title="Embedded content"></iframe>
+
+        <div id="msgBox" class="msg-box" role="alert" aria-hidden="true"></div>
+
+        <div id="resizeEdge" class="resize-edge" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Games list -->
+  <div class="games" aria-label="Games">
+    <div class="game-list" role="list">
+      <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
+      <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
+      <button class="game-btn" data-url="https://diep.io">diep.io</button>
+      <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
+      <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
+      <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
+      <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
+      <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
+      <button class="game-btn" data-url="https://ev.io">ev.io</button>
+      <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
+      <button class="game-btn" data-url="https://html5games.com">html5games</button>
+
+      <!-- Browser 1-5 -->
+      <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">Browser 1</button>
+      <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">Browser 2</button>
+      <button class="game-btn" data-url="https://worufjddjdj.bank.si/">Browser 3</button>
+      <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">Browser 4</button>
+      <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Browser 5</button>
     </div>
-
-</div>
-
+  </div>
 
 <script>
-/* -----------------------------------------------------
-   DEBUG LOGGER (IMPROVED)
------------------------------------------------------ */
-function log(...msg) {
-    console.log("%c[GL-Launcher]", "color:#5cf", ...msg);
-}
-function warn(...msg) {
-    console.warn("%c[GL-Launcher WARN]", "color:#f55", ...msg);
+/* ===========================================================================
+   Console-only debug helpers
+   =========================================================================== */
+const DBG = {
+  info: (...a)=>console.log("%c[GL]","color:#bfefff;background:#012;padding:2px 6px;border-radius:4px;",...a),
+  warn: (...a)=>console.warn("%c[GL WARN]","color:#ffd27f;background:#331a00;padding:2px 6px;border-radius:4px;",...a),
+  error:(...a)=>console.error("%c[GL ERR]","color:#ff9fb5;background:#33000a;padding:2px 6px;border-radius:4px;",...a)
+};
+
+DBG.info("Launcher starting");
+
+/* ===========================================================================
+   Aurora canvas: layered ovals, slow color shift
+   =========================================================================== */
+const canvas = document.getElementById('auroraCanvas');
+const ctx = canvas.getContext('2d', {alpha:true});
+let W = canvas.width = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+window.addEventListener('resize', ()=>{ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
+
+class Oval {
+  constructor(){ this.reset(); }
+  reset(){
+    this.x = Math.random()*W;
+    this.y = Math.random()*H;
+    this.w = 300 + Math.random()*900;
+    this.h = 80 + Math.random()*380;
+    this.hue = 150 + Math.random()*80;
+    this.alpha = 0.06 + Math.random()*0.14;
+    this.vx = 0.02 + Math.random()*0.18;
+    this.vy = (Math.random()-0.5) * 0.06;
+    this.drift = (Math.random()<0.5?-1:1) * (0.01 + Math.random()*0.03);
+  }
+  update(){
+    this.x -= this.vx;
+    this.y += this.vy;
+    this.hue += this.drift * 0.15;
+    if(this.hue > 240) this.hue = 150;
+    if(this.hue < 150) this.hue = 240;
+    if(this.x < -this.w) this.x = W + this.w;
+    if(this.y < -this.h) this.y = H + this.h;
+    if(this.y > H + this.h) this.y = -this.h;
+  }
+  draw(){
+    const g = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);
+    g.addColorStop(0, `hsla(${this.hue},86%,56%,${this.alpha})`);
+    g.addColorStop(0.6, `hsla(${this.hue + 20},76%,48%,${this.alpha*0.8})`);
+    g.addColorStop(1, `hsla(200,40%,10%,0)`);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+  }
 }
 
-/* -----------------------------------------------------
-   ALWAYS CENTER
------------------------------------------------------ */
-function recenter() {
-    const wrapper = document.getElementById("launcherWrapper");
-    wrapper.style.top = "50%";
-    wrapper.style.left = "50%";
-    wrapper.style.transform = "translate(-50%, -50%)";
-    log("Recentered");
+const ovals = Array.from({length:14}, ()=> new Oval());
+(function loop(){
+  ctx.clearRect(0,0,W,H);
+  // subtle deep wash for depth
+  const bg = ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0, 'rgba(3,8,18,0.22)');
+  bg.addColorStop(1, 'rgba(2,6,12,0.44)');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  for(const o of ovals){ o.update(); o.draw(); }
+  requestAnimationFrame(loop);
+})();
+
+/* ===========================================================================
+   UI elements & state
+   =========================================================================== */
+const embedCard = document.getElementById('embedCard');
+const iframe = document.getElementById('embedFrame');
+const loaderOverlay = document.getElementById('loaderOverlay');
+const msgBox = document.getElementById('msgBox');
+const resizeEdge = document.getElementById('resizeEdge');
+const urlInput = document.getElementById('urlInput');
+const enterBtn = document.getElementById('enterBtn');
+const recenterBtn = document.getElementById('recenterBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const redirectBtn = document.getElementById('redirectBtn');
+
+let wasCentered = true;
+const PAD = 10;
+const MIN_W = 320;
+const MIN_H = 260;
+
+// loader + retry config
+const LOAD_TIMEOUT = 12000;
+const LOAD_RETRIES = 2;
+let loadTimer = null;
+let retries = 0;
+
+/* --- helpers --- */
+function showLoader(){ loaderOverlay.classList.add('visible'); DBG.info('Loader shown'); }
+function hideLoader(){ loaderOverlay.classList.remove('visible'); DBG.info('Loader hidden'); }
+function showMsg(text, timeout=9000){ msgBox.textContent = text; msgBox.classList.add('visible'); DBG.warn('Message:', text); if(timeout>0){ clearTimeout(msgBox._hide); msgBox._hide=setTimeout(()=>msgBox.classList.remove('visible'), timeout);} }
+function normalizeUrl(raw){ raw=(raw||'').trim(); if(!raw) return null; if(!/^https?:\/\//i.test(raw)) raw='https://'+raw; try{ new URL(raw); return raw;}catch(e){return null;} }
+
+/* --- load with timeout & retry --- */
+function attemptLoad(rawUrl){
+  const url = normalizeUrl(rawUrl);
+  if(!url){ showMsg('Invalid URL'); DBG.warn('Invalid URL:', rawUrl); return; }
+  retries = 0;
+  _startLoad(url);
+}
+function _startLoad(url){
+  // clear previous
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; }
+  showLoader();
+  iframe.src = url;
+  DBG.info('Start loading', url, {retries});
+  loadTimer = setTimeout(()=> {
+    retries++;
+    hideLoader();
+    DBG.warn('Load timeout', url, {retries});
+    if(retries <= LOAD_RETRIES){
+      DBG.info('Retrying', retries);
+      showLoader();
+      iframe.src = url + (url.includes('?') ? '&' : '?') + 'embed_retry=' + Date.now();
+      loadTimer = setTimeout(()=> _onLoadGiveUp(url), LOAD_TIMEOUT);
+    } else {
+      _onLoadGiveUp(url);
+    }
+  }, LOAD_TIMEOUT);
+}
+function _onLoadGiveUp(url){
+  hideLoader();
+  showMsg('This site refused to load in the embed (likely blocks framing). Open it directly with "Open".', 12000);
+  DBG.error('Gave up loading', url);
 }
 
-/* -----------------------------------------------------
-   ON LOAD — auto center
------------------------------------------------------ */
-window.addEventListener("load", () => {
-    setTimeout(recenter, 60);
+/* --- iframe handlers --- */
+iframe.addEventListener('load', ()=>{
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; }
+  hideLoader();
+  DBG.info('iframe loaded', iframe.src);
+
+  // If same-origin we can check body emptiness to show helpful message
+  try{
+    const doc = iframe.contentDocument;
+    if(doc && doc.body){
+      const txt = (doc.body.textContent || '').trim();
+      if(doc.body.children.length === 0 && txt.length < 8){
+        DBG.warn('Embedded same-origin doc looks empty.');
+        showMsg('Embedded content loaded but appears empty. Try "Open" to view directly.', 8000);
+      }
+    }
+  }catch(e){
+    DBG.info('iframe is cross-origin (expected for many sites).');
+  }
+});
+iframe.addEventListener('error', ()=>{
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+  hideLoader();
+  showMsg('Failed to load embedded content. Open in new tab.', 9000);
+  DBG.error('iframe error', iframe.src);
 });
 
-/* -----------------------------------------------------
-   IFRAME LOADER
------------------------------------------------------ */
-function loadURL(url) {
-    const frame = document.getElementById("embedFrame");
-    const loader = document.getElementById("loader");
+/* --- wire UI controls --- */
+enterBtn.addEventListener('click', ()=> attemptLoad(urlInput.value));
+urlInput.addEventListener('keydown', e=>{ if(e.key==='Enter') attemptLoad(urlInput.value) });
 
-    loader.style.display = "flex";
-    log("Start loading", url);
+document.querySelectorAll('.game-btn').forEach(b=> b.addEventListener('click', ()=>{
+  const url = b.dataset.url;
+  if(!url) return;
+  urlInput.value = url;
+  attemptLoad(url);
+}));
 
-    frame.src = url;
+recenterBtn.addEventListener('click', ()=> {
+  // reset size/position to center-locked defaults
+  embedCard.style.width = '';
+  embedCard.style.height = '';
+  embedCard.style.left = '';
+  embedCard.style.top = '';
+  embedCard.style.transform = 'translate(-50%,-50%)';
+  wasCentered = true;
+  DBG.info('Recenter requested');
+});
 
-    frame.onload = () => {
-        loader.style.display = "none";
-        log("Loaded", url);
-    };
-}
+// fullscreen
+fullscreenBtn.addEventListener('click', ()=>{
+  if(embedCard.requestFullscreen) embedCard.requestFullscreen();
+  else if(embedCard.webkitRequestFullscreen) embedCard.webkitRequestFullscreen();
+  DBG.info('Requested fullscreen');
+});
 
-/* -----------------------------------------------------
-   HORIZONTAL RESIZER
------------------------------------------------------ */
-(function initResize() {
-    const container = document.getElementById("frameContainer");
-    const handle = document.getElementById("resizeHandle");
+// open current embed in new tab
+redirectBtn.addEventListener('click', ()=>{
+  const src = iframe.src;
+  if(!src || src === 'about:blank'){ showMsg('No embed loaded'); return; }
+  window.open(src,'_blank');
+  DBG.info('Opened in new tab', src);
+});
 
-    let resizing = false;
+/* ===========================================================================
+   Horizontal resize (right edge) — no dragging of card
+   - Touch & pointer friendly
+   =========================================================================== */
+let isResizing = false;
+let startW = 0;
+let startX = 0;
 
-    handle.addEventListener("mousedown", e => {
-        resizing = true;
-        document.body.style.userSelect = "none";
-    });
+const resizeHandle = document.getElementById('resizeEdge');
+resizeHandle.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  isResizing = true;
+  // release center-lock visually (keep the card where it is)
+  if(wasCentered){
+    const rect = embedCard.getBoundingClientRect();
+    embedCard.style.transform = 'none';
+    embedCard.style.left = rect.left + 'px';
+    embedCard.style.top = rect.top + 'px';
+    wasCentered = false;
+  }
+  startW = embedCard.offsetWidth;
+  startX = e.clientX;
+  document.body.style.cursor = 'ew-resize';
+  embedCard.style.transition = 'none';
+  DBG.info('Resize start', startW);
+  resizeHandle.setPointerCapture?.(e.pointerId);
+});
+window.addEventListener('pointermove', e => {
+  if(!isResizing) return;
+  e.preventDefault();
+  const dx = e.clientX - startX;
+  let newW = Math.round(startW + dx);
+  newW = Math.max(newW, MIN_W);
+  newW = Math.min(newW, window.innerWidth - PAD*2);
+  embedCard.style.width = newW + 'px';
+  // clamp left if needed so card always visible
+  const rect = embedCard.getBoundingClientRect();
+  if(rect.left < PAD) embedCard.style.left = PAD + 'px';
+  if(rect.left + rect.width > window.innerWidth - PAD) embedCard.style.left = (window.innerWidth - rect.width - PAD) + 'px';
+});
+window.addEventListener('pointerup', e=> {
+  if(isResizing){
+    isResizing = false;
+    document.body.style.cursor = '';
+    embedCard.style.transition = '';
+    resizeHandle.releasePointerCapture?.(e.pointerId);
+    DBG.info('Resize end', embedCard.offsetWidth);
+  }
+});
+// touch compatibility
+resizeHandle.addEventListener('touchstart', (e)=>{ const t=e.touches[0]; resizeHandle.dispatchEvent(new PointerEvent('pointerdown', {clientX:t.clientX})); }, {passive:false});
+window.addEventListener('touchmove', (e)=>{ if(isResizing){ const t=e.touches[0]; window.dispatchEvent(new PointerEvent('pointermove', {clientX:t.clientX})); } }, {passive:false});
+window.addEventListener('touchend', ()=>{ if(isResizing) window.dispatchEvent(new PointerEvent('pointerup')); });
 
-    window.addEventListener("mousemove", e => {
-        if (!resizing) return;
+/* ===========================================================================
+   Window resize — keep centered or clamp inside viewport if not centered
+   =========================================================================== */
+window.addEventListener('resize', ()=> {
+  // update canvas size
+  W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight;
+  if(wasCentered){
+    // keep transform center
+    embedCard.style.transform = 'translate(-50%,-50%)';
+    embedCard.style.left = '';
+    embedCard.style.top = '';
+  } else {
+    // clamp left/top if absolute positioning
+    const r = embedCard.getBoundingClientRect();
+    let left = parseFloat(embedCard.style.left || r.left);
+    let top = parseFloat(embedCard.style.top || r.top);
+    left = Math.max(PAD, Math.min(left, window.innerWidth - r.width - PAD));
+    top = Math.max(PAD, Math.min(top, window.innerHeight - r.height - PAD));
+    embedCard.style.left = left + 'px';
+    embedCard.style.top = top + 'px';
+  }
+  DBG.info('Window resized - clamped/centered');
+});
 
-        let newWidth = e.clientX - container.getBoundingClientRect().left;
+/* ===========================================================================
+   Initial centering fix:
+   A race between CSS layout and JS can cause top-left start. Force recenter
+   after first paint.
+   =========================================================================== */
+window.addEventListener('load', ()=> {
+  // ensure canvas sized
+  W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight;
+  // small delay to guarantee layout computed
+  requestAnimationFrame(()=> {
+    // ensure embed card centered (reset transforms to safe values)
+    embedCard.style.left = '';
+    embedCard.style.top = '';
+    embedCard.style.transform = 'translate(-50%,-50%)';
+    wasCentered = true;
+    DBG.info('Initial recenter on load');
+  });
+});
 
-        newWidth = Math.max(280, Math.min(newWidth, window.innerWidth * 0.95));
+/* ===========================================================================
+   Expose small API for debugging from console:
+   - EmbedLauncher.report()
+   - EmbedLauncher.recenter()
+   - EmbedLauncher.load(url)
+   =========================================================================== */
+window.EmbedLauncher = {
+  report: function(){
+    DBG.info('Report:', {win: [window.innerWidth,window.innerHeight], embedRect: embedCard.getBoundingClientRect(), iframeSrc: iframe.src, centered: wasCentered});
+  },
+  recenter: function(){ embedCard.style.width = ''; embedCard.style.height=''; embedCard.style.left=''; embedCard.style.top=''; embedCard.style.transform='translate(-50%,-50%)'; wasCentered=true; DBG.info('Programmatic recenter'); },
+  load: function(u){ attemptLoad(u); }
+};
 
-        container.style.width = newWidth + "px";
-    });
-
-    window.addEventListener("mouseup", () => {
-        resizing = false;
-        document.body.style.userSelect = "";
-    });
-})();
-
-/* -----------------------------------------------------
-   AURORA ANIMATION  — smooth, slow, blurred
------------------------------------------------------ */
-(function aurora() {
-    const canvas = document.getElementById("auroraBg");
-    const ctx = canvas.getContext("2d");
-    
-    let w, h;
-    function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener("resize", resize);
-
-    const blobs = new Array(5).fill(0).map(() => ({
-        x: Math.random()*w,
-        y: Math.random()*h,
-        r: 300 + Math.random()*300,
-        dx: (Math.random()*2 - 1) * 0.15,
-        dy: (Math.random()*2 - 1) * 0.15,
-        hue: Math.random()*60 + 120
-    }));
-
-    function draw() {
-        ctx.clearRect(0,0,w,h);
-
-        blobs.forEach(b => {
-            b.x += b.dx;
-            b.y += b.dy;
-            b.hue += 0.02;
-
-            if (b.x < -200) b.x = w+200;
-            if (b.x > w+200) b.x = -200;
-            if (b.y < -200) b.y = h+200;
-            if (b.y > h+200) b.y = -200;
-
-            const grd = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
-            grd.addColorStop(0, `hsla(${b.hue}, 80%, 60%, 0.8)`);
-            grd.addColorStop(1, `hsla(${b.hue+40}, 90%, 50%, 0)`);
-
-            ctx.fillStyle = grd;
-            ctx.beginPath();
-            ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-            ctx.fill();
-        });
-
-        requestAnimationFrame(draw);
-    }
-    draw();
-})();
+DBG.info('Launcher ready — use F12 console for logs');
 </script>
 
 </body>
