@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Modern Embed Launcher — Fixed</title>
+<title>Modern Embed Launcher — Ultimate</title>
 <style>
   :root{
     --bg-deep:#040612; --bg-mid:#0a1526;
@@ -13,21 +13,21 @@
     --embed-min-w:320px; --embed-min-h:300px;
   }
 
-  /* Full viewport base */
+  /* base */
   html,body{height:100%;width:100%;margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));-webkit-font-smoothing:antialiased;overflow:hidden;color:var(--text);}
 
-  /* Aurora canvas (behind everything) */
-  .aurora-wrap{position:fixed;inset:0;z-index:-20;pointer-events:none}
-  #auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(50px) saturate(120%);opacity:0.95;transform:scale(1.02);}
+  /* Aurora canvas behind everything */
+  .aurora-wrap{position:fixed;inset:0;z-index:-30;pointer-events:none}
+  #auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(48px) saturate(120%);opacity:0.98;transform:scale(1.03);}
 
-  /* Top search bar */
-  .top-bar{position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:60;width:min(var(--max-width),96%);display:flex;align-items:center;gap:12px;padding:6px 12px}
-  .url-box{flex:1;display:flex;gap:12px;align-items:center}
-  .url-input{flex:1;padding:12px 14px;border-radius:12px;border:none;background:rgba(255,255,255,0.02);color:var(--text);backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);font-size:15px}
+  /* top controls */
+  .top-bar{position:fixed;left:50%;transform:translateX(-50%);top:16px;z-index:80;width:min(var(--max-width),96%);display:flex;align-items:center;gap:10px;padding:8px 12px}
+  .url-box{flex:1;display:flex;gap:10px;align-items:center}
+  .url-input{flex:1;padding:11px 12px;border-radius:12px;border:none;background:rgba(255,255,255,0.02);color:var(--text);backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);font-size:15px}
   .enter-btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(43,130,255,0.12)}
-  .hint { color: var(--muted); font-size: 13px; margin-left: 8px; }
+  .hint { color: var(--muted); font-size: 13px; margin-left: 6px; }
 
-  /* Embed card - center locked default */
+  /* embed card: centered by default */
   .embed-card{
     position:fixed;
     left:50%;
@@ -43,42 +43,42 @@
     background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     border:1px solid rgba(255,255,255,0.035);
     box-shadow:0 30px 80px rgba(2,6,18,0.7);
-    z-index:70;
+    z-index:90;
     display:flex;
     flex-direction:column;
     touch-action:none;
     transition:box-shadow .18s, transform .12s;
   }
-  .embed-card.dragging{transition:none;box-shadow:0 40px 120px rgba(2,6,18,0.82);}
+  .embed-card.dragging{transition:none;box-shadow:0 44px 140px rgba(2,6,18,0.88);}
 
   /* iframe */
-  .embed-iframe{width:100%;height:100%;border:0;background:#000;flex:1;display:block;}
+  .embed-iframe{width:100%;height:100%;border:0;background:#000;flex:1;display:block;min-height:100px;}
 
-  /* controls top-right */
-  .embed-controls{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:120}
+  /* controls */
+  .embed-controls{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:200}
   .control-btn{width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
   .control-btn:hover{background:rgba(255,255,255,0.12)}
   .recenter-btn{padding:8px 10px;border-radius:10px;border:none;background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;font-size:13px;margin-right:6px}
 
-  /* loader overlay (hidden by default) */
-  .loader-overlay{position:absolute;inset:0;z-index:110;display:flex;align-items:center;justify-content:center;background:rgba(6,10,20,0.24);backdrop-filter:blur(6px);pointer-events:none;opacity:0;transition:opacity .28s}
+  /* loader overlay */
+  .loader-overlay{position:absolute;inset:0;z-index:180;display:flex;align-items:center;justify-content:center;background:rgba(6,10,20,0.24);backdrop-filter:blur(6px);pointer-events:none;opacity:0;transition:opacity .28s}
   .loader-overlay.visible{opacity:1;pointer-events:auto}
-  .loader-spinner{width:60px;height:60px;border-radius:50%;border:7px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 1s linear infinite;box-shadow:0 8px 28px rgba(43,130,255,0.12)}
+  .loader-spinner{width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 1s linear infinite;box-shadow:0 8px 28px rgba(43,130,255,0.12)}
   @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 
-  /* resize handle bottom-right */
-  .resize-handle{position:absolute;right:8px;bottom:8px;width:20px;height:20px;cursor:se-resize;z-index:120;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-radius:4px;box-shadow:inset 0 -2px 6px rgba(0,0,0,0.35)}
+  /* resize handle */
+  .resize-handle{position:absolute;right:8px;bottom:8px;width:22px;height:22px;cursor:se-resize;z-index:200;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-radius:4px;box-shadow:inset 0 -2px 6px rgba(0,0,0,0.35)}
 
-  /* game list bottom */
-  .games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:60;width:min(var(--max-width),96%);display:flex;justify-content:center}
+  /* games */
+  .games{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:80;width:min(var(--max-width),96%);display:flex;justify-content:center}
   .game-list{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
   .game-btn{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:var(--text);cursor:pointer;font-weight:600;backdrop-filter:blur(6px)}
 
-  /* message box for framing errors */
-  .message-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:130;background:rgba(0,0,0,0.56);padding:14px 18px;border-radius:12px;color:var(--muted);font-size:14px;display:none;max-width:86%;text-align:center}
+  /* message */
+  .message-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:220;background:rgba(0,0,0,0.6);padding:14px 18px;border-radius:12px;color:var(--muted);font-size:14px;display:none;max-width:86%;text-align:center}
   .message-box.visible{display:block}
 
-  /* responsive */
+  /* responsive tweaks */
   @media (max-width:900px){ .embed-card{width:92vw;height:62vh} .top-bar{top:12px} .games{bottom:12px} }
   @media (max-width:480px){ .embed-card{width:96vw;height:56vh} .url-input{font-size:14px} .control-btn{width:34px;height:34px} }
 </style>
@@ -86,21 +86,21 @@
 <body>
 
   <!-- Aurora -->
-  <div class="aurora-wrap"><canvas id="auroraCanvas" aria-hidden="true"></canvas></div>
+  <div class="aurora-wrap" aria-hidden="true"><canvas id="auroraCanvas"></canvas></div>
 
   <!-- Top search -->
-  <header class="top-bar" role="search" aria-label="Search">
+  <header class="top-bar" role="search" aria-label="URL launcher">
     <div class="url-box">
       <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
       <button id="enterBtn" class="enter-btn" aria-label="Enter">Enter</button>
-      <span class="hint" aria-hidden="true">Smart-center mode • Drag to move</span>
+      <span class="hint" aria-hidden="true">Smart-center • Drag to move • Double-click to recenter</span>
     </div>
   </header>
 
   <!-- Embed card -->
   <div id="embedCard" class="embed-card" role="region" aria-label="Embed area" tabindex="0">
     <div class="embed-controls" aria-hidden="true">
-      <button id="recenterBtn" class="recenter-btn" title="Re-center (double-click embed to recenter)">Re-center</button>
+      <button id="recenterBtn" class="recenter-btn" title="Re-center">Re-center</button>
       <button id="fullscreenBtn" class="control-btn" title="Fullscreen">⤢</button>
       <button id="redirectBtn" class="control-btn" title="Open in new tab">↗</button>
     </div>
@@ -112,7 +112,8 @@
       </div>
     </div>
 
-    <iframe id="embedFrame" class="embed-iframe" src="about:blank" sandbox="allow-scripts allow-forms allow-modals allow-popups" title="Embedded content"></iframe>
+    <!-- sandbox updated below in script for flexibility -->
+    <iframe id="embedFrame" class="embed-iframe" src="about:blank" title="Embedded content" allow="fullscreen; accelerometer; autoplay; camera; geolocation; microphone;"></iframe>
 
     <div id="messageBox" class="message-box" role="alert"></div>
 
@@ -138,67 +139,71 @@
   </section>
 
 <script>
-/* ===========================
-   Advanced Console Debugger
-   - structured, colored logs
-   =========================== */
+/* =====================================================
+   Ultimate Embed Launcher JS
+   - Smart-center
+   - High-quality aurora
+   - Resizable & draggable clamped window
+   - Loader + retry + timeout + framing-failure message
+   - Debug logging to console only
+   ===================================================== */
+
+/* ---------- Debug logger ---------- */
 const DBG = {
-  info: (...args) => console.log("%c[EmbedLauncher]","color:#bfefff;background:#012; padding:2px 6px; border-radius:4px;", ...args),
-  warn: (...args) => console.warn("%c[EmbedLauncher WARN]","color:#ffdd66;background:#331a00; padding:2px 6px; border-radius:4px;", ...args),
-  error: (...args) => console.error("%c[EmbedLauncher ERROR]","color:#ff9fb5;background:#33000a; padding:2px 6px; border-radius:4px;", ...args),
-  group: (title) => { console.group("%c"+title, "color:#bfefff"); },
-  groupEnd: () => console.groupEnd()
+  info: (...a) => console.log("%c[EmbedLauncher]","color:#bfefff;background:#012;padding:2px 6px;border-radius:4px;", ...a),
+  warn: (...a) => console.warn("%c[EmbedLauncher WARN]","color:#ffdd66;background:#331a00;padding:2px 6px;border-radius:4px;", ...a),
+  error: (...a) => console.error("%c[EmbedLauncher ERR]","color:#ff9fb5;background:#33000a;padding:2px 6px;border-radius:4px;", ...a),
+  group: (t)=>{ console.group("%c"+t, "color:#bfefff"); },
+  groupEnd: ()=>console.groupEnd()
 };
 
-DBG.info("Starting EmbedLauncher (smart-center mode)");
+DBG.info("Launcher init (smart-center mode) - ready");
 
-// ===========================
-// Aurora: high-quality canvas
-// ===========================
+/* ---------- Aurora canvas ---------- */
 const canvas = document.getElementById('auroraCanvas');
 const ctx = canvas.getContext('2d', { alpha: true });
 let W = canvas.width = window.innerWidth;
 let H = canvas.height = window.innerHeight;
 window.addEventListener('resize', ()=>{ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
 
-class Oval {
+class AuroraOval {
   constructor(){ this.reset(); }
   reset(){
-    this.x = Math.random()*W;
-    this.y = Math.random()*H;
-    this.w = 300 + Math.random()*900;
-    this.h = 80 + Math.random()*360;
-    this.hue = 150 + Math.random()*80; // green-blue
-    this.alpha = 0.06 + Math.random()*0.16;
-    this.vx = 0.02 + Math.random()*0.18;
-    this.vy = (Math.random()-0.5) * 0.08;
-    this.drift = (Math.random() < 0.5 ? -1 : 1) * (0.01 + Math.random()*0.03);
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.w = 250 + Math.random() * 900;
+    this.h = 80 + Math.random() * 420;
+    this.hue = 150 + Math.random() * 80;
+    this.alpha = 0.06 + Math.random() * 0.18;
+    this.vx = 0.01 + Math.random() * 0.16;
+    this.vy = (Math.random() - 0.5) * 0.07;
+    this.drift = (Math.random() < 0.5 ? -1 : 1) * (0.005 + Math.random() * 0.03);
   }
   update(){
     this.x -= this.vx;
     this.y += this.vy;
     this.hue += this.drift * 0.2;
-    if (this.hue > 230) this.hue = 150;
-    if (this.hue < 150) this.hue = 230;
-    if (this.x < -this.w) this.x = W + this.w;
-    if (this.y < -this.h) this.y = H + this.h;
-    if (this.y > H + this.h) this.y = -this.h;
+    if(this.hue > 240) this.hue = 150;
+    if(this.hue < 150) this.hue = 240;
+    if(this.x < -this.w) this.x = W + this.w;
+    if(this.y < -this.h) this.y = H + this.h;
+    if(this.y > H + this.h) this.y = -this.h;
   }
   draw(){
-    const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.w);
-    g.addColorStop(0, `hsla(${this.hue}, 86%, 56%, ${this.alpha})`);
-    g.addColorStop(0.6, `hsla(${this.hue + 24}, 78%, 44%, ${this.alpha * 0.8})`);
-    g.addColorStop(1, `hsla(200, 40%, 10%, 0)`);
+    const g = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);
+    g.addColorStop(0, `hsla(${this.hue},86%,56%,${this.alpha})`);
+    g.addColorStop(0.6, `hsla(${this.hue+24},78%,44%,${this.alpha*0.8})`);
+    g.addColorStop(1, `hsla(200,40%,10%,0)`);
     ctx.globalCompositeOperation = 'lighter';
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.ellipse(this.x, this.y, this.w, this.h, 0, 0, Math.PI*2);
+    ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2);
     ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
   }
 }
 
-const ovals = Array.from({length:12}, ()=> new Oval());
+const auroras = Array.from({length:14}, ()=> new AuroraOval());
 let auroraTick = 0;
 function animateAurora(){
   auroraTick++;
@@ -206,23 +211,20 @@ function animateAurora(){
 
   // subtle background wash
   const bg = ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0, 'rgba(3,8,18,0.24)');
+  bg.addColorStop(0, 'rgba(3,8,18,0.22)');
   bg.addColorStop(1, 'rgba(2,6,12,0.44)');
   ctx.fillStyle = bg;
   ctx.fillRect(0,0,W,H);
 
   // draw ovals
-  for(let i=0;i<ovals.length;i++){ ovals[i].update(); ovals[i].draw(); }
+  for(let o of auroras){ o.update(); o.draw(); }
 
-  // heartbeat in console occasionally
-  if(auroraTick % 600 === 0) DBG.info("Aurora running tick", auroraTick);
+  if(auroraTick % 600 === 0) DBG.info("Aurora heartbeat", auroraTick);
   requestAnimationFrame(animateAurora);
 }
 requestAnimationFrame(animateAurora);
 
-// ===========================
-// Core UI elements & state
-// ===========================
+/* ---------- UI elements & state ---------- */
 const embedCard = document.getElementById('embedCard');
 const iframe = document.getElementById('embedFrame');
 const loaderOverlay = document.getElementById('loaderOverlay');
@@ -234,60 +236,61 @@ const redirectBtn = document.getElementById('redirectBtn');
 const recenterBtn = document.getElementById('recenterBtn');
 const resizeHandle = document.getElementById('resizeHandle');
 
-let wasCentered = true; // smart-center mode active by default
+let wasCentered = true;
 let isDragging = false;
 let dragOffsetX = 0, dragOffsetY = 0;
 let isResizing = false;
 
-const LOAD_TIMEOUT_MS = 12000;        // consider load failed after 12s
-const LOAD_RETRY_COUNT = 2;           // how many times to retry before giving up
+const LOAD_TIMEOUT_MS = 12000;
+const LOAD_RETRY_COUNT = 2;
 let currentLoadRetries = 0;
 let loadTimer = null;
 
-// helper clamps
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+/* ---------- Make iframe sandbox permissive for games ---------- */
+/* NOTE: allow-same-origin and allow-pointer-lock are necessary for many games.
+   Security: don't load untrusted pages if you care about same-origin privileges. */
+try{
+  iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-pointer-lock allow-popups allow-forms allow-modals');
+  DBG.info("Iframe sandbox set (includes allow-same-origin & allow-pointer-lock)");
+} catch(e){ DBG.warn("Could not set iframe sandbox via JS", e); }
 
-// Advanced debug helpers (structured state)
-function logState(){
-  DBG.group("State Snapshot");
-  DBG.info("wasCentered:", wasCentered, "isDragging:", isDragging, "isResizing:", isResizing);
-  DBG.info("embed rect:", embedCard.getBoundingClientRect());
-  DBG.info("window:", window.innerWidth, window.innerHeight);
-  DBG.groupEnd();
-}
+/* add allow attribute for fullscreen etc (already in markup but ensure) */
+iframe.setAttribute('allow','fullscreen; accelerometer; autoplay; camera; geolocation; microphone; midi; encrypted-media');
 
-// show message on overlay
+/* ---------- helpers ---------- */
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+function showLoader(){ loaderOverlay.classList.add('visible'); DBG.info("Loader shown"); }
+function hideLoader(){ loaderOverlay.classList.remove('visible'); DBG.info("Loader hidden"); }
 function showMessage(msg, timeout=10000){
   messageBox.textContent = msg;
   messageBox.classList.add('visible');
-  DBG.warn("User message shown:", msg);
+  DBG.warn("Message shown:", msg);
   if(timeout>0){
     clearTimeout(messageBox._hideT);
-    messageBox._hideT = setTimeout(()=>{ messageBox.classList.remove('visible'); }, timeout);
+    messageBox._hideT = setTimeout(()=> messageBox.classList.remove('visible'), timeout);
   }
 }
 
-// Loader controls
-function showLoader(){ loaderOverlay.classList.add('visible'); DBG.info("Loader shown"); }
-function hideLoader(){ loaderOverlay.classList.remove('visible'); DBG.info("Loader hidden"); }
-
-// normalize URL
+/* ---------- URL normalization ---------- */
 function normalizeUrl(raw){
   raw = (raw||'').trim();
   if(!raw) return null;
-  try{
-    if(!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
-    new URL(raw);
-    return raw;
-  }catch(e){
-    return null;
+
+  // If user provided something like 'site.com/game', assume https
+  if(!/^https?:\/\//i.test(raw)){
+    raw = 'https://' + raw;
+  } else {
+    // upgrade http to https when possible (avoid mixed-content blocked by browser)
+    if(/^http:\/\//i.test(raw)){
+      raw = raw.replace(/^http:\/\//i, 'https://');
+    }
   }
+  try{ new URL(raw); return raw; } catch(e){ DBG.warn("normalizeUrl invalid:", raw); return null; }
 }
 
-// attempt to load URL with retry & framing failure handling
+/* ---------- load with retry + timeout ---------- */
 function attemptLoad(url){
   if(!url) return;
-  // reset UI
   messageBox.classList.remove('visible');
   currentLoadRetries = 0;
   _startLoad(url);
@@ -296,288 +299,10 @@ function attemptLoad(url){
 function _startLoad(url){
   showLoader();
   iframe.src = url;
-  DBG.info("Start load:", url, {retries: currentLoadRetries});
-  // clear existing timer
-  if(loadTimer) { clearTimeout(loadTimer); loadTimer = null; }
-  loadTimer = setTimeout(()=> {
-    // load hasn't fired within timeout -> treat as possible block
-    DBG.warn("Load timeout for", url);
-    currentLoadRetries++;
-    hideLoader();
-    if(currentLoadRetries <= LOAD_RETRY_COUNT){
-      DBG.info("Retrying load (attempt)", currentLoadRetries);
-      showLoader();
-      // quick reload
-      iframe.src = url + (url.includes('?') ? '&' : '?') + 'embed_retry=' + Date.now();
-      loadTimer = setTimeout(()=> _onLoadTimeout(url), LOAD_TIMEOUT_MS);
-    } else {
-      // give up
-      _onLoadGiveUp(url);
-    }
-  }, LOAD_TIMEOUT_MS);
-}
-
-function _onLoadTimeout(url){
-  DBG.warn("Second timeout for", url);
-  currentLoadRetries++;
-  if(currentLoadRetries <= LOAD_RETRY_COUNT){
-    showLoader();
-    iframe.src = url + (url.includes('?') ? '&' : '?') + 'embed_retry=' + Date.now();
-    loadTimer = setTimeout(()=> _onLoadGiveUp(url), LOAD_TIMEOUT_MS);
-  } else {
-    _onLoadGiveUp(url);
-  }
-}
-
-function _onLoadGiveUp(url){
-  hideLoader();
-  showMessage("This site refused to load in the embed (likely blocks framing or takes too long). You can open it directly in a new tab using the ↗ button.", 12000);
-  DBG.error("Giving up loading URL (framing blocked or unreachable):", url);
-}
-
-// iframe load/error handlers
-iframe.addEventListener('load', ()=>{
-  // clear timeout
-  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
-  hideLoader();
-  DBG.info("Iframe load event:", iframe.src);
-
-  // Try simple heuristic to detect "blank/black" or blocked content:
-  // If same-origin we can inspect document; otherwise assume embedded content loaded.
-  try {
-    const doc = iframe.contentDocument;
-    if (doc && doc.body){
-      const txt = doc.body.textContent || '';
-      // If body has almost no content and background is black, warn (heuristic)
-      if (doc.body.children.length === 0 && txt.trim().length < 8){
-        DBG.warn("Iframe loaded same-origin but appears empty/blank.");
-        showMessage("Embedded page loaded but appears blank. If this is unexpected, try opening in a new tab.", 8000);
-      }
-    }
-  } catch (e) {
-    // cross-origin — can't inspect; assume it's OK but we still check visual black heuristics below
-    DBG.info("Iframe is cross-origin (cannot inspect).");
-  }
-
-  // Visual black-check: attempt to detect if iframe is showing a entirely black viewport by sampling via CSS filter trick
-  // Note: cannot read pixels cross-origin; we use timing heuristics and user feedback instead.
-});
-
-// If iframe error event (rare), notify
-iframe.addEventListener('error', ()=> {
-  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
-  hideLoader();
-  showMessage("Failed to load embedded content (network or CORS). Try opening in a new tab.", 9000);
-  DBG.error("Iframe error event for", iframe.src);
-});
-
-// open url manually
-enterBtn.addEventListener('click', ()=> {
-  const url = normalizeUrl(urlInput.value);
-  if(!url){ urlInput.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220}); urlInput.focus(); DBG.warn("Invalid URL input:", urlInput.value); return; }
-  attemptLoad(url);
-});
-
-// allow pressing enter
-urlInput.addEventListener('keydown', (e)=> { if(e.key === 'Enter') enterBtn.click(); });
-
-// game buttons
-document.querySelectorAll('.game-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const url = normalizeUrl(btn.dataset.url);
-    if(!url) return;
-    urlInput.value = url;
-    attemptLoad(url);
-  });
-});
-
-// fullscreen: request fullscreen on embedCard (makes iframe fill it)
-fullscreenBtn.addEventListener('click', ()=> {
-  if(embedCard.requestFullscreen) embedCard.requestFullscreen();
-  else if(embedCard.webkitRequestFullscreen) embedCard.webkitRequestFullscreen();
-  DBG.info("Requested fullscreen for embedCard.");
-});
-
-// redirect button: open iframe.src in new tab
-redirectBtn.addEventListener('click', ()=> {
-  const src = iframe.src;
-  if(!src || src === 'about:blank'){ showMessage("No embed loaded to open."); DBG.warn("Redirect clicked with no target"); return; }
-  window.open(src, '_blank');
-  DBG.info("Redirect opened in new tab:", src);
-});
-
-// recenter button
-recenterBtn.addEventListener('click', ()=> {
-  // reset to center-lock
-  // remove explicit left/top, restore transform
-  embedCard.style.transform = 'translate(-50%,-50%)';
-  embedCard.style.left = '50%';
-  embedCard.style.top = '50%';
-  embedCard.style.width = ''; // leave current width unless you want to reset
-  embedCard.style.height = '';
-  wasCentered = true;
-  DBG.info("Recenter requested by user.");
-});
-
-// double click embed to recenter
-embedCard.addEventListener('dblclick', (e)=>{
-  recenterBtn.click();
-});
-
-// ===========================
-// Smart Center behavior: dragging & resizing with clamping
-// ===========================
-function releaseCenteringAndSetLeftTop(){
-  if(!wasCentered) return;
-  const rect = embedCard.getBoundingClientRect();
-  const leftPx = rect.left;
-  const topPx = rect.top;
-  // remove transform and set left/top so the element visually stays where it was
-  embedCard.style.transform = 'none';
-  embedCard.style.left = `${leftPx}px`;
-  embedCard.style.top = `${topPx}px`;
-  wasCentered = false;
-  DBG.info("Center released (now absolute positioning).", {left: leftPx, top: topPx});
-}
-
-// dragging with pointer events (works for touch)
-embedCard.addEventListener('pointerdown', (e)=>{
-  // ignore if clicking controls or resize handle
-  if(e.target === resizeHandle || e.target.closest('.embed-controls')) return;
-  e.preventDefault();
-  releaseCenteringAndSetLeftTop();
-  isDragging = true;
-  embedCard.classList.add('dragging');
-  const rect = embedCard.getBoundingClientRect();
-  dragOffsetX = e.clientX - rect.left;
-  dragOffsetY = e.clientY - rect.top;
-  DBG.info("Drag start", {left: rect.left, top: rect.top, w: rect.width, h: rect.height});
-  embedCard.setPointerCapture && embedCard.setPointerCapture(e.pointerId);
-});
-
-window.addEventListener('pointermove', (e)=>{
-  if(!isDragging) return;
-  e.preventDefault();
-  const cardW = embedCard.offsetWidth;
-  const cardH = embedCard.offsetHeight;
-  const minLeft = 8;
-  const maxLeft = window.innerWidth - cardW - 8;
-  const minTop = 8;
-  const maxTop = window.innerHeight - cardH - 8;
-  let left = e.clientX - dragOffsetX;
-  let top = e.clientY - dragOffsetY;
-  left = clamp(left, minLeft, Math.max(minLeft, maxLeft));
-  top  = clamp(top, minTop, Math.max(minTop, maxTop));
-  embedCard.style.left = `${left}px`;
-  embedCard.style.top  = `${top}px`;
-});
-
-window.addEventListener('pointerup', (e)=>{
-  if(isDragging){
-    isDragging = false;
-    embedCard.classList.remove('dragging');
-    embedCard.releasePointerCapture && embedCard.releasePointerCapture(e.pointerId);
-    DBG.info("Drag end", {left: embedCard.style.left, top: embedCard.style.top});
-  }
-});
-
-// resizing
-let resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
-resizeHandle.addEventListener('pointerdown', (e)=>{
-  e.preventDefault(); e.stopPropagation();
-  releaseCenteringAndSetLeftTop();
-  isResizing = true;
-  resizeStartW = embedCard.offsetWidth;
-  resizeStartH = embedCard.offsetHeight;
-  resizeStartX = e.clientX;
-  resizeStartY = e.clientY;
-  embedCard.classList.add('dragging');
-  DBG.info("Resize start", {w:resizeStartW, h:resizeStartH});
-  resizeHandle.setPointerCapture && resizeHandle.setPointerCapture(e.pointerId);
-});
-
-window.addEventListener('pointermove', (e)=>{
-  if(!isResizing) return;
-  e.preventDefault();
-  const dx = e.clientX - resizeStartX;
-  const dy = e.clientY - resizeStartY;
-  let newW = Math.max(parseInt(getComputedStyle(embedCard).minWidth || 320), resizeStartW + dx);
-  let newH = Math.max(parseInt(getComputedStyle(embedCard).minHeight || 300), resizeStartH + dy);
-  // clamp to viewport so it never grows off-screen
-  newW = Math.min(newW, window.innerWidth - 16);
-  newH = Math.min(newH, window.innerHeight - 16);
-  embedCard.style.width = `${newW}px`;
-  embedCard.style.height = `${newH}px`;
-  // if not centered already, clamp left/top so the card stays visible
-  if(!wasCentered){
-    const maxLeft = window.innerWidth - newW - 8;
-    const maxTop  = window.innerHeight - newH - 8;
-    let curLeft = parseFloat(embedCard.style.left || 0);
-    let curTop  = parseFloat(embedCard.style.top  || 0);
-    curLeft = clamp(curLeft, 8, Math.max(8, maxLeft));
-    curTop  = clamp(curTop, 8, Math.max(8, maxTop));
-    embedCard.style.left = curLeft + 'px';
-    embedCard.style.top  = curTop  + 'px';
-  } else {
-    // maintain visual centered left/top so when transform removed it stays centered
-    embedCard.style.left = ((window.innerWidth - newW)/2) + 'px';
-    embedCard.style.top  = ((window.innerHeight - newH)/2) + 'px';
-  }
-});
-
-window.addEventListener('pointerup', (e)=>{
-  if(isResizing){
-    isResizing = false;
-    embedCard.classList.remove('dragging');
-    resizeHandle.releasePointerCapture && resizeHandle.releasePointerCapture(e.pointerId);
-    DBG.info("Resize end", {w:embedCard.offsetWidth, h:embedCard.offsetHeight, left:embedCard.style.left, top:embedCard.style.top});
-  }
-});
-
-// keep centered on window resize only when center-mode active
-window.addEventListener('resize', ()=>{
-  if(wasCentered){
-    // nothing to do — transform keeps it centered
-    DBG.info("Window resized; center-locked (no change)");
-  } else {
-    // clamp left/top
-    const w = embedCard.offsetWidth, h = embedCard.offsetHeight;
-    const left = parseFloat(embedCard.style.left || 0);
-    const top = parseFloat(embedCard.style.top || 0);
-    const clampedLeft = clamp(left, 8, Math.max(8, window.innerWidth - w - 8));
-    const clampedTop  = clamp(top, 8, Math.max(8, window.innerHeight - h - 8));
-    embedCard.style.left = clampedLeft + 'px';
-    embedCard.style.top  = clampedTop + 'px';
-    DBG.info("Window resized; clamped embed to viewport");
-  }
-});
-
-// initial safety: center-lock and set left/top for future transforms
-(function ensureVisibleOnStart(){
-  const w = embedCard.offsetWidth, h = embedCard.offsetHeight;
-  embedCard.style.left = ((window.innerWidth - w) / 2) + 'px';
-  embedCard.style.top  = ((window.innerHeight - h) / 2) + 'px';
-  wasCentered = true;
-  DBG.info("Initial positioning done; center-locked");
-})();
-
-/* ===========================
-   Load detection helpers
-   - if load takes too long, retry and eventually show message
-   =========================== */
-let lastLoadedUrl = null;
-function startLoading(url){
-  lastLoadedUrl = url;
-  _startLoad(url);
-}
-
-function _startLoad(url){
-  // internal single-attempt loader (wrapped earlier)
-  showLoader();
-  iframe.src = url;
+  DBG.info("Start loading", url, {retries: currentLoadRetries});
   if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
   loadTimer = setTimeout(()=> {
-    DBG.warn("Load timed out for", url);
+    DBG.warn("Load timed out:", url);
     currentLoadRetries++;
     hideLoader();
     if(currentLoadRetries <= LOAD_RETRY_COUNT){
@@ -593,45 +318,247 @@ function _startLoad(url){
 
 function _onLoadGiveUp(url){
   hideLoader();
-  showMessage("This site won't load in the embed (likely blocks framing). Use the ↗ button to open it directly.", 12000);
-  DBG.error("Load gave up:", url);
+  showMessage("This site won't load in the embed (likely blocks framing or takes too long). Use the ↗ button to open it directly.", 14000);
+  DBG.error("Gave up loading:", url);
 }
 
-/* ===========================
-   Expose a small debug command set on window for rapid reports
-   - window.EmbedLauncher.report() prints a snapshot to console
-   - window.EmbedLauncher.recenter() recenters programmatically
-   =========================== */
+/* ---------- iframe events ---------- */
+iframe.addEventListener('load', ()=>{
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+  hideLoader();
+  DBG.info("iframe.load:", iframe.src);
+
+  // If same-origin, inspect document to detect empty or error content
+  try{
+    const doc = iframe.contentDocument;
+    if(doc && doc.body){
+      const txt = (doc.body.textContent || '').trim();
+      if(doc.body.children.length === 0 && txt.length < 8){
+        DBG.warn("Same-origin iframe appears empty.");
+        showMessage("Embedded page loaded but looks empty. Try opening in a new tab.", 7000);
+      }
+    }
+  }catch(e){
+    DBG.info("iframe is cross-origin (cannot inspect), assuming loaded.");
+  }
+});
+
+iframe.addEventListener('error', ()=>{
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+  hideLoader();
+  showMessage("Failed to load embedded content (network/CORS). Open in new tab.", 9000);
+  DBG.error("iframe.error", iframe.src);
+});
+
+/* ---------- UI wiring ---------- */
+enterBtn.addEventListener('click', ()=>{
+  const url = normalizeUrl(urlInput.value);
+  if(!url){ urlInput.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220}); urlInput.focus(); DBG.warn("Invalid URL input"); return; }
+  attemptLoad(url);
+});
+urlInput.addEventListener('keydown', (e)=> { if(e.key === 'Enter') enterBtn.click(); });
+
+document.querySelectorAll('.game-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const url = normalizeUrl(btn.dataset.url);
+    if(!url) { DBG.warn("Game url invalid:", btn.dataset.url); return; }
+    urlInput.value = url;
+    DBG.info("Game clicked:", url);
+    attemptLoad(url);
+  });
+});
+
+fullscreenBtn.addEventListener('click', ()=>{
+  // request fullscreen on embedCard (works cross-origin)
+  if(embedCard.requestFullscreen) embedCard.requestFullscreen();
+  else if(embedCard.webkitRequestFullscreen) embedCard.webkitRequestFullscreen();
+  else if(embedCard.msRequestFullscreen) embedCard.msRequestFullscreen();
+  DBG.info("Requested fullscreen on embedCard");
+});
+
+redirectBtn.addEventListener('click', ()=>{
+  const src = iframe.src;
+  if(!src || src === 'about:blank'){ showMessage("No embed loaded to open."); DBG.warn("Redirect with no src"); return; }
+  window.open(src, '_blank');
+  DBG.info("Opened in new tab:", src);
+});
+
+recenterBtn.addEventListener('click', recenterEmbed);
+embedCard.addEventListener('dblclick', recenterEmbed);
+
+/* ---------- Smart center: drag & resize with clamping ---------- */
+function recenterEmbed(){
+  // restore transform centered mode
+  embedCard.style.transform = 'translate(-50%,-50%)';
+  embedCard.style.left = '50%';
+  embedCard.style.top = '50%';
+  // optional: remove styles width/height to go back to CSS-controlled sizing
+  // embedCard.style.width = '';
+  // embedCard.style.height = '';
+  wasCentered = true;
+  DBG.info("Recenter called: center-locked");
+}
+
+function releaseCenteringAndSetLeftTop(){
+  if(!wasCentered) return;
+  const rect = embedCard.getBoundingClientRect();
+  const leftPx = rect.left;
+  const topPx = rect.top;
+  embedCard.style.transform = 'none';
+  embedCard.style.left = `${leftPx}px`;
+  embedCard.style.top = `${topPx}px`;
+  wasCentered = false;
+  DBG.info("Centering released -> absolute positioning", {left:leftPx, top:topPx});
+}
+
+/* drag */
+embedCard.addEventListener('pointerdown', (e)=>{
+  if(e.target === resizeHandle || e.target.closest('.embed-controls')) return;
+  e.preventDefault();
+  releaseCenteringAndSetLeftTop();
+  isDragging = true;
+  embedCard.classList.add('dragging');
+  const rect = embedCard.getBoundingClientRect();
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+  embedCard.setPointerCapture && embedCard.setPointerCapture(e.pointerId);
+  DBG.info("Drag start", {left:rect.left, top:rect.top, w:rect.width, h:rect.height});
+});
+
+window.addEventListener('pointermove', (e)=>{
+  if(!isDragging) return;
+  e.preventDefault();
+  const cw = embedCard.offsetWidth;
+  const ch = embedCard.offsetHeight;
+  const minLeft = 8;
+  const maxLeft = window.innerWidth - cw - 8;
+  const minTop = 8;
+  const maxTop = window.innerHeight - ch - 8;
+  let left = e.clientX - dragOffsetX;
+  let top = e.clientY - dragOffsetY;
+  left = clamp(left, minLeft, Math.max(minLeft, maxLeft));
+  top  = clamp(top, minTop, Math.max(minTop, maxTop));
+  embedCard.style.left = `${left}px`;
+  embedCard.style.top  = `${top}px`;
+});
+
+window.addEventListener('pointerup', (e)=>{
+  if(isDragging){
+    isDragging = false;
+    embedCard.classList.remove('dragging');
+    embedCard.releasePointerCapture && embedCard.releasePointerCapture(e.pointerId);
+    DBG.info("Drag end", {left:embedCard.style.left, top:embedCard.style.top});
+  }
+});
+
+/* resize */
+let resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
+resizeHandle.addEventListener('pointerdown', (e)=>{
+  e.preventDefault(); e.stopPropagation();
+  releaseCenteringAndSetLeftTop();
+  isResizing = true;
+  resizeStartW = embedCard.offsetWidth;
+  resizeStartH = embedCard.offsetHeight;
+  resizeStartX = e.clientX;
+  resizeStartY = e.clientY;
+  embedCard.classList.add('dragging');
+  resizeHandle.setPointerCapture && resizeHandle.setPointerCapture(e.pointerId);
+  DBG.info("Resize start", {w:resizeStartW,h:resizeStartH});
+});
+
+window.addEventListener('pointermove', (e)=>{
+  if(!isResizing) return;
+  e.preventDefault();
+  const dx = e.clientX - resizeStartX;
+  const dy = e.clientY - resizeStartY;
+  let newW = Math.max(parseInt(getComputedStyle(embedCard).minWidth || 320), resizeStartW + dx);
+  let newH = Math.max(parseInt(getComputedStyle(embedCard).minHeight || 300), resizeStartH + dy);
+  newW = Math.min(newW, window.innerWidth - 16);
+  newH = Math.min(newH, window.innerHeight - 16);
+  embedCard.style.width = `${newW}px`;
+  embedCard.style.height = `${newH}px`;
+
+  if(!wasCentered){
+    const maxLeft = window.innerWidth - newW - 8;
+    const maxTop  = window.innerHeight - newH - 8;
+    let curLeft = parseFloat(embedCard.style.left || 0);
+    let curTop  = parseFloat(embedCard.style.top  || 0);
+    curLeft = clamp(curLeft, 8, Math.max(8, maxLeft));
+    curTop  = clamp(curTop, 8, Math.max(8, maxTop));
+    embedCard.style.left = curLeft + 'px';
+    embedCard.style.top  = curTop  + 'px';
+  } else {
+    // keep pre-computed left/top so when transform removed it stays visually centered
+    embedCard.style.left = ((window.innerWidth - newW)/2) + 'px';
+    embedCard.style.top  = ((window.innerHeight - newH)/2) + 'px';
+  }
+});
+
+window.addEventListener('pointerup', (e)=>{
+  if(isResizing){
+    isResizing = false;
+    embedCard.classList.remove('dragging');
+    resizeHandle.releasePointerCapture && resizeHandle.releasePointerCapture(e.pointerId);
+    DBG.info("Resize end", {w:embedCard.offsetWidth, h:embedCard.offsetHeight, left:embedCard.style.left, top:embedCard.style.top});
+  }
+});
+
+/* keep centered after resize/rotation when center-mode active */
+window.addEventListener('resize', ()=>{
+  if(wasCentered){
+    // transform keeps it centered - but ensure transform & left are correctly set
+    embedCard.style.transform = 'translate(-50%,-50%)';
+    embedCard.style.left = '50%';
+    embedCard.style.top  = '50%';
+    DBG.info("Window resized - still center-locked");
+  } else {
+    // clamp within viewport
+    const w = embedCard.offsetWidth, h = embedCard.offsetHeight;
+    let left = parseFloat(embedCard.style.left || 0);
+    let top  = parseFloat(embedCard.style.top || 0);
+    left = clamp(left, 8, Math.max(8, window.innerWidth - w - 8));
+    top  = clamp(top, 8, Math.max(8, window.innerHeight - h - 8));
+    embedCard.style.left = left + 'px';
+    embedCard.style.top  = top + 'px';
+    DBG.info("Window resized - clamped embed to viewport");
+  }
+});
+
+/* ---------- initial recenter on load (fixing top-left start) ---------- */
+(function initialEnsure(){ // set left/top (visual center) but keep transform
+  const w = embedCard.offsetWidth, h = embedCard.offsetHeight;
+  embedCard.style.left = ((window.innerWidth - w) / 2) + 'px';
+  embedCard.style.top  = ((window.innerHeight - h) / 2) + 'px';
+  wasCentered = true;
+  DBG.info("Initial safety position set (pre-load)");
+})();
+
+// perform recenter after load to ensure final layout (fix for fonts/images)
+window.addEventListener('load', ()=>{
+  requestAnimationFrame(()=>{
+    try{ recenterEmbed(); DBG.info("Performed recenter on window.load"); }
+    catch(e){ DBG.error("recenter on load failed", e); }
+  });
+});
+
+/* ---------- public helpers and debug ---------- */
 window.EmbedLauncher = {
   report: function(){
-    DBG.group("EmbedLauncher Report");
+    DBG.group("EmbedLauncher report");
     DBG.info("window", window.innerWidth, window.innerHeight);
     DBG.info("embed rect", embedCard.getBoundingClientRect());
     DBG.info("iframe src", iframe.src);
     DBG.info("wasCentered", wasCentered, "isDragging", isDragging, "isResizing", isResizing);
     DBG.groupEnd();
   },
-  recenter: function(){
-    recenterBtn.click();
-  },
+  recenter: function(){ recenterEmbed(); },
   load: function(url){ const n = normalizeUrl(url); if(n) attemptLoad(n); else DBG.warn("EmbedLauncher.load: invalid url", url); }
 };
 
-// quick initial debug lines
-DBG.info("Initial window size:", window.innerWidth, window.innerHeight);
-DBG.info("Sandbox used: allow-scripts, allow-forms, allow-modals, allow-popups (NO allow-same-origin)");
+DBG.info("Sandbox (JS):", iframe.getAttribute('sandbox') || "(none)");
+DBG.info("Ready");
 
-// Expose attemptLoad as public for convenience
-function attemptLoad(url){
-  if(!url) return;
-  messageBox.classList.remove('visible');
-  currentLoadRetries = 0;
-  _startLoad(url);
-}
-
-// Accept programmatic loads: if user pastes into urlInput and hits Enter it will call attemptLoad
-// wiring for UI already done above
-
+/* End of script */
 </script>
 </body>
 </html>
