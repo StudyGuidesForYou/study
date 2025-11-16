@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Home</title>
 <link rel="icon" href="https://www.gstatic.com/images/branding/product/1x/classroom_48dp.png">
+
 <style>
 :root{
   --bg-deep:#040612;
@@ -18,31 +19,48 @@
   --glass: rgba(255,255,255,0.06);
   --glass-strong: rgba(255,255,255,0.12);
   --glass-border: rgba(255,255,255,0.12);
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
 }
 
-/* ----- Base ----- */
+/* ---------- GLOBAL ---------- */
 html,body{
   height:100%;width:100%;margin:0;padding:0;
   background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));
-  overflow:hidden;font-family:Inter,system-ui;color:var(--text);
+  color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow:hidden; /* changed to scroll on small screens via media query */
+  touch-action:manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ----- Top bar (outside launcher) ----- */
+/* ---------- TOP BAR (fixed, glass) ---------- */
 .top-wrap{
-  position:fixed;left:50%;transform:translateX(-50%);
-  top:18px;width:min(var(--max-width),96%);
-  display:flex;align-items:center;gap:10px;
-  padding:12px 14px;border-radius:14px;
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  top: calc(18px + var(--safe-top));
+  width:min(var(--max-width),96%);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:14px;
   background:var(--glass);
   backdrop-filter:blur(12px) saturate(140%);
+  -webkit-backdrop-filter:blur(12px) saturate(140%);
   border:1px solid rgba(255,255,255,0.06);
-  z-index:10000;transition:all .15s ease;
-  box-shadow:0 8px 26px rgba(2,6,18,0.5), inset 0 0 20px rgba(255,255,255,0.02);
+  z-index:10000;
+  transition:all .15s ease;
+  box-shadow:0 8px 26px rgba(2,6,18,0.45), inset 0 0 20px rgba(255,255,255,0.02);
 }
 .top-wrap.compact{
   padding:6px 10px;border-radius:12px;transform:translateX(-50%) scale(0.92);
-  gap:8px;top:10px;
+  gap:8px;top: calc(10px + var(--safe-top));
 }
+
+/* url input + button */
 .url-input{
   flex:1;padding:10px 14px;border-radius:10px;
   background:rgba(255,255,255,0.03);
@@ -54,24 +72,30 @@ html,body{
   padding:10px 14px;border-radius:10px;
   background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
   border:none;color:white;cursor:pointer;font-weight:700;
+  min-width:72px;text-align:center;
 }
 
-/* ----- Main area wrapper ----- */
+/* ---------- PAGE LAYOUT ---------- */
+/* container centers column on desktop, but allows scroll on very small screens */
 .container{
-  position:fixed;inset:94px 0 112px 0;display:flex;justify-content:center;align-items:flex-start;padding:18px;pointer-events:auto;
+  position:fixed;
+  inset: calc(94px + var(--safe-top)) 0 calc(112px + var(--safe-bottom)) 0;
+  display:flex;justify-content:center;align-items:flex-start;padding:18px;
+  pointer-events:auto;
 }
 
-/* We will center the inner column */
+/* inner column (centers the embed card) */
 .column{
   width:82vw;max-width:1100px;display:flex;flex-direction:column;align-items:stretch;gap:8px;
+  margin:0 auto;
 }
 
-/* ----- Controls row (outside embed-card to avoid clipping) ----- */
+/* controls row (above embed card) */
 .controls-row{
   display:flex;justify-content:flex-end;gap:8px;padding:6px 4px;
 }
 
-/* control buttons (liquid glass) */
+/* control buttons */
 .control{
   padding:9px 12px;border-radius:12px;background:var(--glass);
   border:1px solid var(--glass-border);color:var(--text);cursor:pointer;font-weight:700;
@@ -81,7 +105,7 @@ html,body{
 .control:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(2,6,18,0.55)}
 .control:active{transform:translateY(0) scale(.99)}
 
-/* ----- Embed card ----- */
+/* embed card */
 .embed-card{
   width:100%;height:70vh;border-radius:var(--radius);
   background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -91,10 +115,10 @@ html,body{
   backdrop-filter: blur(8px) saturate(120%);
 }
 
-/* iframe fills the card */
+/* iframe */
 .embed-iframe{width:100%;height:100%;border:0;background:#000;display:block;}
 
-/* loader overlay covers iframe exactly */
+/* loader overlay */
 .loader-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(6,10,20,0.22), rgba(6,10,20,0.32));backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .18s}
 .loader-overlay.visible{opacity:1;pointer-events:auto}
 .loader-spinner{width:60px;height:60px;border:6px solid rgba(255,255,255,0.08);border-top-color:var(--accent-b);border-radius:50%;animation:spin .9s linear infinite}
@@ -104,8 +128,8 @@ html,body{
 .msg-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(6,10,20,0.72);padding:10px 14px;border-radius:12px;color:var(--muted);display:none;border:1px solid rgba(255,255,255,0.02);z-index:40}
 .msg-box.visible{display:block}
 
-/* ----- Games list (bottom) ----- */
-.games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:9000;width:min(var(--max-width),96%);display:flex;justify-content:center;padding:8px}
+/* games list bottom */
+.games{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + var(--safe-bottom));z-index:9000;width:min(var(--max-width),96%);display:flex;justify-content:center;padding:8px}
 .game-list{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .game-btn{
   padding:10px 16px;border-radius:18px;background:rgba(255,255,255,0.06);backdrop-filter:blur(12px) saturate(160%);border:1px solid rgba(255,255,255,0.12);box-shadow:0 4px 18px rgba(0,0,0,0.35);cursor:pointer;color:var(--text);font-weight:700;transition:all .2s ease;
@@ -113,9 +137,40 @@ html,body{
 .game-btn:hover{background:rgba(255,255,255,0.12);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,0.45)}
 .game-btn:active{transform:translateY(0);background:rgba(255,255,255,0.09)}
 
-/* responsive tweaks */
-@media (max-width:1000px){.embed-card{height:60vh} .column{width:92vw}}
-@media (max-width:540px){.embed-card{height:55vh}.top-wrap{padding:8px}.control{padding:8px 10px}}
+/* ---------- MOBILE / SMALL-SCREEN ADJUSTMENTS ---------- */
+
+/* If the viewport height is small, allow page scroll and adjust sizes gracefully.
+   We choose to allow vertical scrolling (Option B) on small/tall devices:
+   - body becomes scrollable
+   - top bar stays fixed
+   - container becomes relative (so it flows in document), enabling scroll
+   - games list turns into a horizontal scroller to avoid wrapping
+*/
+@media (max-height:620px), (max-width:520px){
+  html,body{overflow:auto;} /* allow scrolling */
+  .container{position:relative;inset:auto;padding:14px 12px 120px 12px} /* flow content so page can scroll */
+  .column{width:100%;max-width:100%;margin:0 auto}
+  .embed-card{height:58vh} /* shrink iframe a bit to leave room for top bar and games on mobile */
+  .top-wrap{left:12px;right:12px;width:auto;transform:none}
+  .games{position:static;transform:none;padding:12px 8px 36px 8px;bottom:0;margin-top:10px}
+  /* make games horizontally scrollable */
+  .game-list{display:flex;gap:10px;overflow:auto;padding-bottom:10px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+  .game-btn{flex:0 0 auto}
+  /* controls row moves slightly inside column to fit */
+  .controls-row{justify-content:flex-end;padding:6px 0}
+}
+
+/* tiny device improvements */
+@media (max-width:380px){
+  .embed-card{height:50vh}
+  .url-input{font-size:14px;padding:8px}
+  .btn-primary{padding:8px 12px;font-size:14px}
+  .control{padding:8px 10px;font-size:13px}
+  .game-btn{padding:8px 12px;font-size:13px}
+}
+
+/* make sure fullscreen compact top style also plays nicely on mobile fullscreen */
+.top-wrap.fullscreen-compact{padding:8px 10px;border-radius:12px;transform:none}
 </style>
 </head>
 <body>
@@ -126,7 +181,7 @@ html,body{
   <button id="loadBtn" class="btn-primary" aria-label="Load URL">Load</button>
 </div>
 
-<!-- Container (centers column) -->
+<!-- Container (centers column on desktop; flows on mobile) -->
 <div class="container" aria-hidden="false">
   <div class="column">
     <!-- controls row sits ABOVE the embed-card (not inside) -->
@@ -184,6 +239,7 @@ const embedCard = document.getElementById('embedCard');
 const iframe = document.getElementById('embedFrame');
 const loader = document.getElementById('loader');
 const msgBox = document.getElementById('msgBox');
+const column = document.querySelector('.column');
 
 /* ---------- helpers ---------- */
 function showLoader(){ loader.classList.add('visible'); loader.setAttribute('aria-hidden','false'); }
@@ -206,9 +262,7 @@ function loadURL(raw){
   const url = normalizeUrl(raw);
   if(!url){ showMsg('Invalid URL'); return; }
   showLoader();
-  // set src
   iframe.src = url;
-  // clear any existing timer
   if(loadTimer) clearTimeout(loadTimer);
   loadTimer = setTimeout(()=> {
     hideLoader();
@@ -220,18 +274,15 @@ function loadURL(raw){
 iframe.addEventListener('load', ()=>{
   if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
   hideLoader();
-  // try to detect empty same-origin body
   try{
     const doc = iframe.contentDocument;
     if(doc && doc.body && doc.body.children.length === 0 && (doc.body.textContent||'').trim().length < 8){
       showMsg('Embedded content loaded but looks empty. Try Redirect.',7000);
     }
-  }catch(e){
-    // cross-origin or blocked, that's okay
-  }
+  }catch(e){ /* cross-origin normal */ }
 });
 
-/* capture iframe errors (some browsers may not fire) */
+/* capture iframe errors */
 iframe.addEventListener('error', ()=>{
   if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
   hideLoader();
@@ -258,65 +309,67 @@ redirectBtn.addEventListener('click', ()=>{
 });
 
 /* ---------- Fullscreen behavior ----------
-   - We want the iframe + controls to go fullscreen, BUT keep topBar visible.
-   - Approach: before entering fullscreen, move topBar INTO the fullscreen container (embedCard's parent column),
-     so it appears in the fullscreen element. When leaving fullscreen, move topBar back to its original place.
+   - Approach: before entering fullscreen, move topBar INTO the element we fullscreen (column),
+     so topBar is part of the fullscreen tree and visible. When leaving fullscreen, move it back.
 */
-const column = document.querySelector('.column');
-const origParent = topBar.parentElement; // body
+const origParent = document.body;
 let inFullscreen = false;
 
 fullscreenBtn.addEventListener('click', async ()=>{
-  // If already in native fullscreen -> exit
+  // If already in fullscreen -> exit
   if(document.fullscreenElement){
     await document.exitFullscreen();
     return;
   }
 
-  // Move topBar into column so it becomes part of the element we will fullscreen
+  // Move topBar into column so it will be shown in fullscreen element
   column.insertBefore(topBar, column.firstChild);
-  // make topBar compact style for fullscreen
   topBar.classList.add('compact');
 
-  // request fullscreen on embedCard's container (column) -> will show embed + controls + topBar
+  // request fullscreen on the column (so it contains topBar + embed)
   try{
     await column.requestFullscreen();
-    // native fullscreenrequest will trigger fullscreenchange event below
   }catch(err){
-    // fallback: add a CSS fullscreen-like class (if request fails)
+    // fallback: user agent blocked fullscreen
     showMsg('Fullscreen blocked by browser.',4000);
     // move topBar back
-    document.body.insertBefore(topBar, origParent.firstChild || document.body.firstChild);
+    origParent.insertBefore(topBar, origParent.firstChild);
     topBar.classList.remove('compact');
   }
 });
 
-/* When leaving fullscreen, move topBar back to top area and reset styles */
+/* When leaving fullscreen, put topBar back */
 document.addEventListener('fullscreenchange', ()=>{
   inFullscreen = !!document.fullscreenElement;
   if(!inFullscreen){
     // move topBar back to original top location
-    document.body.insertBefore(topBar, document.body.firstChild);
+    origParent.insertBefore(topBar, origParent.firstChild);
     topBar.classList.remove('compact');
+  } else {
+    // if in fullscreen, apply a subtle compact look (also helps mobile)
+    topBar.classList.add('compact');
   }
+
   // update fullscreenBtn label
   fullscreenBtn.textContent = inFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 });
 
-/* Safety: if user navigates away or src changes drastically, ensure topBar still exists in top-level */
-window.addEventListener('blur', ()=>{
-  // noop currently but reserved
+/* ---------- Extra mobile niceties ---------- */
+/* If user taps the URL input on mobile and keyboard pushes content, ensure iframe stays visible.
+   We add a small scroll into view for the embed card on focus to keep content accessible. */
+urlInput.addEventListener('focus', ()=>{
+  // on small screens, scroll so top of embed is visible after loading
+  if(window.innerWidth <= 520 || window.innerHeight <= 620){
+    setTimeout(()=>{ document.querySelector('.embed-card')?.scrollIntoView({behavior:'smooth', block:'center'}); }, 250);
+  }
 });
 
-/* Ensure centering/clamping on resize */
-window.addEventListener('resize', ()=>{
-  // nothing aggressive; layout uses flex & max-width so stays centered
+/* Ensure if column is fullscreen-eligible but user touches outside, topBar still exists. */
+window.addEventListener('resize', ()=> {
+  // keep layout responsive; no brute-force reposition needed
 });
 
-/* Accessibility: keyboard shortcut Esc should exit fullscreen (browser handles it),
-   but ensure topBar moves back via fullscreenchange listener above. */
-
-/* End of script */
+/* end script */
 </script>
 </body>
 </html>
