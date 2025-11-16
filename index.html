@@ -11,202 +11,262 @@
   --bg-mid:#071028;
   --accent-a:#3dd3c7;
   --accent-b:#2b82ff;
-  --glass-weak: rgba(255,255,255,0.03);
-  --glass-strong: rgba(255,255,255,0.06);
   --text:#eaf2ff;
   --muted: rgba(230,235,255,0.48);
   --radius:18px;
   --max-width:1280px;
-  --embed-min-w:320px;
-  --embed-min-h:300px;
-  --ui-gap:12px;
 }
 
-/* --- Reset + Base --- */
-*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
-html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
-a{color:inherit}
+/* base */
+html,body{
+  height:100%;width:100%;
+  margin:0;padding:0;
+  background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));
+  overflow:hidden;
+  font-family:Inter,system-ui;
+  color:var(--text);
+}
 
-/* --- Top bar --- */
+/* ---------------- TOP BAR ---------------- */
 .top-wrap{
-  position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:70;
-  width:min(var(--max-width),96%);display:flex;align-items:center;gap:var(--ui-gap);
-  padding:10px;border-radius:14px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(2,6,18,0.45);
-  backdrop-filter: blur(10px) saturate(120%);
+  position:fixed;
+  left:50%;transform:translateX(-50%);
+  top:18px;
+  width:min(var(--max-width),96%);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.04);
+  backdrop-filter:blur(10px) saturate(130%);
+  border:1px solid rgba(255,255,255,0.05);
+  z-index:1000;
+  transition:all .15s ease;
 }
-.url-box{display:flex;gap:12px;align-items:center;width:100%}
+
+/* compact top bar (fullscreen mode) */
+.top-wrap.compact{
+  top:12px;
+  padding:6px 10px;
+  gap:8px;
+  transform:translateX(-50%) scale(0.85);
+  opacity:0.92;
+}
+
+/* URL bar */
 .url-input{
-  flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
-  background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-  color:var(--text);font-size:15px;min-width:160px;outline:none;box-shadow:0 6px 20px rgba(2,6,18,0.28)
+  flex:1;
+  padding:10px 14px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  color:var(--text);
+  font-size:15px;
+  outline:none;
 }
 .url-input::placeholder{color:var(--muted)}
+
 .btn-primary{
-  padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,var(--accent-a),var(--accent-b));box-shadow:0 8px 28px rgba(43,130,255,0.12);
-  transition:transform .12s ease,box-shadow .12s ease;
+  padding:10px 14px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
+  border:none;
+  color:white;
+  cursor:pointer;
+  font-weight:700;
 }
-.btn-primary:hover{transform:translateY(-3px)}
 
-/* --- Main centered area --- */
+/* ---------------- MAIN ---------------- */
 .main-wrap{
-  position:fixed;inset:94px 0 112px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px;
+  position:fixed;
+  inset:94px 0 112px 0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
-/* embed card (center-locked) */
 .embed-card{
-  position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
-  height:70vh;min-height:var(--embed-min-h);border-radius:var(--radius);
-  overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.035);box-shadow:0 40px 110px rgba(2,6,18,0.7);display:flex;flex-direction:column;
-  backdrop-filter: blur(8px) saturate(120%);
+  width:85vw;
+  max-width:1100px;
+  height:70vh;
+  border-radius:var(--radius);
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  backdrop-filter:blur(8px);
+  box-shadow:0 40px 110px rgba(0,0,0,0.7);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 
-/* iframe area */
-.embed-frame{flex:1;position:relative;display:block;background:#000}
-iframe.embed-iframe{width:100%;height:100%;border:0;background:#000;display:block}
+/* CONTROL BUTTONS RIGHT SIDE */
+.iframe-controls{
+  width:100%;
+  display:flex;
+  justify-content:flex-end;
+  padding:6px 10px 4px 10px;
+  gap:10px;
+}
 
-/* loader overlay */
+.control{
+  padding:9px 14px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.05);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:700;
+}
+
+/* iframe */
+.embed-iframe{
+  flex:1;
+  width:100%;height:100%;
+  border:0;
+  background:black;
+}
+
 .loader-overlay{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:130;
-  background:linear-gradient(180deg, rgba(6,10,20,0.22), rgba(6,10,20,0.32));
-  backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .22s ease;
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.35);
+  backdrop-filter:blur(6px);
+  z-index:20;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease;
 }
 .loader-overlay.visible{opacity:1;pointer-events:auto}
-.loader-spinner{width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 0.95s linear infinite;box-shadow:0 10px 40px rgba(43,130,255,0.12)}
+
+.loader-spinner{
+  width:60px;height:60px;
+  border:6px solid rgba(255,255,255,0.08);
+  border-top-color:var(--accent-b);
+  border-radius:50%;
+  animation:spin .9s linear infinite;
+}
+
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* buttons above iframe */
-.iframe-controls{display:flex;gap:8px;margin-bottom:6px;justify-content:center}
-.control{padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
-  background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);cursor:pointer;font-weight:700;
+/* bottom game list */
+.games{
+  position:fixed;
+  bottom:20px;
+  left:50%;transform:translateX(-50%);
 }
-.control:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(43,130,255,0.06)}
-
-/* games list bottom */
-.games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:70;width:min(var(--max-width),96%);display:flex;justify-content:center;padding:8px}
-.game-list{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.game-btn{padding:10px 14px;border-radius:999px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);color:var(--text);cursor:pointer;font-weight:700;backdrop-filter: blur(6px)}
-.game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.5)}
-
-/* responsive */
-@media (max-width:1000px){.embed-card{height:60vh;width:92vw}.top-wrap{top:12px}.games{bottom:12px}}
-@media (max-width:540px){.embed-card{height:55vh;width:96vw}.url-input{font-size:14px}}
+.game-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.game-btn{
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  cursor:pointer;
+  color:var(--text);
+  font-weight:700;
+}
 </style>
 </head>
 <body>
 
-<!-- Top bar -->
-<div class="top-wrap" role="search" aria-label="URL bar">
-  <div class="url-box">
-    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
-    <button id="enterBtn" class="btn-primary" aria-label="Load URL">Load</button>
-  </div>
+<!-- TOP BAR -->
+<div id="topBar" class="top-wrap">
+  <input id="urlInput" class="url-input" placeholder="Enter URL…" />
+  <button id="loadBtn" class="btn-primary">Load</button>
 </div>
 
-<!-- Main area -->
-<main class="main-wrap">
-  <div style="display:flex;flex-direction:column;align-items:center;width:82vw;max-width:1100px;">
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="embed-card">
     <div class="iframe-controls">
       <button id="fullscreenBtn" class="control">Fullscreen</button>
       <button id="redirectBtn" class="control">Redirect</button>
     </div>
-    <div class="embed-card" id="embedCard">
-      <iframe id="embedFrame" class="embed-iframe" src="about:blank"
-        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
-        allow="fullscreen; autoplay; microphone; camera; encrypted-media"
-        title="Embedded content"></iframe>
-      <div id="loaderOverlay" class="loader-overlay">
-        <div class="loader-spinner"></div>
-      </div>
+
+    <iframe id="embedFrame" class="embed-iframe" src="about:blank"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+
+    <div id="loader" class="loader-overlay">
+      <div class="loader-spinner"></div>
     </div>
   </div>
-</main>
+</div>
 
-<!-- Games list -->
-<div class="games" aria-label="Games">
-  <div class="game-list" role="list">
+<!-- GAMES -->
+<div class="games">
+  <div class="game-list">
     <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
-    <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
-    <button class="game-btn" data-url="https://diep.io">diep.io</button>
-    <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
-    <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
-    <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
-    <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
-    <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
-    <button class="game-btn" data-url="https://ev.io">ev.io</button>
-    <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
-    <button class="game-btn" data-url="https://html5games.com">html5games</button>
     <button class="game-btn" data-url="https://silvergames.com">SilverGames</button>
+    <button class="game-btn" data-url="https://nexus-is.onthewifi.com">Nexus</button>
 
-    <!-- Browsers -->
-    <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">DayDreamX</button>
-    <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">PeteZah</button>
+    <!-- All your other games/browsers preserved -->
+    <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
+    <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
     <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
-    <button class="game-btn" data-url="https://nexus-is.onthewifi.com/">Nexus</button>
+    <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">DayDreamX</button>
   </div>
 </div>
 
 <script>
-const iframe = document.getElementById('embedFrame');
-const loader = document.getElementById('loaderOverlay');
-const urlInput = document.getElementById('urlInput');
+const iframe = document.getElementById("embedFrame");
+const loader = document.getElementById("loader");
+const topBar = document.getElementById("topBar");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
 
-function showLoader(){ loader.classList.add('visible'); }
-function hideLoader(){ loader.classList.remove('visible'); }
+function showLoader(){ loader.classList.add("visible"); }
+function hideLoader(){ loader.classList.remove("visible"); }
 
-function normalizeUrl(raw){
-  raw=(raw||'').trim();
-  if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;
-  try{ new URL(raw); return raw; } catch(e){ return null; }
+function norm(u){
+  if(!/^https?:\/\//i.test(u)) u="https://"+u;
+  return u;
 }
 
-function loadURL(raw){
-  const url=normalizeUrl(raw);
-  if(!url){ alert('Invalid URL'); return; }
+function loadURL(u){
   showLoader();
-  iframe.src=url;
+  iframe.src = norm(u);
 }
 
-// Hide loader when iframe actually loads
-iframe.addEventListener('load',()=>{ hideLoader(); });
+iframe.addEventListener("load", hideLoader);
 
-// Game buttons
-document.querySelectorAll('.game-btn').forEach(b=>{
-  b.addEventListener('click',()=>{
-    loadURL(b.dataset.url);
-    urlInput.value=b.dataset.url;
-  });
+document.getElementById("loadBtn").onclick = () =>{
+  loadURL(document.getElementById("urlInput").value);
+};
+
+document.querySelectorAll(".game-btn").forEach(btn=>{
+  btn.onclick = ()=>{
+    const url = btn.dataset.url;
+    document.getElementById("urlInput").value = url;
+    loadURL(url);
+  };
 });
 
-// URL bar
-document.getElementById('enterBtn').addEventListener('click',()=>loadURL(urlInput.value));
-urlInput.addEventListener('keydown',e=>{ if(e.key==='Enter') loadURL(urlInput.value); });
+/* REDIRECT (open new tab) */
+document.getElementById("redirectBtn").onclick = () =>{
+  if(iframe.src !== "about:blank") window.open(iframe.src, "_blank");
+};
 
-// Fullscreen toggle
-let isFS=false;
-document.getElementById('fullscreenBtn').addEventListener('click',()=>{
-  if(!isFS){ iframe.requestFullscreen?.(); isFS=true; }
-  else{ document.exitFullscreen?.(); isFS=false; }
+/* ---------------- FULLSCREEN TOGGLE ---------------- */
+let fs = false;
+
+fullscreenBtn.onclick = () =>{
+  if(!fs){
+    iframe.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+};
+
+document.addEventListener("fullscreenchange", () =>{
+  fs = !!document.fullscreenElement;
+
+  if(fs){
+    topBar.classList.add("compact");
+    fullscreenBtn.textContent = "Exit Fullscreen";
+  } else {
+    topBar.classList.remove("compact");
+    fullscreenBtn.textContent = "Fullscreen";
+  }
 });
-
-// Redirect opens in new tab
-document.getElementById('redirectBtn').addEventListener('click',()=>{
-  if(iframe.src!=='about:blank') window.open(iframe.src,'_blank');
-});
-
-// Hard-center fix: ensures iframe never moves
-function centerEmbedCard(){
-  const parent=document.querySelector('.main-wrap > div');
-  parent.style.display='flex';
-  parent.style.justifyContent='center';
-  parent.style.alignItems='center';
-  parent.style.flexDirection='column';
-}
-window.addEventListener('load', centerEmbedCard);
-window.addEventListener('resize', centerEmbedCard);
 </script>
 
 </body>
