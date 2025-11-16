@@ -67,14 +67,12 @@ a{color:inherit}
 }
 .btn-primary:hover{transform:translateY(-3px)}
 
-/* --- Main area --- */
-.main-wrap{
-  position:fixed;inset:0;z-index:50;padding:18px;
-}
+/* --- Main centered area --- */
+.main-wrap{position:fixed;inset:94px 0 112px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
 
 /* embed card (center-locked) */
 .embed-card{
-  position:absolute;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
+  position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
   height:70vh;min-height:var(--embed-min-h);border-radius:var(--radius);
   overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   border:1px solid rgba(255,255,255,0.035);box-shadow:0 40px 110px rgba(2,6,18,0.7);display:flex;flex-direction:column;
@@ -157,12 +155,14 @@ iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
           </div>
         </div>
 
+        <!-- NOTE: allow-same-origin is required for many games to work (localStorage, service workers, etc.) -->
         <iframe id="embedFrame" class="embed-iframe" src="about:blank"
                 sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
                 allow="fullscreen; autoplay; microphone; camera; encrypted-media"
                 title="Embedded content"></iframe>
 
         <div id="msgBox" class="msg-box" role="alert" aria-hidden="true"></div>
+
         <div id="resizeEdge" class="resize-edge" aria-hidden="true"></div>
       </div>
     </section>
@@ -182,45 +182,41 @@ iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
       <button class="game-btn" data-url="https://ev.io">ev.io</button>
       <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
       <button class="game-btn" data-url="https://html5games.com">html5games</button>
-      <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">Browser 1</button>
-      <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">Browser 2</button>
-      <button class="game-btn" data-url="https://worufjddjdj.bank.si/">Browser 3</button>
-      <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">Browser 4</button>
-      <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Browser 5</button>
+
+      <!-- Updated Browsers -->
+      <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">DayDreamX</button>
+      <button class="game-btn" data-url="https://worufjddjdj.bank.si/">Waves</button>
+      <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">PeteZah</button>
+      <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
     </div>
   </div>
 
 <script>
-// ===================== DEBUG HELPERS =====================
+// =================== Console helpers ===================
 const DBG = {
   info: (...a)=>console.log("%c[GL]","color:#bfefff;background:#012;padding:2px 6px;border-radius:4px;",...a),
   warn: (...a)=>console.warn("%c[GL WARN]","color:#ffd27f;background:#331a00;padding:2px 6px;border-radius:4px;",...a),
   error:(...a)=>console.error("%c[GL ERR]","color:#ff9fb5;background:#33000a;padding:2px 6px;border-radius:4px;",...a)
 };
-
 DBG.info("Launcher starting");
 
-// ===================== Aurora Canvas =====================
+// =================== Aurora ===================
 const canvas = document.getElementById('auroraCanvas');
 const ctx = canvas.getContext('2d', {alpha:true});
 let W = canvas.width = window.innerWidth;
 let H = canvas.height = window.innerHeight;
 window.addEventListener('resize', ()=>{ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
 
-class Oval { constructor(){ this.reset(); } reset(){ this.x = Math.random()*W; this.y = Math.random()*H; this.w = 300 + Math.random()*900; this.h = 80 + Math.random()*380; this.hue = 150 + Math.random()*80; this.alpha = 0.06 + Math.random()*0.14; this.vx = 0.02 + Math.random()*0.18; this.vy = (Math.random()-0.5) * 0.06; this.drift = (Math.random()<0.5?-1:1) * (0.01 + Math.random()*0.03);} update(){ this.x -= this.vx; this.y += this.vy; this.hue += this.drift * 0.15; if(this.hue > 240) this.hue = 150; if(this.hue < 150) this.hue = 240; if(this.x < -this.w) this.x = W + this.w; if(this.y < -this.h) this.y = H + this.h; if(this.y > H + this.h) this.y = -this.h;} draw(){ const g = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w); g.addColorStop(0, `hsla(${this.hue},86%,56%,${this.alpha})`); g.addColorStop(0.6, `hsla(${this.hue + 20},76%,48%,${this.alpha*0.8})`); g.addColorStop(1, `hsla(200,40%,10%,0)`); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; } }
-
+class Oval {
+  constructor(){ this.reset(); }
+  reset(){ this.x=Math.random()*W; this.y=Math.random()*H; this.w=300+Math.random()*900; this.h=80+Math.random()*380; this.hue=150+Math.random()*80; this.alpha=0.06+Math.random()*0.14; this.vx=0.02+Math.random()*0.18; this.vy=(Math.random()-0.5)*0.06; this.drift=(Math.random()<0.5?-1:1)*(0.01+Math.random()*0.03);}
+  update(){ this.x-=this.vx; this.y+=this.vy; this.hue+=this.drift*0.15;if(this.hue>240)this.hue=150;if(this.hue<150)this.hue=240;if(this.x<-this.w)this.x=W+this.w;if(this.y<-this.h)this.y=H+this.h;if(this.y>H+this.h)this.y=-this.h;}
+  draw(){ const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w); g.addColorStop(0, `hsla(${this.hue},86%,56%,${this.alpha})`); g.addColorStop(0.6, `hsla(${this.hue+20},76%,48%,${this.alpha*0.8})`); g.addColorStop(1, `hsla(200,40%,10%,0)`); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2); ctx.fill(); ctx.globalCompositeOperation='source-over';}
+}
 const ovals = Array.from({length:14}, ()=> new Oval());
-(function loop(){
-  ctx.clearRect(0,0,W,H);
-  const bg = ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0, 'rgba(3,8,18,0.22)');
-  bg.addColorStop(1, 'rgba(2,6,12,0.44)');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-  for(const o of ovals){ o.update(); o.draw(); }
-  requestAnimationFrame(loop);
-})();
+(function loop(){ ctx.clearRect(0,0,W,H); const bg=ctx.createLinearGradient(0,0,W,H); bg.addColorStop(0,'rgba(3,8,18,0.22)'); bg.addColorStop(1,'rgba(2,6,12,0.44)'); ctx.fillStyle=bg; ctx.fillRect(0,0,W,H); for(const o of ovals){o.update();o.draw();} requestAnimationFrame(loop); })();
 
-// ===================== UI ELEMENTS & STATE =====================
+// =================== UI Elements ===================
 const embedCard = document.getElementById('embedCard');
 const iframe = document.getElementById('embedFrame');
 const loaderOverlay = document.getElementById('loaderOverlay');
@@ -231,60 +227,64 @@ const enterBtn = document.getElementById('enterBtn');
 const recenterBtn = document.getElementById('recenterBtn');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const redirectBtn = document.getElementById('redirectBtn');
+const gameButtons = document.querySelectorAll('.game-btn');
 
-let wasCentered = true;
+let currentURL="";
 
-// --- Center embed card ---
-function centerEmbedCard(){
-  embedCard.style.left = '50%';
-  embedCard.style.top = '50%';
-  embedCard.style.transform = 'translate(-50%,-50%)';
-  wasCentered = true;
-}
-window.addEventListener('load', centerEmbedCard);
-window.addEventListener('resize', ()=>{ if(wasCentered) centerEmbedCard(); });
-recenterBtn.addEventListener('click', centerEmbedCard);
-
-// --- Load URL ---
-function loadURL(url){
-  if(!url) return;
-  loaderOverlay.classList.add('visible');
-  iframe.src = url;
-  iframe.onload = ()=>{ loaderOverlay.classList.remove('visible'); };
-  iframe.onerror = ()=>{ showMessage("Failed to load URL"); loaderOverlay.classList.remove('visible'); };
-}
-enterBtn.addEventListener('click', ()=>loadURL(urlInput.value));
-urlInput.addEventListener('keydown', e=>{ if(e.key==="Enter") loadURL(urlInput.value); });
-
-// --- Games list ---
-document.querySelectorAll('.game-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{ urlInput.value = btn.dataset.url; loadURL(btn.dataset.url); });
-});
-
-// --- Fullscreen & Open ---
-fullscreenBtn.addEventListener('click', ()=>{ embedCard.requestFullscreen?.(); });
-redirectBtn.addEventListener('click', ()=>{ window.open(iframe.src,'_blank'); });
-
-// --- Messages ---
-function showMessage(msg,timeout=2000){
-  msgBox.textContent = msg; msgBox.classList.add('visible'); msgBox.setAttribute('aria-hidden','false');
+// =================== Iframe Loader + Error Handling ===================
+function showMsg(text,timeout=4200){
+  msgBox.textContent=text; msgBox.classList.add('visible');
+  msgBox.setAttribute('aria-hidden','false');
   setTimeout(()=>{ msgBox.classList.remove('visible'); msgBox.setAttribute('aria-hidden','true'); },timeout);
 }
+function showLoader(){ loaderOverlay.classList.add('visible'); }
+function hideLoader(){ loaderOverlay.classList.remove('visible'); }
 
-// --- Resize dragging ---
-let isResizing=false, startX, startW;
-resizeEdge.addEventListener('mousedown', e=>{
-  isResizing=true; startX=e.clientX; startW=embedCard.offsetWidth;
-  e.preventDefault(); wasCentered=false;
-});
-window.addEventListener('mousemove', e=>{
-  if(!isResizing) return;
-  let newW = startW + (e.clientX-startX);
-  embedCard.style.width = `${Math.max(newW,parseInt(getComputedStyle(embedCard).minWidth))}px`;
-});
-window.addEventListener('mouseup', e=>{ isResizing=false; });
+async function loadIframe(url){
+  if(!url) return showMsg("Invalid URL");
+  showLoader();
+  iframe.src="about:blank";
+  currentURL=url;
 
-// Optional: double-trouble style fixes, etc. can be added here
+  try{
+    let timeoutId;
+    await new Promise((resolve,reject)=>{
+      const timer = setTimeout(()=>reject("Load timeout"),15000); // 15s max
+      iframe.onload=()=>{ clearTimeout(timer); resolve(); };
+      iframe.onerror=()=>{ clearTimeout(timer); reject("Load error"); };
+      iframe.src=url;
+    });
+    hideLoader();
+  }catch(e){
+    hideLoader();
+    DBG.warn("Iframe failed to load:", e, url);
+    showMsg(`Failed to load "${url}", retrying...`,3000);
+    // retry fallback after short delay
+    setTimeout(()=>{ loadIframe(url); },2000);
+  }
+}
+
+// =================== Events ===================
+enterBtn.addEventListener('click', ()=>{ loadIframe(urlInput.value.trim()); });
+urlInput.addEventListener('keyup', e=>{ if(e.key==='Enter') loadIframe(urlInput.value.trim()); });
+recenterBtn.addEventListener('click', ()=>{ embedCard.style.left='50%'; embedCard.style.top='50%'; embedCard.style.transform='translate(-50%,-50%)'; });
+fullscreenBtn.addEventListener('click', ()=>{ embedCard.requestFullscreen?.(); });
+redirectBtn.addEventListener('click', ()=>{ if(currentURL) window.open(currentURL,'_blank'); });
+
+// game buttons
+gameButtons.forEach(btn=>{
+  btn.addEventListener('click',()=>{ const url=btn.dataset.url; loadIframe(url); urlInput.value=url; });
+});
+
+// =================== Drag resize ===================
+let resizing=false; let startX=0; let startW=0;
+resizeEdge.addEventListener('mousedown',e=>{resizing=true; startX=e.clientX; startW=embedCard.offsetWidth; e.preventDefault();});
+window.addEventListener('mousemove',e=>{ if(resizing){ let newW=startW+(e.clientX-startX); embedCard.style.width=`${Math.max(newW,320)}px`; }});
+window.addEventListener('mouseup',()=>{ resizing=false; });
+
+// =================== Auto-load default (first game) ===================
+if(gameButtons.length) { const firstURL=gameButtons[0].dataset.url; loadIframe(firstURL); urlInput.value=firstURL; }
+
 </script>
 </body>
 </html>
