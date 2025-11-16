@@ -1,143 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Modern Embed Launcher</title>
-  <style>
-    :root {
-      --bg-deep: #040612;
-      --bg-mid: #0a1526;
-      --glass: rgba(255, 255, 255, 0.12);
-      --glass-strong: rgba(255, 255, 255, 0.18);
-      --accent: #6bbcff;
-      --radius-xl: 22px;
-      --radius-bar: 14px;
-      --blur: 18px;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg-deep);
-      font-family: system-ui, sans-serif;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Center container */
-    #frameWrapper {
-      width: 88vw;
-      height: 82vh;
-      background: var(--bg-mid);
-      border-radius: var(--radius-xl);
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
-      box-shadow: 0 0 40px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Top Control Bar */
-    #topBar {
-      width: calc(100% - 20px);
-      margin: 10px auto 0 auto;
-      height: 48px;
-      border-radius: var(--radius-bar);
-      background: var(--glass);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-      padding: 0 14px;
-      z-index: 20;
-    }
-
-    .controlBtn {
-      background: var(--glass-strong);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      padding: 8px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.05);
-      cursor: pointer;
-      color: white;
-      transition: 0.15s;
-      font-size: 14px;
-    }
-
-    .controlBtn:hover {
-      background: rgba(255,255,255,0.25);
-    }
-
-    iframe {
-      width: 100%;
-      height: calc(100% - 70px);
-      border: none;
-      border-radius: 0 0 var(--radius-xl) var(--radius-xl);
-      margin-top: 10px;
-    }
-
-    /* Fullscreen mode */
-    .fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw !important;
-      height: 100vh !important;
-      z-index: 9999;
-      border-radius: 0 !important;
-    }
-
-    .fullscreen #topBar {
-      height: 36px;
-      width: calc(100% - 16px);
-      margin-top: 8px;
-      border-radius: 10px;
-    }
-
-    .fullscreen iframe {
-      height: calc(100% - 52px) !important;
-      border-radius: 0 0 12px 12px;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Home</title>
+<link rel="icon" href="https://www.gstatic.com/images/branding/product/1x/classroom_48dp.png">
+<style>
+:root{
+  --bg-deep:#040612;
+  --bg-mid:#071028;
+  --accent-a:#3dd3c7;
+  --accent-b:#2b82ff;
+  --text:#eaf2ff;
+  --muted: rgba(230,235,255,0.48);
+  --radius:18px;
+  --max-width:1280px;
+}
+html,body{
+  height:100%;width:100%;margin:0;padding:0;
+  background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));
+  overflow:hidden;font-family:Inter,system-ui;color:var(--text);
+}
+.top-wrap{
+  position:fixed;left:50%;transform:translateX(-50%);
+  top:18px;width:min(var(--max-width),96%);
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:14px;
+  background:rgba(255,255,255,0.04);
+  backdrop-filter:blur(10px) saturate(130%);
+  border:1px solid rgba(255,255,255,0.05);
+  z-index:1000;transition:all .15s ease;
+}
+.top-wrap.compact{top:12px;padding:6px 10px;gap:8px;transform:translateX(-50%) scale(0.85);opacity:0.92;}
+.url-input{
+  flex:1;padding:10px 14px;border-radius:10px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  color:var(--text);font-size:15px;outline:none;
+}
+.url-input::placeholder{color:var(--muted)}
+.btn-primary{
+  padding:10px 14px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
+  border:none;color:white;cursor:pointer;font-weight:700;
+}
+.main-wrap{
+  position:fixed;inset:94px 0 112px 0;
+  display:flex;justify-content:center;align-items:center;
+}
+.embed-card{
+  width:85vw;max-width:1100px;height:70vh;
+  border-radius:var(--radius);
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  backdrop-filter:blur(8px);
+  box-shadow:0 40px 110px rgba(0,0,0,0.7);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.iframe-controls{
+  width:100%;display:flex;justify-content:flex-end;
+  padding:6px 10px 4px 10px;gap:10px;
+}
+.control{
+  padding:9px 14px;border-radius:10px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.05);
+  color:var(--text);cursor:pointer;font-weight:700;
+}
+.embed-iframe{
+  flex:1;width:100%;height:100%;border:0;background:black;
+}
+.loader-overlay{
+  position:absolute;inset:0;display:flex;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.35);
+  backdrop-filter:blur(6px);z-index:20;
+  opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.loader-overlay.visible{opacity:1;pointer-events:auto}
+.loader-spinner{
+  width:60px;height:60px;border:6px solid rgba(255,255,255,0.08);
+  border-top-color:var(--accent-b);
+  border-radius:50%;animation:spin .9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.games{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+}
+.game-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.game-btn{
+  padding:10px 14px;border-radius:999px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  cursor:pointer;color:var(--text);font-weight:700;
+}
+</style>
 </head>
 <body>
-  <div id="frameWrapper">
-    <div id="topBar">
-      <button id="redirectBtn" class="controlBtn">Redirect</button>
-      <button id="fullscreenBtn" class="controlBtn">Fullscreen</button>
+<div id="topBar" class="top-wrap">
+  <input id="urlInput" class="url-input" placeholder="Enter URL…" />
+  <button id="loadBtn" class="btn-primary">Load</button>
+</div>
+<div class="main-wrap">
+  <div class="embed-card">
+    <div class="iframe-controls">
+      <button id="fullscreenBtn" class="control">Fullscreen</button>
+      <button id="redirectBtn" class="control">Redirect</button>
     </div>
-    <iframe id="gameFrame" src="about:blank"></iframe>
+    <iframe id="embedFrame" class="embed-iframe" src="about:blank"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+    <div id="loader" class="loader-overlay">
+      <div class="loader-spinner"></div>
+    </div>
   </div>
-
-  <script>
-    const fw = document.getElementById("frameWrapper");
-    const fsBtn = document.getElementById("fullscreenBtn");
-    const redirectBtn = document.getElementById("redirectBtn");
-    const iframe = document.getElementById("gameFrame");
-
-    // redirect button example
-    redirectBtn.onclick = () => {
-      window.open(iframe.src, "_blank");
-    };
-
-    // toggle fullscreen
-    fsBtn.onclick = () => {
-      if (!fw.classList.contains("fullscreen")) {
-        fw.classList.add("fullscreen");
-        fsBtn.textContent = "Exit Fullscreen";
-      } else {
-        fw.classList.remove("fullscreen");
-        fsBtn.textContent = "Fullscreen";
-      }
-    };
-  </script>
+</div>
+<div class="games">
+  <div class="game-list">
+    <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
+    <button class="game-btn" data-url="https://silvergames.com">SilverGames</button>
+    <button class="game-btn" data-url="https://nexus-is.onthewifi.com">Nexus</button>
+    <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
+    <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
+    <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
+    <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">DayDreamX</button>
+  </div>
+</div>
+<script>
+const iframe = document.getElementById("embedFrame");
+const loader = document.getElementById("loader");
+const topBar = document.getElementById("topBar");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+function showLoader(){ loader.classList.add("visible"); }
+function hideLoader(){ loader.classList.remove("visible"); }
+function norm(u){ if(!/^https?:\/\//i.test(u)) u="https://"+u; return u; }
+function loadURL(u){ showLoader(); iframe.src = norm(u); }
+iframe.addEventListener("load", hideLoader);
+document.getElementById("loadBtn").onclick = ()=>{ loadURL(document.getElementById("urlInput").value); };
+document.querySelectorAll(".game-btn").forEach(btn=>{
+  btn.onclick = ()=>{ const url = btn.dataset.url; document.getElementById("urlInput").value = url; loadURL(url); };
+});
+document.getElementById("redirectBtn").onclick = ()=>{ if(iframe.src !== "about:blank") window.open(iframe.src, "_blank"); };
+let fs=false;
+fullscreenBtn.onclick=()=>{ if(!fs){ iframe.requestFullscreen(); } else { document.exitFullscreen(); } };
+document.addEventListener("fullscreenchange",()=>{
+  fs=!!document.fullscreenElement;
+  if(fs){ topBar.classList.add("compact"); fullscreenBtn.textContent="Exit Fullscreen"; }
+  else{ topBar.classList.remove("compact"); fullscreenBtn.textContent="Fullscreen"; }
+});
+</script>
 </body>
 </html>
