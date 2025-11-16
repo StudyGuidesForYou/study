@@ -15,27 +15,38 @@
   --muted: rgba(230,235,255,0.48);
   --radius:18px;
   --max-width:1280px;
+  --glass: rgba(255,255,255,0.06);
+  --glass-strong: rgba(255,255,255,0.12);
+  --glass-border: rgba(255,255,255,0.12);
 }
+
+/* ----- Base ----- */
 html,body{
   height:100%;width:100%;margin:0;padding:0;
   background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));
   overflow:hidden;font-family:Inter,system-ui;color:var(--text);
 }
+
+/* ----- Top bar (outside launcher) ----- */
 .top-wrap{
   position:fixed;left:50%;transform:translateX(-50%);
   top:18px;width:min(var(--max-width),96%);
   display:flex;align-items:center;gap:10px;
   padding:12px 14px;border-radius:14px;
-  background:rgba(255,255,255,0.04);
-  backdrop-filter:blur(10px) saturate(130%);
-  border:1px solid rgba(255,255,255,0.05);
-  z-index:1000;transition:all .15s ease;
+  background:var(--glass);
+  backdrop-filter:blur(12px) saturate(140%);
+  border:1px solid rgba(255,255,255,0.06);
+  z-index:10000;transition:all .15s ease;
+  box-shadow:0 8px 26px rgba(2,6,18,0.5), inset 0 0 20px rgba(255,255,255,0.02);
 }
-.top-wrap.compact{top:12px;padding:6px 10px;gap:8px;transform:translateX(-50%) scale(0.85);opacity:0.92;}
+.top-wrap.compact{
+  padding:6px 10px;border-radius:12px;transform:translateX(-50%) scale(0.92);
+  gap:8px;top:10px;
+}
 .url-input{
   flex:1;padding:10px 14px;border-radius:10px;
   background:rgba(255,255,255,0.03);
-  border:1px solid rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.04);
   color:var(--text);font-size:15px;outline:none;
 }
 .url-input::placeholder{color:var(--muted)}
@@ -44,93 +55,104 @@ html,body{
   background:linear-gradient(135deg,var(--accent-a),var(--accent-b));
   border:none;color:white;cursor:pointer;font-weight:700;
 }
-.main-wrap{
-  position:fixed;inset:94px 0 112px 0;
-  display:flex;justify-content:center;align-items:center;
+
+/* ----- Main area wrapper ----- */
+.container{
+  position:fixed;inset:94px 0 112px 0;display:flex;justify-content:center;align-items:flex-start;padding:18px;pointer-events:auto;
 }
-.embed-card{
-  width:85vw;max-width:1100px;height:70vh;
-  border-radius:var(--radius);
-  background:rgba(255,255,255,0.03);
-  border:1px solid rgba(255,255,255,0.05);
-  backdrop-filter:blur(8px);
-  box-shadow:0 40px 110px rgba(0,0,0,0.7);
-  display:flex;flex-direction:column;overflow:hidden;
+
+/* We will center the inner column */
+.column{
+  width:82vw;max-width:1100px;display:flex;flex-direction:column;align-items:stretch;gap:8px;
 }
-.iframe-controls{
-  width:100%;display:flex;justify-content:flex-end;
-  padding:6px 10px 4px 10px;gap:10px;
+
+/* ----- Controls row (outside embed-card to avoid clipping) ----- */
+.controls-row{
+  display:flex;justify-content:flex-end;gap:8px;padding:6px 4px;
 }
+
+/* control buttons (liquid glass) */
 .control{
-  padding:9px 14px;border-radius:10px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.05);
-  color:var(--text);cursor:pointer;font-weight:700;
+  padding:9px 12px;border-radius:12px;background:var(--glass);
+  border:1px solid var(--glass-border);color:var(--text);cursor:pointer;font-weight:700;
+  backdrop-filter:blur(12px);transition:all .16s ease;
+  box-shadow:0 6px 18px rgba(2,6,18,0.45);
 }
-.embed-iframe{
-  flex:1;width:100%;height:100%;border:0;background:black;
+.control:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(2,6,18,0.55)}
+.control:active{transform:translateY(0) scale(.99)}
+
+/* ----- Embed card ----- */
+.embed-card{
+  width:100%;height:70vh;border-radius:var(--radius);
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.035);
+  box-shadow:0 40px 110px rgba(2,6,18,0.7);
+  overflow:hidden;position:relative;display:flex;flex-direction:column;
+  backdrop-filter: blur(8px) saturate(120%);
 }
-.loader-overlay{
-  position:absolute;inset:0;display:flex;
-  align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.35);
-  backdrop-filter:blur(6px);z-index:20;
-  opacity:0;pointer-events:none;transition:opacity .2s ease;
-}
+
+/* iframe fills the card */
+.embed-iframe{width:100%;height:100%;border:0;background:#000;display:block;}
+
+/* loader overlay covers iframe exactly */
+.loader-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(6,10,20,0.22), rgba(6,10,20,0.32));backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .18s}
 .loader-overlay.visible{opacity:1;pointer-events:auto}
-.loader-spinner{
-  width:60px;height:60px;border:6px solid rgba(255,255,255,0.08);
-  border-top-color:var(--accent-b);
-  border-radius:50%;animation:spin .9s linear infinite;
-}
+.loader-spinner{width:60px;height:60px;border:6px solid rgba(255,255,255,0.08);border-top-color:var(--accent-b);border-radius:50%;animation:spin .9s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.games{
-  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-}
-.game-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
+/* message bubble */
+.msg-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(6,10,20,0.72);padding:10px 14px;border-radius:12px;color:var(--muted);display:none;border:1px solid rgba(255,255,255,0.02);z-index:40}
+.msg-box.visible{display:block}
+
+/* ----- Games list (bottom) ----- */
+.games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:9000;width:min(var(--max-width),96%);display:flex;justify-content:center;padding:8px}
+.game-list{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .game-btn{
-  padding:10px 16px;
-  border-radius:18px;
-  background:rgba(255,255,255,0.06);
-  backdrop-filter:blur(12px) saturate(160%);
-  border:1px solid rgba(255,255,255,0.12);
-  box-shadow:0 4px 18px rgba(0,0,0,0.35);
-  cursor:pointer;
-  color:var(--text);
-  font-weight:700;
-  transition:all .2s ease;
+  padding:10px 16px;border-radius:18px;background:rgba(255,255,255,0.06);backdrop-filter:blur(12px) saturate(160%);border:1px solid rgba(255,255,255,0.12);box-shadow:0 4px 18px rgba(0,0,0,0.35);cursor:pointer;color:var(--text);font-weight:700;transition:all .2s ease;
 }
-.game-btn:hover{
-  background:rgba(255,255,255,0.12);
-  transform:translateY(-2px);
-  box-shadow:0 6px 22px rgba(0,0,0,0.45);
-}
-.game-btn:active{
-  transform:translateY(0);
-  background:rgba(255,255,255,0.09);
-}
+.game-btn:hover{background:rgba(255,255,255,0.12);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,0.45)}
+.game-btn:active{transform:translateY(0);background:rgba(255,255,255,0.09)}
+
+/* responsive tweaks */
+@media (max-width:1000px){.embed-card{height:60vh} .column{width:92vw}}
+@media (max-width:540px){.embed-card{height:55vh}.top-wrap{padding:8px}.control{padding:8px 10px}}
 </style>
 </head>
 <body>
-<div id="topBar" class="top-wrap">
-  <input id="urlInput" class="url-input" placeholder="Enter URL…" />
-  <button id="loadBtn" class="btn-primary">Load</button>
+
+<!-- TOP BAR (outside embed system) -->
+<div id="topBar" class="top-wrap" role="region" aria-label="Top controls">
+  <input id="urlInput" class="url-input" placeholder="Enter URL…" aria-label="URL to load" />
+  <button id="loadBtn" class="btn-primary" aria-label="Load URL">Load</button>
 </div>
-<div class="main-wrap">
-  <div class="embed-card">
-    <div class="iframe-controls">
-      <button id="fullscreenBtn" class="control">Fullscreen</button>
-      <button id="redirectBtn" class="control">Redirect</button>
+
+<!-- Container (centers column) -->
+<div class="container" aria-hidden="false">
+  <div class="column">
+    <!-- controls row sits ABOVE the embed-card (not inside) -->
+    <div class="controls-row" id="controlsRow">
+      <button id="fullscreenBtn" class="control" title="Fullscreen">Fullscreen</button>
+      <button id="redirectBtn" class="control" title="Open in new tab">Redirect</button>
     </div>
-    <iframe id="embedFrame" class="embed-iframe" src="about:blank"
-      sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
-    <div id="loader" class="loader-overlay">
-      <div class="loader-spinner"></div>
+
+    <!-- the embed card -->
+    <div id="embedCard" class="embed-card" role="region" aria-label="Embed area">
+      <iframe id="embedFrame" class="embed-iframe" src="about:blank"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+        allow="fullscreen; autoplay; microphone; camera; encrypted-media" title="Embedded content"></iframe>
+
+      <div id="loader" class="loader-overlay" aria-hidden="true">
+        <div class="loader-spinner" role="status" aria-label="Loading"></div>
+      </div>
+
+      <div id="msgBox" class="msg-box" role="alert" aria-hidden="true"></div>
     </div>
   </div>
 </div>
-<div class="games">
-  <div class="game-list">
+
+<!-- Games list (kept + merged, unique) -->
+<div class="games" aria-label="Games">
+  <div class="game-list" role="list">
     <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
     <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
     <button class="game-btn" data-url="https://diep.io">diep.io</button>
@@ -142,37 +164,159 @@ html,body{
     <button class="game-btn" data-url="https://ev.io">ev.io</button>
     <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
     <button class="game-btn" data-url="https://html5games.com">html5games</button>
-    <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
     <button class="game-btn" data-url="https://silvergames.com">SilverGames</button>
-    <button class="game-btn" data-url="https://nexus-is.onthewifi.com">Nexus</button>
-    <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
-    <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
+    <button class="game-btn" data-url="https://nexus-is.onthewifi.com/">Nexus</button>
     <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
     <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">DayDreamX</button>
+    <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">PeteZah</button>
   </div>
 </div>
+
 <script>
-const iframe = document.getElementById("embedFrame");
-const loader = document.getElementById("loader");
-const topBar = document.getElementById("topBar");
-const fullscreenBtn = document.getElementById("fullscreenBtn");
-function showLoader(){ loader.classList.add("visible"); }
-function hideLoader(){ loader.classList.remove("visible"); }
-function norm(u){ if(!/^https?:\/\//i.test(u)) u="https://"+u; return u; }
-function loadURL(u){ showLoader(); iframe.src = norm(u); }
-iframe.addEventListener("load", hideLoader);
-document.getElementById("loadBtn").onclick = ()=>{ loadURL(document.getElementById("urlInput").value); };
-document.querySelectorAll(".game-btn").forEach(btn=>{
-  btn.onclick = ()=>{ const url = btn.dataset.url; document.getElementById("urlInput").value = url; loadURL(url); };
+/* ---------- DOM refs ---------- */
+const topBar = document.getElementById('topBar');
+const urlInput = document.getElementById('urlInput');
+const loadBtn = document.getElementById('loadBtn');
+const controlsRow = document.getElementById('controlsRow');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const redirectBtn = document.getElementById('redirectBtn');
+const embedCard = document.getElementById('embedCard');
+const iframe = document.getElementById('embedFrame');
+const loader = document.getElementById('loader');
+const msgBox = document.getElementById('msgBox');
+
+/* ---------- helpers ---------- */
+function showLoader(){ loader.classList.add('visible'); loader.setAttribute('aria-hidden','false'); }
+function hideLoader(){ loader.classList.remove('visible'); loader.setAttribute('aria-hidden','true'); }
+function showMsg(text, timeout=6000){
+  msgBox.textContent = text; msgBox.classList.add('visible'); msgBox.setAttribute('aria-hidden','false');
+  clearTimeout(msgBox._hide); if(timeout>0) msgBox._hide = setTimeout(()=>{ msgBox.classList.remove('visible'); msgBox.setAttribute('aria-hidden','true'); }, timeout);
+}
+function normalizeUrl(raw){
+  if(!raw) return null;
+  raw = raw.trim();
+  if(!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+  try{ return new URL(raw).toString(); }catch(e){ return null; }
+}
+
+/* ---------- robust load with timeout & error handling ---------- */
+let loadTimer = null;
+const LOAD_TIMEOUT = 15000; // 15s
+function loadURL(raw){
+  const url = normalizeUrl(raw);
+  if(!url){ showMsg('Invalid URL'); return; }
+  showLoader();
+  // set src
+  iframe.src = url;
+  // clear any existing timer
+  if(loadTimer) clearTimeout(loadTimer);
+  loadTimer = setTimeout(()=> {
+    hideLoader();
+    showMsg('Load timed out. Site may block framing. Use Redirect to open directly.',8000);
+  }, LOAD_TIMEOUT);
+}
+
+/* hide loader on successful load */
+iframe.addEventListener('load', ()=>{
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+  hideLoader();
+  // try to detect empty same-origin body
+  try{
+    const doc = iframe.contentDocument;
+    if(doc && doc.body && doc.body.children.length === 0 && (doc.body.textContent||'').trim().length < 8){
+      showMsg('Embedded content loaded but looks empty. Try Redirect.',7000);
+    }
+  }catch(e){
+    // cross-origin or blocked, that's okay
+  }
 });
-document.getElementById("redirectBtn").onclick = ()=>{ if(iframe.src !== "about:blank") window.open(iframe.src, "_blank"); };
-let fs=false;
-fullscreenBtn.onclick=()=>{ if(!fs){ iframe.requestFullscreen(); } else { document.exitFullscreen(); } };
-document.addEventListener("fullscreenchange",()=>{
-  fs=!!document.fullscreenElement;
-  if(fs){ topBar.classList.add("compact"); fullscreenBtn.textContent="Exit Fullscreen"; }
-  else{ topBar.classList.remove("compact"); fullscreenBtn.textContent="Fullscreen"; }
+
+/* capture iframe errors (some browsers may not fire) */
+iframe.addEventListener('error', ()=>{
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+  hideLoader();
+  showMsg('Failed to load embed. Use Redirect.',7000);
 });
+
+/* ---------- UI wiring ---------- */
+loadBtn.addEventListener('click', ()=> loadURL(urlInput.value));
+urlInput.addEventListener('keydown', e=>{ if(e.key==='Enter') loadURL(urlInput.value); });
+
+document.querySelectorAll('.game-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const url = btn.dataset.url;
+    urlInput.value = url;
+    loadURL(url);
+  });
+});
+
+/* Redirect opens in new tab */
+redirectBtn.addEventListener('click', ()=>{
+  const src = iframe.src;
+  if(src && src !== 'about:blank') window.open(src, '_blank');
+  else showMsg('No embed loaded',3000);
+});
+
+/* ---------- Fullscreen behavior ----------
+   - We want the iframe + controls to go fullscreen, BUT keep topBar visible.
+   - Approach: before entering fullscreen, move topBar INTO the fullscreen container (embedCard's parent column),
+     so it appears in the fullscreen element. When leaving fullscreen, move topBar back to its original place.
+*/
+const column = document.querySelector('.column');
+const origParent = topBar.parentElement; // body
+let inFullscreen = false;
+
+fullscreenBtn.addEventListener('click', async ()=>{
+  // If already in native fullscreen -> exit
+  if(document.fullscreenElement){
+    await document.exitFullscreen();
+    return;
+  }
+
+  // Move topBar into column so it becomes part of the element we will fullscreen
+  column.insertBefore(topBar, column.firstChild);
+  // make topBar compact style for fullscreen
+  topBar.classList.add('compact');
+
+  // request fullscreen on embedCard's container (column) -> will show embed + controls + topBar
+  try{
+    await column.requestFullscreen();
+    // native fullscreenrequest will trigger fullscreenchange event below
+  }catch(err){
+    // fallback: add a CSS fullscreen-like class (if request fails)
+    showMsg('Fullscreen blocked by browser.',4000);
+    // move topBar back
+    document.body.insertBefore(topBar, origParent.firstChild || document.body.firstChild);
+    topBar.classList.remove('compact');
+  }
+});
+
+/* When leaving fullscreen, move topBar back to top area and reset styles */
+document.addEventListener('fullscreenchange', ()=>{
+  inFullscreen = !!document.fullscreenElement;
+  if(!inFullscreen){
+    // move topBar back to original top location
+    document.body.insertBefore(topBar, document.body.firstChild);
+    topBar.classList.remove('compact');
+  }
+  // update fullscreenBtn label
+  fullscreenBtn.textContent = inFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
+});
+
+/* Safety: if user navigates away or src changes drastically, ensure topBar still exists in top-level */
+window.addEventListener('blur', ()=>{
+  // noop currently but reserved
+});
+
+/* Ensure centering/clamping on resize */
+window.addEventListener('resize', ()=>{
+  // nothing aggressive; layout uses flex & max-width so stays centered
+});
+
+/* Accessibility: keyboard shortcut Esc should exit fullscreen (browser handles it),
+   but ensure topBar moves back via fullscreenchange listener above. */
+
+/* End of script */
 </script>
 </body>
 </html>
