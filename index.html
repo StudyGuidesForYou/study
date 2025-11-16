@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Modern Embed Launcher</title>
+<title>Modern Embed Launcher — Fixed</title>
 <style>
   :root{
     --bg-deep:#040612; --bg-mid:#0a1526;
@@ -13,25 +13,26 @@
     --embed-min-w:320px; --embed-min-h:300px;
   }
 
-  /* Base layout: always full-viewport */
-  html,body{height:100%;width:100%;margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));-webkit-font-smoothing:antialiased;overflow:hidden;}
+  /* Full viewport base */
+  html,body{height:100%;width:100%;margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));-webkit-font-smoothing:antialiased;overflow:hidden;color:var(--text);}
 
-  /* Aurora - full-screen canvas behind everything */
-  .aurora-wrap{position:fixed;inset:0;z-index:-10;pointer-events:none;display:block;}
-  #auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(48px) saturate(120%);opacity:0.95;transform:scale(1.02);} /* blur+scale for soft edges */
+  /* Aurora canvas (behind everything) */
+  .aurora-wrap{position:fixed;inset:0;z-index:-20;pointer-events:none}
+  #auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(50px) saturate(120%);opacity:0.95;transform:scale(1.02);}
 
-  /* Top bar */
-  .top-bar{position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:30;width:min(var(--max-width),96%);display:flex;align-items:center;gap:12px;padding:6px 12px;}
-  .url-box{flex:1;display:flex;gap:12px;align-items:center;}
+  /* Top search bar */
+  .top-bar{position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:60;width:min(var(--max-width),96%);display:flex;align-items:center;gap:12px;padding:6px 12px}
+  .url-box{flex:1;display:flex;gap:12px;align-items:center}
   .url-input{flex:1;padding:12px 14px;border-radius:12px;border:none;background:rgba(255,255,255,0.02);color:var(--text);backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);font-size:15px}
   .enter-btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(43,130,255,0.12)}
+  .hint { color: var(--muted); font-size: 13px; margin-left: 8px; }
 
-  /* Embed card - fixed and centered by default */
+  /* Embed card - center locked default */
   .embed-card{
     position:fixed;
     left:50%;
     top:50%;
-    transform:translate(-50%,-50%); /* centered until user drags */
+    transform:translate(-50%,-50%);
     width:80vw;
     max-width:1100px;
     min-width:var(--embed-min-w);
@@ -42,7 +43,7 @@
     background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     border:1px solid rgba(255,255,255,0.035);
     box-shadow:0 30px 80px rgba(2,6,18,0.7);
-    z-index:40;
+    z-index:70;
     display:flex;
     flex-direction:column;
     touch-action:none;
@@ -50,63 +51,70 @@
   }
   .embed-card.dragging{transition:none;box-shadow:0 40px 120px rgba(2,6,18,0.82);}
 
-  /* iframe fills */
-  .embed-iframe{width:100%;height:100%;border:0;background:#fff;flex:1;display:block;}
+  /* iframe */
+  .embed-iframe{width:100%;height:100%;border:0;background:#000;flex:1;display:block;}
 
-  /* controls */
-  .embed-controls{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:60;}
+  /* controls top-right */
+  .embed-controls{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:120}
   .control-btn{width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
   .control-btn:hover{background:rgba(255,255,255,0.12)}
+  .recenter-btn{padding:8px 10px;border-radius:10px;border:none;background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;font-size:13px;margin-right:6px}
+
+  /* loader overlay (hidden by default) */
+  .loader-overlay{position:absolute;inset:0;z-index:110;display:flex;align-items:center;justify-content:center;background:rgba(6,10,20,0.24);backdrop-filter:blur(6px);pointer-events:none;opacity:0;transition:opacity .28s}
+  .loader-overlay.visible{opacity:1;pointer-events:auto}
+  .loader-spinner{width:60px;height:60px;border-radius:50%;border:7px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 1s linear infinite;box-shadow:0 8px 28px rgba(43,130,255,0.12)}
+  @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 
   /* resize handle bottom-right */
-  .resize-handle{position:absolute;right:8px;bottom:8px;width:20px;height:20px;cursor:se-resize;z-index:60;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-radius:4px;box-shadow:inset 0 -2px 6px rgba(0,0,0,0.35);}
+  .resize-handle{position:absolute;right:8px;bottom:8px;width:20px;height:20px;cursor:se-resize;z-index:120;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-radius:4px;box-shadow:inset 0 -2px 6px rgba(0,0,0,0.35)}
 
-  /* games list */
-  .games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:30;width:min(var(--max-width),96%);display:flex;justify-content:center}
+  /* game list bottom */
+  .games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:60;width:min(var(--max-width),96%);display:flex;justify-content:center}
   .game-list{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
   .game-btn{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:var(--text);cursor:pointer;font-weight:600;backdrop-filter:blur(6px)}
 
-  /* small responsive tweaks */
-  @media (max-width:900px){
-    .embed-card{width:92vw;height:62vh}
-    .top-bar{top:12px}
-    .games{bottom:12px}
-  }
-  @media (max-width:480px){
-    .embed-card{width:96vw;height:56vh}
-    .url-input{font-size:14px}
-  }
+  /* message box for framing errors */
+  .message-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:130;background:rgba(0,0,0,0.56);padding:14px 18px;border-radius:12px;color:var(--muted);font-size:14px;display:none;max-width:86%;text-align:center}
+  .message-box.visible{display:block}
+
+  /* responsive */
+  @media (max-width:900px){ .embed-card{width:92vw;height:62vh} .top-bar{top:12px} .games{bottom:12px} }
+  @media (max-width:480px){ .embed-card{width:96vw;height:56vh} .url-input{font-size:14px} .control-btn{width:34px;height:34px} }
 </style>
 </head>
 <body>
 
   <!-- Aurora -->
-  <div class="aurora-wrap"><canvas id="auroraCanvas"></canvas></div>
+  <div class="aurora-wrap"><canvas id="auroraCanvas" aria-hidden="true"></canvas></div>
 
   <!-- Top search -->
-  <header class="top-bar" role="search">
+  <header class="top-bar" role="search" aria-label="Search">
     <div class="url-box">
-      <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed">
-      <button id="enterBtn" class="enter-btn">Enter</button>
+      <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
+      <button id="enterBtn" class="enter-btn" aria-label="Enter">Enter</button>
+      <span class="hint" aria-hidden="true">Smart-center mode • Drag to move</span>
     </div>
   </header>
 
-  <!-- Embed card (centered by default) -->
-  <div id="embedCard" class="embed-card" role="region" aria-label="Embed area">
+  <!-- Embed card -->
+  <div id="embedCard" class="embed-card" role="region" aria-label="Embed area" tabindex="0">
     <div class="embed-controls" aria-hidden="true">
+      <button id="recenterBtn" class="recenter-btn" title="Re-center (double-click embed to recenter)">Re-center</button>
       <button id="fullscreenBtn" class="control-btn" title="Fullscreen">⤢</button>
       <button id="redirectBtn" class="control-btn" title="Open in new tab">↗</button>
     </div>
 
-    <div id="loader" class="loader" aria-hidden="true" style="pointer-events:none;display:flex;align-items:center;justify-content:center;position:absolute;inset:0;z-index:50;background:rgba(6,10,20,0.24);backdrop-filter:blur(6px)">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <div style="width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.08);border-top-color:var(--accent-b);animation:spin 1s linear infinite;box-shadow:0 8px 28px rgba(43,130,255,0.12)"></div>
+    <div id="loaderOverlay" class="loader-overlay" aria-hidden="true">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div class="loader-spinner" role="progressbar" aria-label="Loading"></div>
         <div style="color:var(--muted);font-size:13px">Loading…</div>
       </div>
     </div>
 
-    <!-- iframe: NOTE sandbox purposely excludes allow-same-origin for safety -->
-    <iframe id="embedFrame" class="embed-iframe" src="about:blank" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
+    <iframe id="embedFrame" class="embed-iframe" src="about:blank" sandbox="allow-scripts allow-forms allow-modals allow-popups" title="Embedded content"></iframe>
+
+    <div id="messageBox" class="message-box" role="alert"></div>
 
     <div id="resizeHandle" class="resize-handle" aria-hidden="true"></div>
   </div>
@@ -130,49 +138,57 @@
   </section>
 
 <script>
-/* -------------------------
-   Helper / Debug logger
-   ------------------------- */
-function logDbg(...args){ console.log("[EmbedLauncher " + new Date().toLocaleTimeString() + "]", ...args); }
+/* ===========================
+   Advanced Console Debugger
+   - structured, colored logs
+   =========================== */
+const DBG = {
+  info: (...args) => console.log("%c[EmbedLauncher]","color:#bfefff;background:#012; padding:2px 6px; border-radius:4px;", ...args),
+  warn: (...args) => console.warn("%c[EmbedLauncher WARN]","color:#ffdd66;background:#331a00; padding:2px 6px; border-radius:4px;", ...args),
+  error: (...args) => console.error("%c[EmbedLauncher ERROR]","color:#ff9fb5;background:#33000a; padding:2px 6px; border-radius:4px;", ...args),
+  group: (title) => { console.group("%c"+title, "color:#bfefff"); },
+  groupEnd: () => console.groupEnd()
+};
 
-/* -------------------------
-   Aurora - high-quality ovals
-   ------------------------- */
+DBG.info("Starting EmbedLauncher (smart-center mode)");
+
+// ===========================
+// Aurora: high-quality canvas
+// ===========================
 const canvas = document.getElementById('auroraCanvas');
-const ctx = canvas.getContext('2d', {alpha:true});
+const ctx = canvas.getContext('2d', { alpha: true });
 let W = canvas.width = window.innerWidth;
 let H = canvas.height = window.innerHeight;
 window.addEventListener('resize', ()=>{ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
 
-/* Create layered ovals with additive blending for rich aurora */
 class Oval {
   constructor(){ this.reset(); }
   reset(){
     this.x = Math.random()*W;
     this.y = Math.random()*H;
-    this.w = 350 + Math.random()*700;
-    this.h = 100 + Math.random()*400;
-    this.hue = 150 + Math.random()*80; // green-blue range
-    this.alpha = 0.06 + Math.random()*0.14;
-    this.vx = 0.02 + Math.random()*0.15;
-    this.vy = (Math.random()-0.5) * 0.06;
-    this.drift = (Math.random()<0.5?-1:1) * (0.005 + Math.random()*0.02);
+    this.w = 300 + Math.random()*900;
+    this.h = 80 + Math.random()*360;
+    this.hue = 150 + Math.random()*80; // green-blue
+    this.alpha = 0.06 + Math.random()*0.16;
+    this.vx = 0.02 + Math.random()*0.18;
+    this.vy = (Math.random()-0.5) * 0.08;
+    this.drift = (Math.random() < 0.5 ? -1 : 1) * (0.01 + Math.random()*0.03);
   }
   update(){
     this.x -= this.vx;
     this.y += this.vy;
-    this.hue += this.drift;
-    if(this.hue > 220) this.hue = 150;
-    if(this.hue < 150) this.hue = 220;
-    if(this.x < -this.w) this.x = W + this.w;
-    if(this.y < -this.h) this.y = H + this.h;
-    if(this.y > H + this.h) this.y = -this.h;
+    this.hue += this.drift * 0.2;
+    if (this.hue > 230) this.hue = 150;
+    if (this.hue < 150) this.hue = 230;
+    if (this.x < -this.w) this.x = W + this.w;
+    if (this.y < -this.h) this.y = H + this.h;
+    if (this.y > H + this.h) this.y = -this.h;
   }
   draw(){
     const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.w);
-    g.addColorStop(0, `hsla(${this.hue}, 85%, 56%, ${this.alpha})`);
-    g.addColorStop(0.6, `hsla(${this.hue + 20}, 78%, 45%, ${this.alpha*0.7})`);
-    g.addColorStop(1, `hsla(200,40%,10%,0)`);
+    g.addColorStop(0, `hsla(${this.hue}, 86%, 56%, ${this.alpha})`);
+    g.addColorStop(0.6, `hsla(${this.hue + 24}, 78%, 44%, ${this.alpha * 0.8})`);
+    g.addColorStop(1, `hsla(200, 40%, 10%, 0)`);
     ctx.globalCompositeOperation = 'lighter';
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -186,142 +202,262 @@ const ovals = Array.from({length:12}, ()=> new Oval());
 let auroraTick = 0;
 function animateAurora(){
   auroraTick++;
-  // subtle background wash so the blur has something to blend with
   ctx.clearRect(0,0,W,H);
-  // draw a faint radial dark-to-deep layer first for depth
+
+  // subtle background wash
   const bg = ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0, 'rgba(4,10,20,0.25)');
-  bg.addColorStop(1, 'rgba(2,6,14,0.4)');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  bg.addColorStop(0, 'rgba(3,8,18,0.24)');
+  bg.addColorStop(1, 'rgba(2,6,12,0.44)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
 
-  // draw ovals with slow updates
-  for (let i=0;i<ovals.length;i++){
-    const o = ovals[i];
-    o.update();
-    o.draw();
-  }
+  // draw ovals
+  for(let i=0;i<ovals.length;i++){ ovals[i].update(); ovals[i].draw(); }
 
-  // very subtle global hue shift overlay (makes movement feel alive)
-  if (auroraTick % 300 === 0) logDbg("Aurora running - tick", auroraTick);
+  // heartbeat in console occasionally
+  if(auroraTick % 600 === 0) DBG.info("Aurora running tick", auroraTick);
   requestAnimationFrame(animateAurora);
 }
 requestAnimationFrame(animateAurora);
 
-/* -------------------------
-   Embed / iframe logic
-   ------------------------- */
+// ===========================
+// Core UI elements & state
+// ===========================
 const embedCard = document.getElementById('embedCard');
 const iframe = document.getElementById('embedFrame');
-const loader = document.getElementById('loader');
+const loaderOverlay = document.getElementById('loaderOverlay');
+const messageBox = document.getElementById('messageBox');
 const urlInput = document.getElementById('urlInput');
 const enterBtn = document.getElementById('enterBtn');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const redirectBtn = document.getElementById('redirectBtn');
+const recenterBtn = document.getElementById('recenterBtn');
 const resizeHandle = document.getElementById('resizeHandle');
 
-logDbg("Init sizes", window.innerWidth, window.innerHeight);
+let wasCentered = true; // smart-center mode active by default
+let isDragging = false;
+let dragOffsetX = 0, dragOffsetY = 0;
+let isResizing = false;
 
-/* Helpers */
-function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
-function showLoader(){ loader.style.display = 'flex'; loader.style.opacity = '1'; logDbg('Loader shown'); }
-function hideLoader(){ loader.style.opacity = '0'; setTimeout(()=>{ loader.style.display='none'; }, 300); logDbg('Loader hidden'); }
+const LOAD_TIMEOUT_MS = 12000;        // consider load failed after 12s
+const LOAD_RETRY_COUNT = 2;           // how many times to retry before giving up
+let currentLoadRetries = 0;
+let loadTimer = null;
+
+// helper clamps
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// Advanced debug helpers (structured state)
+function logState(){
+  DBG.group("State Snapshot");
+  DBG.info("wasCentered:", wasCentered, "isDragging:", isDragging, "isResizing:", isResizing);
+  DBG.info("embed rect:", embedCard.getBoundingClientRect());
+  DBG.info("window:", window.innerWidth, window.innerHeight);
+  DBG.groupEnd();
+}
+
+// show message on overlay
+function showMessage(msg, timeout=10000){
+  messageBox.textContent = msg;
+  messageBox.classList.add('visible');
+  DBG.warn("User message shown:", msg);
+  if(timeout>0){
+    clearTimeout(messageBox._hideT);
+    messageBox._hideT = setTimeout(()=>{ messageBox.classList.remove('visible'); }, timeout);
+  }
+}
+
+// Loader controls
+function showLoader(){ loaderOverlay.classList.add('visible'); DBG.info("Loader shown"); }
+function hideLoader(){ loaderOverlay.classList.remove('visible'); DBG.info("Loader hidden"); }
+
+// normalize URL
 function normalizeUrl(raw){
   raw = (raw||'').trim();
   if(!raw) return null;
   try{
-    if(!/^https?:\/\//i.test(raw)) raw = 'https://'+raw;
+    if(!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
     new URL(raw);
     return raw;
-  }catch(e){ return null; }
+  }catch(e){
+    return null;
+  }
 }
 
-/* Load URL into iframe (safe sandbox without allow-same-origin) */
-function loadUrl(url){
+// attempt to load URL with retry & framing failure handling
+function attemptLoad(url){
   if(!url) return;
+  // reset UI
+  messageBox.classList.remove('visible');
+  currentLoadRetries = 0;
+  _startLoad(url);
+}
+
+function _startLoad(url){
   showLoader();
   iframe.src = url;
-  logDbg('Loading URL', url);
+  DBG.info("Start load:", url, {retries: currentLoadRetries});
+  // clear existing timer
+  if(loadTimer) { clearTimeout(loadTimer); loadTimer = null; }
+  loadTimer = setTimeout(()=> {
+    // load hasn't fired within timeout -> treat as possible block
+    DBG.warn("Load timeout for", url);
+    currentLoadRetries++;
+    hideLoader();
+    if(currentLoadRetries <= LOAD_RETRY_COUNT){
+      DBG.info("Retrying load (attempt)", currentLoadRetries);
+      showLoader();
+      // quick reload
+      iframe.src = url + (url.includes('?') ? '&' : '?') + 'embed_retry=' + Date.now();
+      loadTimer = setTimeout(()=> _onLoadTimeout(url), LOAD_TIMEOUT_MS);
+    } else {
+      // give up
+      _onLoadGiveUp(url);
+    }
+  }, LOAD_TIMEOUT_MS);
 }
 
-/* Buttons and input */
+function _onLoadTimeout(url){
+  DBG.warn("Second timeout for", url);
+  currentLoadRetries++;
+  if(currentLoadRetries <= LOAD_RETRY_COUNT){
+    showLoader();
+    iframe.src = url + (url.includes('?') ? '&' : '?') + 'embed_retry=' + Date.now();
+    loadTimer = setTimeout(()=> _onLoadGiveUp(url), LOAD_TIMEOUT_MS);
+  } else {
+    _onLoadGiveUp(url);
+  }
+}
+
+function _onLoadGiveUp(url){
+  hideLoader();
+  showMessage("This site refused to load in the embed (likely blocks framing or takes too long). You can open it directly in a new tab using the ↗ button.", 12000);
+  DBG.error("Giving up loading URL (framing blocked or unreachable):", url);
+}
+
+// iframe load/error handlers
+iframe.addEventListener('load', ()=>{
+  // clear timeout
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+  hideLoader();
+  DBG.info("Iframe load event:", iframe.src);
+
+  // Try simple heuristic to detect "blank/black" or blocked content:
+  // If same-origin we can inspect document; otherwise assume embedded content loaded.
+  try {
+    const doc = iframe.contentDocument;
+    if (doc && doc.body){
+      const txt = doc.body.textContent || '';
+      // If body has almost no content and background is black, warn (heuristic)
+      if (doc.body.children.length === 0 && txt.trim().length < 8){
+        DBG.warn("Iframe loaded same-origin but appears empty/blank.");
+        showMessage("Embedded page loaded but appears blank. If this is unexpected, try opening in a new tab.", 8000);
+      }
+    }
+  } catch (e) {
+    // cross-origin — can't inspect; assume it's OK but we still check visual black heuristics below
+    DBG.info("Iframe is cross-origin (cannot inspect).");
+  }
+
+  // Visual black-check: attempt to detect if iframe is showing a entirely black viewport by sampling via CSS filter trick
+  // Note: cannot read pixels cross-origin; we use timing heuristics and user feedback instead.
+});
+
+// If iframe error event (rare), notify
+iframe.addEventListener('error', ()=> {
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+  hideLoader();
+  showMessage("Failed to load embedded content (network or CORS). Try opening in a new tab.", 9000);
+  DBG.error("Iframe error event for", iframe.src);
+});
+
+// open url manually
 enterBtn.addEventListener('click', ()=> {
   const url = normalizeUrl(urlInput.value);
-  if(!url){ urlInput.focus(); urlInput.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220}); logDbg('Invalid URL'); return; }
-  loadUrl(url);
+  if(!url){ urlInput.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220}); urlInput.focus(); DBG.warn("Invalid URL input:", urlInput.value); return; }
+  attemptLoad(url);
 });
-urlInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') enterBtn.click(); });
 
-document.querySelectorAll('.game-btn').forEach(b=>{
-  b.addEventListener('click', ()=> {
-    const url = normalizeUrl(b.dataset.url);
+// allow pressing enter
+urlInput.addEventListener('keydown', (e)=> { if(e.key === 'Enter') enterBtn.click(); });
+
+// game buttons
+document.querySelectorAll('.game-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const url = normalizeUrl(btn.dataset.url);
     if(!url) return;
-    loadUrl(url);
+    urlInput.value = url;
+    attemptLoad(url);
   });
 });
 
-/* Iframe events */
-iframe.addEventListener('load', ()=> { hideLoader(); logDbg('iframe loaded', iframe.src); });
-iframe.addEventListener('error', ()=> { hideLoader(); logDbg('iframe error', iframe.src); });
-
-/* Fullscreen: make the iframe visible fullscreen by requesting fullscreen on the embedCard */
+// fullscreen: request fullscreen on embedCard (makes iframe fill it)
 fullscreenBtn.addEventListener('click', ()=> {
   if(embedCard.requestFullscreen) embedCard.requestFullscreen();
   else if(embedCard.webkitRequestFullscreen) embedCard.webkitRequestFullscreen();
-  logDbg('Requested fullscreen');
+  DBG.info("Requested fullscreen for embedCard.");
 });
 
-/* Redirect to actual page */
+// redirect button: open iframe.src in new tab
 redirectBtn.addEventListener('click', ()=> {
-  if(iframe.src && iframe.src !== 'about:blank') window.open(iframe.src, '_blank');
-  logDbg('Redirect clicked', iframe.src);
+  const src = iframe.src;
+  if(!src || src === 'about:blank'){ showMessage("No embed loaded to open."); DBG.warn("Redirect clicked with no target"); return; }
+  window.open(src, '_blank');
+  DBG.info("Redirect opened in new tab:", src);
 });
 
-/* -------------------------
-   Center-lock + Dragging
-   - Card starts centered (transform used).
-   - When user mouses down (drag), release transform and set left/top.
-   - Clamp movement to viewport.
-   ------------------------- */
-let isDragging = false;
-let dragOffsetX = 0, dragOffsetY = 0;
-let wasCentered = true; // indicates transform center mode active
+// recenter button
+recenterBtn.addEventListener('click', ()=> {
+  // reset to center-lock
+  // remove explicit left/top, restore transform
+  embedCard.style.transform = 'translate(-50%,-50%)';
+  embedCard.style.left = '50%';
+  embedCard.style.top = '50%';
+  embedCard.style.width = ''; // leave current width unless you want to reset
+  embedCard.style.height = '';
+  wasCentered = true;
+  DBG.info("Recenter requested by user.");
+});
 
+// double click embed to recenter
+embedCard.addEventListener('dblclick', (e)=>{
+  recenterBtn.click();
+});
+
+// ===========================
+// Smart Center behavior: dragging & resizing with clamping
+// ===========================
 function releaseCenteringAndSetLeftTop(){
   if(!wasCentered) return;
-  // compute current pixel-centered left/top from transform
   const rect = embedCard.getBoundingClientRect();
-  // convert transform center to explicit left/top (current center)
   const leftPx = rect.left;
   const topPx = rect.top;
-  // remove transform and set left/top in px
+  // remove transform and set left/top so the element visually stays where it was
   embedCard.style.transform = 'none';
   embedCard.style.left = `${leftPx}px`;
   embedCard.style.top = `${topPx}px`;
   wasCentered = false;
-  logDbg('Centering released; switching to absolute left/top.');
+  DBG.info("Center released (now absolute positioning).", {left: leftPx, top: topPx});
 }
 
+// dragging with pointer events (works for touch)
 embedCard.addEventListener('pointerdown', (e)=>{
-  // ignore if user clicked the resize handle or controls
-  const target = e.target;
-  if(target === resizeHandle || target.closest('.embed-controls')) return;
+  // ignore if clicking controls or resize handle
+  if(e.target === resizeHandle || e.target.closest('.embed-controls')) return;
   e.preventDefault();
-  // release centering on first drag
   releaseCenteringAndSetLeftTop();
   isDragging = true;
   embedCard.classList.add('dragging');
   const rect = embedCard.getBoundingClientRect();
   dragOffsetX = e.clientX - rect.left;
   dragOffsetY = e.clientY - rect.top;
-  logDbg('Drag start', {left: rect.left, top: rect.top, w: rect.width, h: rect.height});
-  // capture pointer for smooth dragging
-  embedCard.setPointerCapture?.(e.pointerId);
+  DBG.info("Drag start", {left: rect.left, top: rect.top, w: rect.width, h: rect.height});
+  embedCard.setPointerCapture && embedCard.setPointerCapture(e.pointerId);
 });
 
 window.addEventListener('pointermove', (e)=>{
   if(!isDragging) return;
   e.preventDefault();
-  // clamp so card stays fully visible
   const cardW = embedCard.offsetWidth;
   const cardH = embedCard.offsetHeight;
   const minLeft = 8;
@@ -340,15 +476,12 @@ window.addEventListener('pointerup', (e)=>{
   if(isDragging){
     isDragging = false;
     embedCard.classList.remove('dragging');
-    embedCard.releasePointerCapture?.(e.pointerId);
-    logDbg('Drag end', {left: embedCard.style.left, top: embedCard.style.top});
+    embedCard.releasePointerCapture && embedCard.releasePointerCapture(e.pointerId);
+    DBG.info("Drag end", {left: embedCard.style.left, top: embedCard.style.top});
   }
 });
 
-/* -------------------------
-   Resizing with constraints
-   ------------------------- */
-let isResizing = false;
+// resizing
 let resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
 resizeHandle.addEventListener('pointerdown', (e)=>{
   e.preventDefault(); e.stopPropagation();
@@ -359,8 +492,8 @@ resizeHandle.addEventListener('pointerdown', (e)=>{
   resizeStartX = e.clientX;
   resizeStartY = e.clientY;
   embedCard.classList.add('dragging');
-  logDbg('Resize start', {w:resizeStartW,h:resizeStartH});
-  resizeHandle.setPointerCapture?.(e.pointerId);
+  DBG.info("Resize start", {w:resizeStartW, h:resizeStartH});
+  resizeHandle.setPointerCapture && resizeHandle.setPointerCapture(e.pointerId);
 });
 
 window.addEventListener('pointermove', (e)=>{
@@ -371,16 +504,14 @@ window.addEventListener('pointermove', (e)=>{
   let newW = Math.max(parseInt(getComputedStyle(embedCard).minWidth || 320), resizeStartW + dx);
   let newH = Math.max(parseInt(getComputedStyle(embedCard).minHeight || 300), resizeStartH + dy);
   // clamp to viewport so it never grows off-screen
-  const leftPx = wasCentered ? (window.innerWidth - newW) / 2 : parseFloat(embedCard.style.left || 0);
-  const topPx  = wasCentered ? (window.innerHeight - newH) / 2 : parseFloat(embedCard.style.top || 0);
-  newW = Math.min(newW, window.innerWidth - 16);      // 8px padding left/right
-  newH = Math.min(newH, window.innerHeight - 16);     // 8px padding top/bottom
+  newW = Math.min(newW, window.innerWidth - 16);
+  newH = Math.min(newH, window.innerHeight - 16);
   embedCard.style.width = `${newW}px`;
   embedCard.style.height = `${newH}px`;
-  // after resize, ensure position still clamped
-  const maxLeft = window.innerWidth - newW - 8;
-  const maxTop  = window.innerHeight - newH - 8;
+  // if not centered already, clamp left/top so the card stays visible
   if(!wasCentered){
+    const maxLeft = window.innerWidth - newW - 8;
+    const maxTop  = window.innerHeight - newH - 8;
     let curLeft = parseFloat(embedCard.style.left || 0);
     let curTop  = parseFloat(embedCard.style.top  || 0);
     curLeft = clamp(curLeft, 8, Math.max(8, maxLeft));
@@ -388,7 +519,7 @@ window.addEventListener('pointermove', (e)=>{
     embedCard.style.left = curLeft + 'px';
     embedCard.style.top  = curTop  + 'px';
   } else {
-    // if still centered, keep it visually centered by adjusting left/top when transform removed
+    // maintain visual centered left/top so when transform removed it stays centered
     embedCard.style.left = ((window.innerWidth - newW)/2) + 'px';
     embedCard.style.top  = ((window.innerHeight - newH)/2) + 'px';
   }
@@ -398,50 +529,108 @@ window.addEventListener('pointerup', (e)=>{
   if(isResizing){
     isResizing = false;
     embedCard.classList.remove('dragging');
-    resizeHandle.releasePointerCapture?.(e.pointerId);
-    logDbg('Resize end', {w:embedCard.offsetWidth, h:embedCard.offsetHeight, left:embedCard.style.left, top:embedCard.style.top});
+    resizeHandle.releasePointerCapture && resizeHandle.releasePointerCapture(e.pointerId);
+    DBG.info("Resize end", {w:embedCard.offsetWidth, h:embedCard.offsetHeight, left:embedCard.style.left, top:embedCard.style.top});
   }
 });
 
-/* -------------------------
-   Keep centered on window resize (only if not dragged)
-   ------------------------- */
-window.addEventListener('resize', ()=> {
+// keep centered on window resize only when center-mode active
+window.addEventListener('resize', ()=>{
   if(wasCentered){
-    // keep transform centered; nothing needed because transform centers
-    logDbg('Window resized - still center-locked');
+    // nothing to do — transform keeps it centered
+    DBG.info("Window resized; center-locked (no change)");
   } else {
-    // if card is positioned absolute, clamp within new viewport
+    // clamp left/top
     const w = embedCard.offsetWidth, h = embedCard.offsetHeight;
     const left = parseFloat(embedCard.style.left || 0);
-    const top  = parseFloat(embedCard.style.top || 0);
+    const top = parseFloat(embedCard.style.top || 0);
     const clampedLeft = clamp(left, 8, Math.max(8, window.innerWidth - w - 8));
     const clampedTop  = clamp(top, 8, Math.max(8, window.innerHeight - h - 8));
     embedCard.style.left = clampedLeft + 'px';
-    embedCard.style.top  = clampedTop  + 'px';
-    logDbg('Window resized - clamped card to viewport');
+    embedCard.style.top  = clampedTop + 'px';
+    DBG.info("Window resized; clamped embed to viewport");
   }
 });
 
-/* -------------------------
-   Initial safety: ensure embed card visible (unclipped)
-   ------------------------- */
+// initial safety: center-lock and set left/top for future transforms
 (function ensureVisibleOnStart(){
-  // quick clamp and center to viewport
   const w = embedCard.offsetWidth, h = embedCard.offsetHeight;
-  const left = (window.innerWidth - w) / 2;
-  const top  = (window.innerHeight - h) / 2;
-  embedCard.style.left = left + 'px';
-  embedCard.style.top  = top + 'px';
-  // keep transform for perfect centering (we set left/top but transform still used)
+  embedCard.style.left = ((window.innerWidth - w) / 2) + 'px';
+  embedCard.style.top  = ((window.innerHeight - h) / 2) + 'px';
   wasCentered = true;
-  logDbg('Initial embed position set and center-locked');
+  DBG.info("Initial positioning done; center-locked");
 })();
 
-/* -------------------------
-   Safety notes in console
-   ------------------------- */
-logDbg('Sandbox used: allow-scripts, allow-forms, allow-modals, allow-popups (NO allow-same-origin)');
+/* ===========================
+   Load detection helpers
+   - if load takes too long, retry and eventually show message
+   =========================== */
+let lastLoadedUrl = null;
+function startLoading(url){
+  lastLoadedUrl = url;
+  _startLoad(url);
+}
+
+function _startLoad(url){
+  // internal single-attempt loader (wrapped earlier)
+  showLoader();
+  iframe.src = url;
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+  loadTimer = setTimeout(()=> {
+    DBG.warn("Load timed out for", url);
+    currentLoadRetries++;
+    hideLoader();
+    if(currentLoadRetries <= LOAD_RETRY_COUNT){
+      DBG.info("Retrying load", currentLoadRetries);
+      showLoader();
+      iframe.src = url + (url.includes('?') ? '&' : '?') + 'embed_retry=' + Date.now();
+      loadTimer = setTimeout(()=> _onLoadGiveUp(url), LOAD_TIMEOUT_MS);
+    } else {
+      _onLoadGiveUp(url);
+    }
+  }, LOAD_TIMEOUT_MS);
+}
+
+function _onLoadGiveUp(url){
+  hideLoader();
+  showMessage("This site won't load in the embed (likely blocks framing). Use the ↗ button to open it directly.", 12000);
+  DBG.error("Load gave up:", url);
+}
+
+/* ===========================
+   Expose a small debug command set on window for rapid reports
+   - window.EmbedLauncher.report() prints a snapshot to console
+   - window.EmbedLauncher.recenter() recenters programmatically
+   =========================== */
+window.EmbedLauncher = {
+  report: function(){
+    DBG.group("EmbedLauncher Report");
+    DBG.info("window", window.innerWidth, window.innerHeight);
+    DBG.info("embed rect", embedCard.getBoundingClientRect());
+    DBG.info("iframe src", iframe.src);
+    DBG.info("wasCentered", wasCentered, "isDragging", isDragging, "isResizing", isResizing);
+    DBG.groupEnd();
+  },
+  recenter: function(){
+    recenterBtn.click();
+  },
+  load: function(url){ const n = normalizeUrl(url); if(n) attemptLoad(n); else DBG.warn("EmbedLauncher.load: invalid url", url); }
+};
+
+// quick initial debug lines
+DBG.info("Initial window size:", window.innerWidth, window.innerHeight);
+DBG.info("Sandbox used: allow-scripts, allow-forms, allow-modals, allow-popups (NO allow-same-origin)");
+
+// Expose attemptLoad as public for convenience
+function attemptLoad(url){
+  if(!url) return;
+  messageBox.classList.remove('visible');
+  currentLoadRetries = 0;
+  _startLoad(url);
+}
+
+// Accept programmatic loads: if user pastes into urlInput and hits Enter it will call attemptLoad
+// wiring for UI already done above
 
 </script>
 </body>
