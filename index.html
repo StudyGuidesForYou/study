@@ -1,153 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Home</title>
 <link rel="icon" href="https://ssl.gstatic.com/classroom/favicon/256x256/cls_favicon_256.png">
 <style>
 :root{
   --bg-deep:#040612;
   --bg-mid:#071028;
+  --text:#eaf2ff;
   --accent-a:#3dd3c7;
   --accent-b:#2b82ff;
-  --glass-weak: rgba(255,255,255,0.03);
-  --glass-strong: rgba(255,255,255,0.06);
-  --text:#eaf2ff;
-  --muted: rgba(230,235,255,0.48);
   --radius:18px;
   --max-width:1280px;
-  --embed-min-w:320px;
-  --embed-min-h:300px;
   --ui-gap:12px;
 }
 
 /* --- Reset + Base --- */
 *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
-html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
+html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));color:var(--text);overflow:hidden;display:flex;flex-direction:column;align-items:center;}
 a{color:inherit}
-
-/* Aurora + overlays */
-.aurora-wrap{position:fixed;inset:0;z-index:-30;pointer-events:none;}
-#auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(44px) saturate(120%);transform:scale(1.02);opacity:0.98}
-.bg-vignette{position:fixed;inset:0;z-index:-28;pointer-events:none;
-  background-image:
-    radial-gradient(800px 420px at 10% 12%, rgba(40,90,140,0.06), transparent 12%),
-    radial-gradient(700px 360px at 90% 80%, rgba(0,180,140,0.05), transparent 10%),
-    linear-gradient(180deg, rgba(2,6,18,0.08), rgba(2,6,18,0.18));
-  opacity:1;
-}
-.stars{position:fixed;inset:0;z-index:-27;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:520px 520px;opacity:0.12}
 
 /* Top bar */
 .top-wrap{
-  position:fixed;left:50%;transform:translateX(-50%);top:12px;z-index:70;
-  width:min(var(--max-width),96%);display:flex;align-items:center;gap:var(--ui-gap);
-  padding:10px;border-radius:14px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(2,6,18,0.45);
-  backdrop-filter: blur(10px) saturate(120%);
+  margin-top:12px;
+  width:min(var(--max-width),96%);
+  display:flex;gap:var(--ui-gap);align-items:center;
 }
-.url-box{display:flex;gap:12px;align-items:center;width:100%}
-.url-input{
-  flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
-  background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-  color:var(--text);font-size:15px;min-width:160px;outline:none;box-shadow:0 6px 20px rgba(2,6,18,0.28)
-}
-.url-input::placeholder{color:var(--muted)}
-.btn-primary{
-  padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,var(--accent-a),var(--accent-b));box-shadow:0 8px 28px rgba(43,130,255,0.12);
-  transition:transform .12s ease,box-shadow .12s ease;
-}
-.btn-primary:hover{transform:translateY(-3px)}
+.url-input{flex:1;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0.02);color:var(--text);outline:none;font-size:15px;}
+.url-input::placeholder{color:rgba(230,235,255,0.48);}
+.btn-primary{padding:10px 14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:#fff;font-weight:700;cursor:pointer;}
 
-/* Main area */
-.main-wrap{position:fixed;inset:70px 0 90px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+/* Embed card */
+.main-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;padding:12px;}
+.embed-card{position:relative;width:82vw;max-width:1100px;height:70vh;border-radius:var(--radius);overflow:hidden;background:#000;display:flex;flex-direction:column;}
+.embed-iframe{width:100%;height:100%;border:0;flex:1;}
 
-/* embed card */
-.embed-card{
-  position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
-  height:70vh;min-height:var(--embed-min-h);border-radius:var(--radius);
-  overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.035);box-shadow:0 40px 110px rgba(2,6,18,0.7);
-  backdrop-filter: blur(8px) saturate(120%);
-  left:50%;top:50%;transform:translate(-50%,-50%); /* hard-coded center */
-}
-
-/* top controls */
-.embed-top{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01))}
-.control{
-  display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
-  background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);cursor:pointer;font-weight:700;
-}
-.control:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(43,130,255,0.06)}
-
-/* iframe area */
-.embed-frame{flex:1;position:relative;display:block;background:#000}
-iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
-
-/* loader overlay */
+/* Loader overlay */
 .loader-overlay{
-  position:absolute;
-  top:0;left:0;
-  width:100%;height:100%;
-  display:flex;align-items:center;justify-content:center;
-  z-index:130;pointer-events:none;opacity:0;transition:opacity .22s ease;
-  backdrop-filter: blur(8px) saturate(120%);
-  background: rgba(6,10,20,0.32); border-radius: inherit;
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.3);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:50;pointer-events:none;opacity:0;transition:opacity .2s;
 }
 .loader-overlay.visible{opacity:1;pointer-events:auto;}
-.loader-spinner{width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 0.95s linear infinite;box-shadow:0 10px 40px rgba(43,130,255,0.12);}
+.loader-spinner{width:50px;height:50px;border:6px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);border-radius:50%;animation:spin .9s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* games list */
-.games{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:70;width:min(var(--max-width),96%);display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
-.game-btn{padding:10px 14px;border-radius:999px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);color:var(--text);cursor:pointer;font-weight:700;backdrop-filter: blur(6px)}
-.game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.5)}
+/* Bottom games */
+.games{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px;width:min(var(--max-width),96%);}
+.game-btn{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:var(--text);cursor:pointer;font-weight:700;}
+.game-btn:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(43,130,255,0.15);}
 
-/* responsive adjustments */
-@media (max-width:1000px){.embed-card{height:60vh;width:92vw}.top-wrap{top:8px}.games{bottom:8px}}
-@media (max-width:540px){.embed-card{height:55vh;width:96vw}.url-input{font-size:14px}}
+/* Controls inside embed */
+.embed-top{position:absolute;top:0;right:0;display:flex;gap:6px;padding:6px;z-index:30;}
+.control{padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0.02);color:var(--text);cursor:pointer;font-weight:700;}
+.control:hover{transform:translateY(-2px);}
+
+/* Responsive adjustments */
+@media(max-width:540px){.embed-card{height:55vh;width:96vw}}
 </style>
 </head>
 <body>
 
-<div class="aurora-wrap" aria-hidden="true"><canvas id="auroraCanvas"></canvas></div>
-<div class="bg-vignette" aria-hidden="true"></div>
-<div class="stars" aria-hidden="true"></div>
-
-<!-- Top bar -->
 <div class="top-wrap">
-  <div class="url-box">
-    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
-    <button id="enterBtn" class="btn-primary" aria-label="Load URL">Load</button>
+  <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)">
+  <button id="enterBtn" class="btn-primary">Load</button>
+</div>
+
+<div class="main-wrap">
+  <div class="embed-card" id="embedCard">
+    <iframe id="embedFrame" class="embed-iframe" src="about:blank"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+      allow="fullscreen; autoplay; microphone; camera; encrypted-media"></iframe>
+    <div id="loaderOverlay" class="loader-overlay">
+      <div class="loader-spinner"></div>
+    </div>
+    <div class="embed-top">
+      <button id="fullscreenBtn" class="control">Fullscreen</button>
+      <button id="redirectBtn" class="control">Redirect</button>
+    </div>
   </div>
 </div>
 
-<!-- Main area -->
-<main class="main-wrap">
-  <section class="embed-card" id="embedCard">
-    <div class="embed-top">
-      <div style="flex:1"></div>
-      <button id="fullscreenBtn" class="control" title="Fullscreen">Fullscreen</button>
-      <button id="redirectBtn" class="control" title="Open in new tab">Redirect</button>
-    </div>
-    <div class="embed-frame" id="embedFrameWrap">
-      <div id="loaderOverlay" class="loader-overlay">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
-          <div class="loader-spinner" role="status" aria-label="Loading"></div>
-        </div>
-      </div>
-      <iframe id="embedFrame" class="embed-iframe" src="about:blank"
-        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
-        allow="fullscreen; autoplay; microphone; camera; encrypted-media"
-        title="Embedded content"></iframe>
-    </div>
-  </section>
-</main>
-
-<!-- Games list -->
 <div class="games">
   <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
   <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
@@ -168,60 +102,38 @@ iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
 </div>
 
 <script>
-const embedCard = document.getElementById('embedCard');
 const iframe = document.getElementById('embedFrame');
-const loaderOverlay = document.getElementById('loaderOverlay');
+const loader = document.getElementById('loaderOverlay');
 const urlInput = document.getElementById('urlInput');
 const enterBtn = document.getElementById('enterBtn');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const redirectBtn = document.getElementById('redirectBtn');
-let isFullscreen = false;
-const LOAD_TIMEOUT=12000, LOAD_RETRIES=2; let loadTimer=null,retries=0;
 
-// --- loader functions
-function showLoader(){
-  loaderOverlay.style.width = embedCard.offsetWidth+'px';
-  loaderOverlay.style.height = embedCard.offsetHeight+'px';
-  loaderOverlay.style.top='0px';
-  loaderOverlay.style.left='0px';
-  loaderOverlay.classList.add('visible');
-}
-function hideLoader(){ loaderOverlay.classList.remove('visible'); }
+function showLoader(){ loader.classList.add('visible'); }
+function hideLoader(){ loader.classList.remove('visible'); }
 
-// --- URL helpers
-function normalizeUrl(raw){ raw=(raw||'').trim(); if(!/^https?:\/\//i.test(raw)) raw='https://'+raw; try{new URL(raw);return raw}catch(e){return null;} }
-function attemptLoad(rawUrl){
-  const url=normalizeUrl(rawUrl); if(!url) return alert('Invalid URL');
-  retries=0; startLoad(url);
-}
-function startLoad(url){
-  if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; }
+function normalizeUrl(raw){ raw=raw.trim(); if(!/^https?:\/\//i.test(raw)) raw='https://'+raw; try{new URL(raw);return raw}catch(e){return null;} }
+
+function loadURL(raw){
+  const url = normalizeUrl(raw);
+  if(!url){ alert('Invalid URL'); return; }
   showLoader();
   iframe.src=url;
-  loadTimer=setTimeout(()=>{retries++; hideLoader(); if(retries<=LOAD_RETRIES){ startLoad(url+'?embed_retry='+Date.now()); }},LOAD_TIMEOUT);
+  setTimeout(()=>{hideLoader();},12000);
 }
-iframe.addEventListener('load',()=>{ hideLoader(); });
 
-// --- UI controls
-enterBtn.addEventListener('click',()=>attemptLoad(urlInput.value));
-urlInput.addEventListener('keydown',e=>{ if(e.key==='Enter') attemptLoad(urlInput.value); });
-document.querySelectorAll('.game-btn').forEach(b=>b.addEventListener('click',()=>{ const url=b.dataset.url; urlInput.value=url; attemptLoad(url); }));
+enterBtn.addEventListener('click',()=>loadURL(urlInput.value));
+urlInput.addEventListener('keydown',e=>{ if(e.key==='Enter') loadURL(urlInput.value); });
+document.querySelectorAll('.game-btn').forEach(b=>b.addEventListener('click',()=>{ urlInput.value=b.dataset.url; loadURL(b.dataset.url); }));
 
 // fullscreen toggle
+let isFS=false;
 fullscreenBtn.addEventListener('click',()=>{
-  if(!isFullscreen){ embedCard.requestFullscreen?.(); isFullscreen=true; fullscreenBtn.textContent='Exit Fullscreen'; }
-  else{ document.exitFullscreen?.(); isFullscreen=false; fullscreenBtn.textContent='Fullscreen'; }
+  if(!isFS){ iframe.requestFullscreen?.(); isFS=true; fullscreenBtn.textContent='Exit Fullscreen'; }
+  else{ document.exitFullscreen?.(); isFS=false; fullscreenBtn.textContent='Fullscreen'; }
 });
-
-// redirect in new tab
-redirectBtn.addEventListener('click',()=>{ const src=iframe.src; if(src && src!=='about:blank') window.open(src,'_blank'); });
-
-// Hardcoded center
-function hardCenter(){ embedCard.style.left='50%'; embedCard.style.top='50%'; embedCard.style.transform='translate(-50%,-50%)'; }
-window.addEventListener('resize',hardCenter);
-window.addEventListener('load',hardCenter);
-setInterval(hardCenter,300);
+// redirect
+redirectBtn.addEventListener('click',()=>{ if(iframe.src!=='about:blank') window.open(iframe.src,'_blank'); });
 </script>
-
 </body>
 </html>
