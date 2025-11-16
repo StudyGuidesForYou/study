@@ -4,8 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Home</title>
-<!-- Google Classroom favicon -->
-<link rel="icon" href="https://ssl.gstatic.com/classroom/favicon.png">
+<link rel="icon" href="https://ssl.gstatic.com/classroom/favicon/256x256/cls_favicon_256.png">
 <style>
 :root{
   --bg-deep:#040612;
@@ -28,7 +27,7 @@
 html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
 a{color:inherit}
 
-/* --- Aurora background (canvas + overlays) --- */
+/* Aurora + overlays */
 .aurora-wrap{position:fixed;inset:0;z-index:-30;pointer-events:none;}
 #auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(44px) saturate(120%);transform:scale(1.02);opacity:0.98}
 .bg-vignette{position:fixed;inset:0;z-index:-28;pointer-events:none;
@@ -40,9 +39,9 @@ a{color:inherit}
 }
 .stars{position:fixed;inset:0;z-index:-27;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:520px 520px;opacity:0.12}
 
-/* --- Top bar (glass) --- */
+/* Top bar */
 .top-wrap{
-  position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:70;
+  position:fixed;left:50%;transform:translateX(-50%);top:12px;z-index:70;
   width:min(var(--max-width),96%);display:flex;align-items:center;gap:var(--ui-gap);
   padding:10px;border-radius:14px;
   background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -63,28 +62,20 @@ a{color:inherit}
 }
 .btn-primary:hover{transform:translateY(-3px)}
 
-/* --- Main centered area --- */
-.main-wrap{position:fixed;inset:94px 0 112px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+/* Main area */
+.main-wrap{position:fixed;inset:70px 0 90px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
 
-/* embed card (center-locked) */
+/* embed card */
 .embed-card{
-  position:fixed; /* hard-coded fixed to prevent uncentering */
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  width:82vw; max-width:1100px; min-width:var(--embed-min-w);
-  height:70vh; min-height:var(--embed-min-h);
-  border-radius:var(--radius);
-  overflow:hidden;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.035);
-  box-shadow:0 40px 110px rgba(2,6,18,0.7);
-  display:flex;flex-direction:column;
+  position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
+  height:70vh;min-height:var(--embed-min-h);border-radius:var(--radius);
+  overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.035);box-shadow:0 40px 110px rgba(2,6,18,0.7);
   backdrop-filter: blur(8px) saturate(120%);
-  z-index:50;
+  left:50%;top:50%;transform:translate(-50%,-50%); /* hard-coded center */
 }
 
-/* top controls (outside iframe) */
+/* top controls */
 .embed-top{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01))}
 .control{
   display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
@@ -97,122 +88,140 @@ a{color:inherit}
 iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
 
 /* loader overlay */
-.loader-overlay{position:absolute;inset:56px 0 0 0;display:flex;align-items:center;justify-content:center;z-index:130;pointer-events:none;opacity:0;transition:opacity .22s ease}
-.loader-overlay.visible{opacity:1;pointer-events:auto;background:linear-gradient(180deg, rgba(6,10,20,0.22), rgba(6,10,20,0.32));backdrop-filter:blur(6px)}
-.loader-spinner{width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 0.95s linear infinite;box-shadow:0 10px 40px rgba(43,130,255,0.12)}
+.loader-overlay{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  z-index:130;pointer-events:none;opacity:0;transition:opacity .22s ease;
+  backdrop-filter: blur(8px) saturate(120%);
+  background: rgba(6,10,20,0.32); border-radius: inherit;
+}
+.loader-overlay.visible{opacity:1;pointer-events:auto;}
+.loader-spinner{width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 0.95s linear infinite;box-shadow:0 10px 40px rgba(43,130,255,0.12);}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* horizontal resize edge on the right */
-.resize-edge{position:absolute;top:0;bottom:0;right:-10px;width:20px;cursor:ew-resize;z-index:180}
-.resize-edge::after{content:'';position:absolute;left:4px;top:50%;transform:translateY(-50%);width:6px;height:48px;border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))}
-
-/* games list bottom */
-.games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:70;width:min(var(--max-width),96%);display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+/* games list */
+.games{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:70;width:min(var(--max-width),96%);display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
 .game-btn{padding:10px 14px;border-radius:999px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);color:var(--text);cursor:pointer;font-weight:700;backdrop-filter: blur(6px)}
 .game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.5)}
 
-/* responsive */
-@media (max-width:1000px){.embed-card{height:60vh;width:92vw}.top-wrap{top:12px}.games{bottom:12px;gap:6px}}
+/* responsive adjustments */
+@media (max-width:1000px){.embed-card{height:60vh;width:92vw}.top-wrap{top:8px}.games{bottom:8px}}
 @media (max-width:540px){.embed-card{height:55vh;width:96vw}.url-input{font-size:14px}}
 </style>
 </head>
 <body>
 
-  <!-- Aurora + overlays -->
-  <div class="aurora-wrap" aria-hidden="true"><canvas id="auroraCanvas"></canvas></div>
-  <div class="bg-vignette" aria-hidden="true"></div>
-  <div class="stars" aria-hidden="true"></div>
+<div class="aurora-wrap" aria-hidden="true"><canvas id="auroraCanvas"></canvas></div>
+<div class="bg-vignette" aria-hidden="true"></div>
+<div class="stars" aria-hidden="true"></div>
 
-  <!-- Top bar -->
-  <div class="top-wrap" role="search" aria-label="URL bar">
-    <div class="url-box">
-      <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
-      <button id="enterBtn" class="btn-primary" aria-label="Load URL">Load</button>
-    </div>
+<!-- Top bar -->
+<div class="top-wrap">
+  <div class="url-box">
+    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
+    <button id="enterBtn" class="btn-primary" aria-label="Load URL">Load</button>
   </div>
+</div>
 
-  <!-- Main area -->
-  <main class="main-wrap">
-    <section class="embed-card" id="embedCard" role="region" aria-label="Embed area">
-      <div class="embed-top" role="toolbar" aria-label="Embed controls">
-        <div style="flex:1"></div>
-        <button id="fullscreenBtn" class="control" title="Fullscreen">Fullscreen</button>
-        <button id="redirectBtn" class="control" title="Open in new tab">Redirect</button>
-      </div>
-
-      <div class="embed-frame" id="embedFrameWrap" aria-live="polite">
-        <div id="loaderOverlay" class="loader-overlay" aria-hidden="true">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
-            <div class="loader-spinner" role="status" aria-label="Loading"></div>
-            <div style="color:var(--muted);font-size:13px">Loading…</div>
-          </div>
+<!-- Main area -->
+<main class="main-wrap">
+  <section class="embed-card" id="embedCard">
+    <div class="embed-top">
+      <div style="flex:1"></div>
+      <button id="fullscreenBtn" class="control" title="Fullscreen">Fullscreen</button>
+      <button id="redirectBtn" class="control" title="Open in new tab">Redirect</button>
+    </div>
+    <div class="embed-frame" id="embedFrameWrap">
+      <div id="loaderOverlay" class="loader-overlay">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div class="loader-spinner" role="status" aria-label="Loading"></div>
         </div>
-
-        <iframe id="embedFrame" class="embed-iframe" src="about:blank"
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
-                allow="fullscreen; autoplay; microphone; camera; encrypted-media"
-                title="Embedded content"></iframe>
-
-        <div id="resizeEdge" class="resize-edge" aria-hidden="true"></div>
       </div>
-    </section>
-  </main>
-
-  <!-- Games list -->
-  <div class="games" aria-label="Games">
-    <div class="game-list" role="list">
-      <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
-      <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
-      <button class="game-btn" data-url="https://diep.io">diep.io</button>
-      <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
-      <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
-      <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
-      <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
-      <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
-      <button class="game-btn" data-url="https://ev.io">ev.io</button>
-      <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
-      <button class="game-btn" data-url="https://html5games.com">html5games</button>
-      <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">DayDreamX</button>
-      <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">PeteZah</button>
-      <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
-      <button class="game-btn" data-url="https://nexus-is.onthewifi.com/">Nexus</button>
-      <button class="game-btn" data-url="https://silvergames.com/">SilverGames</button>
+      <iframe id="embedFrame" class="embed-iframe" src="about:blank"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+        allow="fullscreen; autoplay; microphone; camera; encrypted-media"
+        title="Embedded content"></iframe>
     </div>
-  </div>
+  </section>
+</main>
+
+<!-- Games list -->
+<div class="games">
+  <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
+  <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
+  <button class="game-btn" data-url="https://diep.io">diep.io</button>
+  <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
+  <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
+  <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
+  <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
+  <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
+  <button class="game-btn" data-url="https://ev.io">ev.io</button>
+  <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
+  <button class="game-btn" data-url="https://html5games.com">html5games</button>
+  <button class="game-btn" data-url="https://nexus-is.onthewifi.com/">Nexus</button>
+  <button class="game-btn" data-url="https://silvergames.com">SilverGames</button>
+  <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">DayDreamX</button>
+  <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">PeteZah</button>
+  <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
+</div>
 
 <script>
-const DBG={info:(...a)=>console.log("%c[GL]","color:#bfefff;background:#012;padding:2px 6px;border-radius:4px;",...a),warn:(...a)=>console.warn("%c[GL WARN]","color:#ffd27f;background:#331a00;padding:2px 6px;border-radius:4px;",...a),error:(...a)=>console.error("%c[GL ERR]","color:#ff9fb5;background:#33000a;padding:2px 6px;border-radius:4px;",...a)};
-DBG.info("Launcher starting");
+const embedCard = document.getElementById('embedCard');
+const iframe = document.getElementById('embedFrame');
+const loaderOverlay = document.getElementById('loaderOverlay');
+const urlInput = document.getElementById('urlInput');
+const enterBtn = document.getElementById('enterBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const redirectBtn = document.getElementById('redirectBtn');
+let isFullscreen = false;
+const LOAD_TIMEOUT=12000, LOAD_RETRIES=2; let loadTimer=null,retries=0;
 
-const canvas=document.getElementById('auroraCanvas'),ctx=canvas.getContext('2d',{alpha:true});let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
-window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight});
+// --- loader functions
+function showLoader(){
+  loaderOverlay.style.width = embedCard.offsetWidth+'px';
+  loaderOverlay.style.height = embedCard.offsetHeight+'px';
+  loaderOverlay.style.top='0px';
+  loaderOverlay.style.left='0px';
+  loaderOverlay.classList.add('visible');
+}
+function hideLoader(){ loaderOverlay.classList.remove('visible'); }
 
-class Oval{constructor(){this.reset()}reset(){this.x=Math.random()*W;this.y=Math.random()*H;this.w=300+Math.random()*900;this.h=80+Math.random()*380;this.hue=150+Math.random()*80;this.alpha=0.06+Math.random()*0.14;this.vx=0.02+Math.random()*0.18;this.vy=(Math.random()-0.5)*0.06;this.drift=(Math.random()<0.5?-1:1)*(0.01+Math.random()*0.03)}update(){this.x-=this.vx;this.y+=this.vy;this.hue+=this.drift*0.15;if(this.hue>240)this.hue=150;if(this.hue<150)this.hue=240;if(this.x<-this.w)this.x=W+this.w;if(this.y<-this.h)this.y=H+this.h;if(this.y>H+this.h)this.y=-this.h}draw(){const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);g.addColorStop(0,`hsla(${this.hue},86%,56%,${this.alpha})`);g.addColorStop(0.6,`hsla(${this.hue+20},76%,48%,${this.alpha*0.8})`);g.addColorStop(1,`hsla(200,40%,10%,0)`);ctx.globalCompositeOperation='lighter';ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation='source-over'}}
-const ovals=Array.from({length:14},()=>new Oval());
-(function loop(){ctx.clearRect(0,0,W,H);const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'rgba(3,8,18,0.22)');bg.addColorStop(1,'rgba(2,6,12,0.44)');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);for(const o of ovals)o.update(),o.draw();requestAnimationFrame(loop)})();
+// --- URL helpers
+function normalizeUrl(raw){ raw=(raw||'').trim(); if(!/^https?:\/\//i.test(raw)) raw='https://'+raw; try{new URL(raw);return raw}catch(e){return null;} }
+function attemptLoad(rawUrl){
+  const url=normalizeUrl(rawUrl); if(!url) return alert('Invalid URL');
+  retries=0; startLoad(url);
+}
+function startLoad(url){
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; }
+  showLoader();
+  iframe.src=url;
+  loadTimer=setTimeout(()=>{retries++; hideLoader(); if(retries<=LOAD_RETRIES){ startLoad(url+'?embed_retry='+Date.now()); }},LOAD_TIMEOUT);
+}
+iframe.addEventListener('load',()=>{ hideLoader(); });
 
-const embedCard=document.getElementById('embedCard');const iframe=document.getElementById('embedFrame');const loaderOverlay=document.getElementById('loaderOverlay');const urlInput=document.getElementById('urlInput');const enterBtn=document.getElementById('enterBtn');const fullscreenBtn=document.getElementById('fullscreenBtn');const redirectBtn=document.getElementById('redirectBtn');const resizeEdge=document.getElementById('resizeEdge');
-
-let LOAD_TIMEOUT=12000,LOAD_RETRIES=2,loadTimer=null,retries=0;
-
-function showLoader(){loaderOverlay.classList.add('visible');DBG.info('Loader shown')}
-function hideLoader(){loaderOverlay.classList.remove('visible');DBG.info('Loader hidden')}
-function normalizeUrl(raw){raw=(raw||'').trim();if(!raw)return null;if(!/^https?:\/\//i.test(raw))raw='https://'+raw;try{new URL(raw);return raw}catch(e){return null}}
-function attemptLoad(rawUrl){const url=normalizeUrl(rawUrl);if(!url){DBG.warn('Invalid URL:',rawUrl);return;}retries=0;_startLoad(url);}
-function _startLoad(url){if(loadTimer){clearTimeout(loadTimer);loadTimer=null;}showLoader();iframe.src=url;DBG.info('Start loading',url,{retries});loadTimer=setTimeout(()=>{retries++;hideLoader();DBG.warn('Load timeout',url,{retries});if(retries<=LOAD_RETRIES){DBG.info('Retrying',retries);showLoader();iframe.src=url+(url.includes('?')?'&':'?')+'r='+Date.now();}else{DBG.error('Failed after retries',url);}},LOAD_TIMEOUT);}
+// --- UI controls
 enterBtn.addEventListener('click',()=>attemptLoad(urlInput.value));
-urlInput.addEventListener('keydown',e=>{if(e.key==='Enter')attemptLoad(urlInput.value)});
-redirectBtn.addEventListener('click',()=>{const u=normalizeUrl(urlInput.value);if(u)window.open(u,'_blank')});
-fullscreenBtn.addEventListener('click',()=>{if(!document.fullscreenElement){embedCard.requestFullscreen({navigationUI:'show'})}else{document.exitFullscreen()}});
+urlInput.addEventListener('keydown',e=>{ if(e.key==='Enter') attemptLoad(urlInput.value); });
+document.querySelectorAll('.game-btn').forEach(b=>b.addEventListener('click',()=>{ const url=b.dataset.url; urlInput.value=url; attemptLoad(url); }));
 
-document.querySelectorAll('.game-btn').forEach(btn=>btn.addEventListener('click',()=>{const u=btn.dataset.url;if(u)iframe.src=u;urlInput.value=u;showLoader()}));
+// fullscreen toggle
+fullscreenBtn.addEventListener('click',()=>{
+  if(!isFullscreen){ embedCard.requestFullscreen?.(); isFullscreen=true; fullscreenBtn.textContent='Exit Fullscreen'; }
+  else{ document.exitFullscreen?.(); isFullscreen=false; fullscreenBtn.textContent='Fullscreen'; }
+});
 
-// HARD-CODED CENTER FIX
-function forceCenter(){embedCard.style.left='50%';embedCard.style.top='50%';embedCard.style.transform='translate(-50%,-50%)';}
-window.addEventListener('resize',forceCenter);
-forceCenter();
+// redirect in new tab
+redirectBtn.addEventListener('click',()=>{ const src=iframe.src; if(src && src!=='about:blank') window.open(src,'_blank'); });
 
-DBG.info('Launcher ready');
+// Hardcoded center
+function hardCenter(){ embedCard.style.left='50%'; embedCard.style.top='50%'; embedCard.style.transform='translate(-50%,-50%)'; }
+window.addEventListener('resize',hardCenter);
+window.addEventListener('load',hardCenter);
+setInterval(hardCenter,300);
 </script>
+
 </body>
 </html>
