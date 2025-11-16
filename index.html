@@ -27,75 +27,81 @@ html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep
 a{color:inherit}
 
 /* --- Aurora background (canvas + overlays) --- */
-.aurora-wrap{position:fixed;inset:0;z-index:-30;pointer-events:none;}
+.aurora-wrap{
+  position:fixed;inset:0;z-index:-30;pointer-events:none;
+}
 #auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(44px) saturate(120%);transform:scale(1.02);opacity:0.98}
-.bg-vignette{position:fixed;inset:0;z-index:-28;pointer-events:none;
+.bg-vignette{
+  position:fixed;inset:0;z-index:-28;pointer-events:none;
   background-image:
     radial-gradient(800px 420px at 10% 12%, rgba(40,90,140,0.06), transparent 12%),
     radial-gradient(700px 360px at 90% 80%, rgba(0,180,140,0.05), transparent 10%),
     linear-gradient(180deg, rgba(2,6,18,0.08), rgba(2,6,18,0.18));
-  opacity:1;}
+  opacity:1;
+}
 .stars{position:fixed;inset:0;z-index:-27;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:520px 520px;opacity:0.12}
 
 /* --- Top bar (glass) --- */
-.top-wrap{position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:70;
+.top-wrap{
+  position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:70;
   width:min(var(--max-width),96%);display:flex;align-items:center;gap:var(--ui-gap);
   padding:10px;border-radius:14px;
   background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(2,6,18,0.45);
-  backdrop-filter: blur(10px) saturate(120%);}
+  backdrop-filter: blur(10px) saturate(120%);
+}
 .url-box{display:flex;gap:12px;align-items:center;width:100%}
-.url-input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
+.url-input{
+  flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
   background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-  color:var(--text);font-size:15px;min-width:160px;outline:none;box-shadow:0 6px 20px rgba(2,6,18,0.28)}
+  color:var(--text);font-size:15px;min-width:160px;outline:none;box-shadow:0 6px 20px rgba(2,6,18,0.28)
+}
 .url-input::placeholder{color:var(--muted)}
-.btn-primary{padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;color:#fff;
+.btn-primary{
+  padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;color:#fff;
   background:linear-gradient(135deg,var(--accent-a),var(--accent-b));box-shadow:0 8px 28px rgba(43,130,255,0.12);
-  transition:transform .12s ease,box-shadow .12s ease;}
+  transition:transform .12s ease,box-shadow .12s ease;
+}
 .btn-primary:hover{transform:translateY(-3px)}
 
-/* --- Main centered area --- */
-.main-wrap{position:fixed;inset:94px 0 112px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+/* --- Main area --- */
+.main-wrap{
+  position:fixed;inset:94px 0 112px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px;
+}
 
 /* embed card (center-locked) */
-.embed-card{position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
+.embed-card{
+  position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
   height:70vh;min-height:var(--embed-min-h);border-radius:var(--radius);
   overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   border:1px solid rgba(255,255,255,0.035);box-shadow:0 40px 110px rgba(2,6,18,0.7);display:flex;flex-direction:column;
   backdrop-filter: blur(8px) saturate(120%);
-  left:50%;top:50%;transform:translate(-50%,-50%);}
+}
 
-/* top controls (outside iframe) */
+/* top controls */
 .embed-top{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01))}
-.control{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
-  background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);cursor:pointer;font-weight:700;}
+.control{
+  display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
+  background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);cursor:pointer;font-weight:700;
+}
 .control:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(43,130,255,0.06)}
 
-/* message bubble center (in-card) */
-.msg-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:140;background:rgba(6,10,20,0.64);padding:12px 16px;border-radius:12px;color:var(--muted);display:none;border:1px solid rgba(255,255,255,0.02)}
-.msg-box.visible{display:block}
-
-/* iframe area */
-.embed-frame{flex:1;position:relative;display:block;background:#000}
-iframe.embed-iframe{width:100%;height:100%;border:0;background:#000;}
+/* iframe wrapper */
+.embed-frame{
+  flex:1;display:flex;justify-content:center;align-items:center;position:relative;
+}
+.embed-iframe{width:100%;height:100%;border:0;}
 
 /* loader overlay */
-.loader-overlay{position:absolute;inset:56px 0 0 0;display:flex;align-items:center;justify-content:center;z-index:130;pointer-events:none;opacity:0;transition:opacity .22s ease}
+.loader-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:130;pointer-events:none;opacity:0;transition:opacity .22s ease}
 .loader-overlay.visible{opacity:1;pointer-events:auto;background:linear-gradient(180deg, rgba(6,10,20,0.22), rgba(6,10,20,0.32));backdrop-filter:blur(6px)}
 .loader-spinner{width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 0.95s linear infinite;box-shadow:0 10px 40px rgba(43,130,255,0.12)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* horizontal resize edge on the right */
-.resize-edge{position:absolute;top:0;bottom:0;right:-10px;width:20px;cursor:ew-resize;z-index:180}
-.resize-edge::after{content:'';position:absolute;left:4px;top:50%;transform:translateY(-50%);width:6px;height:48px;border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))}
-
-/* --- Games list bottom, horizontal scroll for mobile --- */
-.games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:70;width:min(var(--max-width),96%);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-.games::-webkit-scrollbar{display:none;}
-.game-list{display:flex;gap:10px;flex-wrap:nowrap;justify-content:flex-start;padding-bottom:4px;scroll-snap-type:x mandatory;}
-.game-list::before,.game-list::after{content:'';flex:0 0 8px;}
-.game-btn{flex:0 0 auto;padding:10px 16px;border-radius:999px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);color:var(--text);cursor:pointer;font-weight:700;backdrop-filter:blur(6px);transition: transform 0.12s ease, box-shadow 0.12s ease;scroll-snap-align:start;}
-.game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.5);}
+/* games list bottom */
+.games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:70;width:min(var(--max-width),96%);display:flex;justify-content:center;flex-wrap:wrap;gap:10px}
+.game-btn{padding:10px 14px;border-radius:999px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);color:var(--text);cursor:pointer;font-weight:700;backdrop-filter: blur(6px)}
+.game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.5)}
 
 /* responsive */
 @media (max-width:1000px){.embed-card{height:60vh;width:92vw}.top-wrap{top:12px}.games{bottom:12px}}
@@ -105,151 +111,149 @@ iframe.embed-iframe{width:100%;height:100%;border:0;background:#000;}
 <body>
 
 <!-- Aurora + overlays -->
-<div class="aurora-wrap" aria-hidden="true"><canvas id="auroraCanvas"></canvas></div>
-<div class="bg-vignette" aria-hidden="true"></div>
-<div class="stars" aria-hidden="true"></div>
+<div class="aurora-wrap"><canvas id="auroraCanvas"></canvas></div>
+<div class="bg-vignette"></div>
+<div class="stars"></div>
 
 <!-- Top bar -->
-<div class="top-wrap" role="search" aria-label="URL bar">
+<div class="top-wrap">
   <div class="url-box">
-    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
-    <button id="enterBtn" class="btn-primary" aria-label="Load URL">Load</button>
+    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" />
+    <button id="enterBtn" class="btn-primary">Load</button>
     <div style="color:var(--muted);font-size:13px;margin-left:8px">Glass • Aurora • Centered</div>
   </div>
 </div>
 
-<!-- Main area -->
+<!-- Main embed -->
 <main class="main-wrap">
-  <section class="embed-card" id="embedCard" role="region" aria-label="Embed area">
-    <div class="embed-top" role="toolbar" aria-label="Embed controls">
-      <div style="display:flex;gap:8px;align-items:center">
-        <button id="recenterBtn" class="control" title="Re-center">Re-center</button>
-      </div>
+  <section class="embed-card" id="embedCard">
+    <div class="embed-top">
+      <button id="recenterBtn" class="control">Re-center</button>
       <div style="flex:1"></div>
-      <button id="fullscreenBtn" class="control" title="Fullscreen">Fullscreen</button>
-      <button id="redirectBtn" class="control" title="Open in new tab">Open</button>
+      <button id="fullscreenBtn" class="control">Fullscreen</button>
+      <button id="redirectBtn" class="control">Open</button>
     </div>
 
-    <div class="embed-frame" id="embedFrameWrap" aria-live="polite">
-      <div id="loaderOverlay" class="loader-overlay" aria-hidden="true">
+    <div class="embed-frame" id="embedFrameContainer">
+      <iframe id="embedFrame"
+        src="about:blank"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+        allow="fullscreen; autoplay; microphone; camera; encrypted-media"
+        class="embed-iframe"
+        title="Embedded content"></iframe>
+
+      <div id="loaderOverlay" class="loader-overlay">
         <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
-          <div class="loader-spinner" role="status" aria-label="Loading"></div>
+          <div class="loader-spinner"></div>
           <div style="color:var(--muted);font-size:13px">Loading…</div>
         </div>
       </div>
-
-      <iframe id="embedFrame" class="embed-iframe" src="about:blank"
-        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
-        allow="fullscreen; autoplay; microphone; camera; encrypted-media"
-        title="Embedded content"></iframe>
-
-      <div id="msgBox" class="msg-box" role="alert" aria-hidden="true"></div>
-      <div id="resizeEdge" class="resize-edge" aria-hidden="true"></div>
     </div>
   </section>
 </main>
 
 <!-- Games list -->
-<div class="games" aria-label="Games">
-  <div class="game-list" role="list">
-    <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
-    <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
-    <button class="game-btn" data-url="https://diep.io">diep.io</button>
-    <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
-    <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
-    <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
-    <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
-    <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
-    <button class="game-btn" data-url="https://ev.io">ev.io</button>
-    <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
-    <button class="game-btn" data-url="https://html5games.com">html5games</button>
-    <button class="game-btn" data-url="https://silvergames.com">silvergames.com</button>
-    <!-- Browsers renamed -->
-    <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">DayDreamX</button>
-    <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">PeteZah</button>
-    <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
-  </div>
+<div class="games">
+  <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
+  <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
+  <button class="game-btn" data-url="https://diep.io">diep.io</button>
+  <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
+  <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
+  <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
+  <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
+  <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
+  <button class="game-btn" data-url="https://ev.io">ev.io</button>
+  <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
+  <button class="game-btn" data-url="https://html5games.com">html5games</button>
+  <button class="game-btn" data-url="https://silvergames.com">silvergames.com</button>
+  <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
+  <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">DayDreamX</button>
+  <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">PeteZah</button>
 </div>
 
 <script>
-/* ===========================================================================
-// Console helpers
-=========================================================================== */
-const DBG = {info: (...a)=>console.log("%c[GL]","color:#bfefff;background:#012;padding:2px 6px;border-radius:4px;",...a),
-             warn: (...a)=>console.warn("%c[GL WARN]","color:#ffd27f;background:#331a00;padding:2px 6px;border-radius:4px;",...a),
-             error:(...a)=>console.error("%c[GL ERR]","color:#ff9fb5;background:#33000a;padding:2px 6px;border-radius:4px;",...a)};
-DBG.info("Launcher starting");
+/* -------------------- Utilities -------------------- */
+const iframe = document.getElementById('embedFrame');
+const loaderOverlay = document.getElementById('loaderOverlay');
+const urlInput = document.getElementById('urlInput');
+const enterBtn = document.getElementById('enterBtn');
+const recenterBtn = document.getElementById('recenterBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const redirectBtn = document.getElementById('redirectBtn');
 
-/* ===========================================================================
-// Aurora canvas
-=========================================================================== */
-const canvas=document.getElementById('auroraCanvas'),ctx=canvas.getContext('2d',{alpha:true});
-let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
-window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;});
+function showLoader(){ loaderOverlay.classList.add('visible'); }
+function hideLoader(){ loaderOverlay.classList.remove('visible'); }
+function showMsg(text){ alert(text); }
+
+function normalizeUrl(raw){ raw=(raw||'').trim(); if(!raw) return null; if(!/^https?:\/\//i.test(raw)) raw='https://'+raw; try{ new URL(raw); return raw;}catch(e){return null;} }
+
+let retries = 0;
+const MAX_RETRIES = 2;
+const LOAD_TIMEOUT = 12000;
+let loadTimer = null;
+
+function attemptLoad(rawUrl){
+  const url = normalizeUrl(rawUrl);
+  if(!url){ showMsg('Invalid URL'); return; }
+  retries=0;
+  _startLoad(url);
+}
+
+function _startLoad(url){
+  if(loadTimer) clearTimeout(loadTimer);
+  showLoader();
+  iframe.src = url;
+
+  loadTimer = setTimeout(()=>{
+    retries++;
+    hideLoader();
+    if(retries<=MAX_RETRIES){
+      _startLoad(url + (url.includes('?')?'&':'?')+'embed_retry='+Date.now());
+    } else {
+      showMsg('Site refused to load. Open in new tab.');
+    }
+  }, LOAD_TIMEOUT);
+}
+
+iframe.addEventListener('load', ()=>{
+  if(loadTimer) clearTimeout(loadTimer);
+  hideLoader();
+});
+
+/* -------------------- UI -------------------- */
+enterBtn.addEventListener('click', ()=>attemptLoad(urlInput.value));
+urlInput.addEventListener('keydown', e=>{ if(e.key==='Enter') attemptLoad(urlInput.value); });
+
+document.querySelectorAll('.game-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const url = b.dataset.url;
+    urlInput.value = url;
+    attemptLoad(url);
+  });
+});
+
+recenterBtn.addEventListener('click', ()=>{ iframe.parentElement.style.justifyContent='center'; iframe.parentElement.style.alignItems='center'; });
+fullscreenBtn.addEventListener('click', ()=>{ iframe.requestFullscreen?.(); });
+redirectBtn.addEventListener('click', ()=>{ if(iframe.src && iframe.src!=='about:blank') window.open(iframe.src,'_blank'); });
+
+/* -------------------- Always center iframe -------------------- */
+function centerIframe(){ iframe.parentElement.style.justifyContent='center'; iframe.parentElement.style.alignItems='center'; }
+window.addEventListener('resize', centerIframe);
+window.addEventListener('orientationchange', centerIframe);
+centerIframe();
+
+/* -------------------- Aurora Canvas -------------------- */
+const canvas = document.getElementById('auroraCanvas');
+const ctx = canvas.getContext('2d', {alpha:true});
+let W = canvas.width=window.innerWidth;
+let H = canvas.height=window.innerHeight;
+window.addEventListener('resize', ()=>{ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; });
 
 class Oval{constructor(){this.reset();}reset(){this.x=Math.random()*W;this.y=Math.random()*H;this.w=300+Math.random()*900;this.h=80+Math.random()*380;this.hue=150+Math.random()*80;this.alpha=0.06+Math.random()*0.14;this.vx=0.02+Math.random()*0.18;this.vy=(Math.random()-0.5)*0.06;this.drift=(Math.random()<0.5?-1:1)*(0.01+Math.random()*0.03);}update(){this.x-=this.vx;this.y+=this.vy;this.hue+=this.drift*0.15;if(this.hue>240)this.hue=150;if(this.hue<150)this.hue=240;if(this.x<-this.w)this.x=W+this.w;if(this.y<-this.h)this.y=H+this.h;if(this.y>H+this.h)this.y=-this.h;}draw(){const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);g.addColorStop(0,`hsla(${this.hue},86%,56%,${this.alpha})`);g.addColorStop(0.6,`hsla(${this.hue+20},76%,48%,${this.alpha*0.8})`);g.addColorStop(1,`hsla(200,40%,10%,0)`);ctx.globalCompositeOperation='lighter';ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation='source-over';}}
+
 const ovals=Array.from({length:14},()=>new Oval());
-(function loop(){ctx.clearRect(0,0,W,H);const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'rgba(3,8,18,0.22)');bg.addColorStop(1,'rgba(2,6,12,0.44)');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);for(const o of ovals){o.update();o.draw();}requestAnimationFrame(loop);})();
-
-/* ===========================================================================
-// UI Elements
-=========================================================================== */
-const embedCard=document.getElementById('embedCard'),
-      iframe=document.getElementById('embedFrame'),
-      loaderOverlay=document.getElementById('loaderOverlay'),
-      msgBox=document.getElementById('msgBox'),
-      resizeEdge=document.getElementById('resizeEdge'),
-      urlInput=document.getElementById('urlInput'),
-      enterBtn=document.getElementById('enterBtn'),
-      recenterBtn=document.getElementById('recenterBtn'),
-      fullscreenBtn=document.getElementById('fullscreenBtn'),
-      redirectBtn=document.getElementById('redirectBtn');
-
-let wasCentered=true;
-const PAD=10,MIN_W=320,MIN_H=260,LOAD_TIMEOUT=12000;
-
-function showMsg(msg,duration=2800){msgBox.innerText=msg;msgBox.classList.add('visible');setTimeout(()=>msgBox.classList.remove('visible'),duration);}
-function centerEmbed(){embedCard.style.left='50%';embedCard.style.top='50%';embedCard.style.transform='translate(-50%,-50%)';wasCentered=true;}
-
-/* ===========================================================================
-// Embed URL loader
-=========================================================================== */
-function loadURL(url){
-  loaderOverlay.classList.add('visible');
-  try{
-    if(!/^https?:\/\//i.test(url))url='https://'+url;
-    iframe.src=url;
-    setTimeout(()=>loaderOverlay.classList.remove('visible'),LOAD_TIMEOUT);
-  }catch(e){DBG.warn("URL load failed",e);showMsg("Failed to load URL!");}
-}
-enterBtn.addEventListener('click',()=>loadURL(urlInput.value));
-urlInput.addEventListener('keyup',e=>{if(e.key==='Enter')loadURL(urlInput.value)});
-
-/* Buttons */
-recenterBtn.addEventListener('click',centerEmbed);
-fullscreenBtn.addEventListener('click',()=>iframe.requestFullscreen().catch(()=>showMsg("Fullscreen unavailable")));
-redirectBtn.addEventListener('click',()=>window.open(iframe.src,'_blank'));
-
-/* Game buttons */
-document.querySelectorAll('.game-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{loadURL(btn.dataset.url)});
-});
-
-/* Re-center always hack */
-setInterval(()=>{if(!wasCentered)centerEmbed();},600);
-
-/* Resize */
-let resizing=false,startX,startW;
-resizeEdge.addEventListener('mousedown',e=>{
-  resizing=true;startX=e.clientX;startW=embedCard.offsetWidth;document.body.style.cursor='ew-resize';
-});
-document.addEventListener('mousemove',e=>{if(resizing){let w=startW+e.clientX-startX;if(w<MIN_W)w=MIN_W;embedCard.style.width=w+'px';wasCentered=false;}});
-document.addEventListener('mouseup',()=>{resizing=false;document.body.style.cursor='default';});
-
-/* Responsive iframe fix (always center) */
-window.addEventListener('resize',centerEmbed);
-
-DBG.info("UI loaded");
+(function loop(){ctx.clearRect(0,0,W,H);const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'rgba(3,8,18,0.22)');bg.addColorStop(1,'rgba(2,6,12,0.44)');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);for(const o of ovals)o.update(),o.draw();requestAnimationFrame(loop);})();
 </script>
+
 </body>
 </html>
