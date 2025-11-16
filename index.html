@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Modern Embed Launcher — Glass + Aurora (Fixed)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modern Embed Launcher — Centered Fix</title>
 <style>
 :root{
   --bg-deep:#040612;
@@ -21,87 +21,52 @@
   --ui-gap:12px;
 }
 
-/* --- Reset + Base --- */
-*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
-html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
+/* Base */
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,sans-serif}
+html,body{height:100%;width:100%;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 
-/* --- Aurora background (canvas + overlays) --- */
-.aurora-wrap{
-  position:fixed;inset:0;z-index:-30;pointer-events:none;
-}
+/* Aurora & background */
+.aurora-wrap{position:fixed;inset:0;z-index:-30;pointer-events:none}
 #auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(44px) saturate(120%);transform:scale(1.02);opacity:0.98}
-.bg-vignette{
-  position:fixed;inset:0;z-index:-28;pointer-events:none;
-  background-image:
-    radial-gradient(800px 420px at 10% 12%, rgba(40,90,140,0.06), transparent 12%),
-    radial-gradient(700px 360px at 90% 80%, rgba(0,180,140,0.05), transparent 10%),
-    linear-gradient(180deg, rgba(2,6,18,0.08), rgba(2,6,18,0.18));
-  opacity:1;
-}
+.bg-vignette{position:fixed;inset:0;z-index:-28;pointer-events:none;background-image:
+radial-gradient(800px 420px at 10% 12%, rgba(40,90,140,0.06), transparent 12%),
+radial-gradient(700px 360px at 90% 80%, rgba(0,180,140,0.05), transparent 10%),
+linear-gradient(180deg, rgba(2,6,18,0.08), rgba(2,6,18,0.18));opacity:1}
 .stars{position:fixed;inset:0;z-index:-27;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:520px 520px;opacity:0.12}
 
-/* --- Top bar (glass) --- */
-.top-wrap{
-  position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:90;
-  width:min(var(--max-width),96%);display:flex;align-items:center;gap:var(--ui-gap);
-  padding:10px;border-radius:14px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(2,6,18,0.45);
-  backdrop-filter: blur(10px) saturate(120%);
-}
+/* Top bar */
+.top-wrap{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:90;width:min(var(--max-width),96%);display:flex;align-items:center;gap:var(--ui-gap);padding:10px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(2,6,18,0.45);backdrop-filter: blur(10px) saturate(120%)}
 .url-box{display:flex;gap:12px;align-items:center;width:100%}
-.url-input{
-  flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
-  background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-  color:var(--text);font-size:15px;min-width:160px;outline:none;box-shadow:0 6px 20px rgba(2,6,18,0.28)
-}
+.url-input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));color:var(--text);font-size:15px;min-width:160px;outline:none;box-shadow:0 6px 20px rgba(2,6,18,0.28)}
 .url-input::placeholder{color:var(--muted)}
-.btn-primary{
-  padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,var(--accent-a),var(--accent-b));box-shadow:0 8px 28px rgba(43,130,255,0.12);
-  transition:transform .12s ease,box-shadow .12s ease;
-}
+.btn-primary{padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));box-shadow:0 8px 28px rgba(43,130,255,0.12);transition:transform .12s ease,box-shadow .12s ease}
 .btn-primary:hover{transform:translateY(-3px)}
 
-/* --- Main centered area --- */
-.main-wrap{position:fixed;inset:94px 0 112px 0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+/* Main centered area */
+.main-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
 
-/* embed card (center-locked) */
-.embed-card{
-  position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);
-  height:70vh;min-height:var(--embed-min-h);border-radius:var(--radius);
-  overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.035);box-shadow:0 40px 110px rgba(2,6,18,0.7);display:flex;flex-direction:column;
-  backdrop-filter: blur(8px) saturate(120%);
-  left:50%;top:50%;transform:translate(-50%,-50%);
-}
+/* embed card */
+.embed-card{position:relative;width:82vw;max-width:1100px;min-width:var(--embed-min-w);height:70vh;min-height:var(--embed-min-h);border-radius:var(--radius);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.035);box-shadow:0 40px 110px rgba(2,6,18,0.7);display:flex;flex-direction:column;backdrop-filter: blur(8px) saturate(120%)}
 
-/* top controls (outside iframe) */
+/* top controls */
 .embed-top{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01))}
-.control{
-  display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
-  background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);cursor:pointer;font-weight:700;
-}
+.control{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);cursor:pointer;font-weight:700}
 .control:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(43,130,255,0.06)}
-
-/* message bubble center (in-card) */
-.msg-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:140;background:rgba(6,10,20,0.64);padding:12px 16px;border-radius:12px;color:var(--muted);display:none;border:1px solid rgba(255,255,255,0.02)}
-.msg-box.visible{display:block}
 
 /* iframe area */
 .embed-frame{flex:1;position:relative;display:block;background:#000}
 iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
 
-/* loader overlay */
-.loader-overlay{position:absolute;inset:56px 0 0 0;display:flex;align-items:center;justify-content:center;z-index:130;pointer-events:none;opacity:0;transition:opacity .22s ease}
+/* message bubble */
+.msg-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:140;background:rgba(6,10,20,0.64);padding:12px 16px;border-radius:12px;color:var(--muted);display:none;border:1px solid rgba(255,255,255,0.02)}
+.msg-box.visible{display:block}
+
+/* loader */
+.loader-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:130;pointer-events:none;opacity:0;transition:opacity .22s ease}
 .loader-overlay.visible{opacity:1;pointer-events:auto;background:linear-gradient(180deg, rgba(6,10,20,0.22), rgba(6,10,20,0.32));backdrop-filter:blur(6px)}
 .loader-spinner{width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.06);border-top-color:var(--accent-b);animation:spin 0.95s linear infinite;box-shadow:0 10px 40px rgba(43,130,255,0.12)}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* horizontal resize edge on the right */
-.resize-edge{position:absolute;top:0;bottom:0;right:-10px;width:20px;cursor:ew-resize;z-index:180}
-.resize-edge::after{content:'';position:absolute;left:4px;top:50%;transform:translateY(-50%);width:6px;height:48px;border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))}
 
 /* games list bottom */
 .games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:70;width:min(var(--max-width),96%);display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
@@ -115,50 +80,43 @@ iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
 </head>
 <body>
 
-<!-- Aurora + overlays -->
-<div class="aurora-wrap" aria-hidden="true">
-  <canvas id="auroraCanvas"></canvas>
-</div>
-<div class="bg-vignette" aria-hidden="true"></div>
-<div class="stars" aria-hidden="true"></div>
+<!-- Aurora & overlays -->
+<div class="aurora-wrap"><canvas id="auroraCanvas"></canvas></div>
+<div class="bg-vignette"></div>
+<div class="stars"></div>
 
 <!-- Top bar -->
-<div class="top-wrap" role="search" aria-label="URL bar">
+<div class="top-wrap">
   <div class="url-box">
-    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed" />
-    <button id="enterBtn" class="btn-primary" aria-label="Load URL">Load</button>
+    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)">
+    <button id="enterBtn" class="btn-primary">Load</button>
     <div style="color:var(--muted);font-size:13px;margin-left:8px">Glass • Aurora • Centered</div>
   </div>
 </div>
 
 <!-- Main area -->
 <main class="main-wrap">
-  <section class="embed-card" id="embedCard" role="region" aria-label="Embed area">
-    <div class="embed-top" role="toolbar" aria-label="Embed controls">
+  <section class="embed-card" id="embedCard">
+    <div class="embed-top">
       <div style="display:flex;gap:8px;align-items:center">
-        <button id="recenterBtn" class="control" title="Re-center">Re-center</button>
+        <button id="recenterBtn" class="control">Re-center</button>
       </div>
       <div style="flex:1"></div>
-      <button id="fullscreenBtn" class="control" title="Fullscreen">Fullscreen</button>
-      <button id="redirectBtn" class="control" title="Redirect">Redirect</button>
+      <button id="fullscreenBtn" class="control">Fullscreen</button>
+      <button id="redirectBtn" class="control">Redirect</button>
     </div>
 
-    <div class="embed-frame" id="embedFrameWrap" aria-live="polite">
-      <div id="loaderOverlay" class="loader-overlay" aria-hidden="true">
+    <div class="embed-frame" id="embedFrameWrap">
+      <div id="loaderOverlay" class="loader-overlay">
         <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
-          <div class="loader-spinner" role="status" aria-label="Loading"></div>
+          <div class="loader-spinner"></div>
           <div style="color:var(--muted);font-size:13px">Loading…</div>
         </div>
       </div>
-
       <iframe id="embedFrame" class="embed-iframe" src="about:blank"
               sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
-              allow="fullscreen; autoplay; microphone; camera; encrypted-media"
-              title="Embedded content"></iframe>
-
-      <div id="msgBox" class="msg-box" role="alert" aria-hidden="true"></div>
-
-      <div id="resizeEdge" class="resize-edge" aria-hidden="true"></div>
+              allow="fullscreen; autoplay; microphone; camera; encrypted-media"></iframe>
+      <div id="msgBox" class="msg-box"></div>
     </div>
   </section>
 </main>
@@ -176,68 +134,61 @@ iframe.embed-iframe{width:100%;height:100%;border:0;background:#000}
   <button class="game-btn" data-url="https://ev.io">ev.io</button>
   <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
   <button class="game-btn" data-url="https://html5games.com">html5games</button>
-  <button class="game-btn" data-url="https://silvergames.com">silvergames.com</button>
+  <button class="game-btn" data-url="https://silvergames.com">SilverGames</button>
+  <button class="game-btn" data-url="https://nexus-is.onthewifi.com/">Nexus</button>
   <button class="game-btn" data-url="https://zearn.buzz.cdn.cloudflare.net/">Velera</button>
   <button class="game-btn" data-url="https://study.info.north-kazakhstan.su.cdn.cloudflare.net/">DayDreamX</button>
   <button class="game-btn" data-url="https://chejfnreeje.vets.co.il/">PeteZah</button>
-  <button class="game-btn" data-url="https://nexus-is.onthewifi.com/">Nexus</button>
 </div>
 
 <script>
-/* =========================================================================== */
-/* ========================== JS LAUNCHER CODE ============================= */
-/* =========================================================================== */
+const iframe=document.getElementById('embedFrame');
+const loaderOverlay=document.getElementById('loaderOverlay');
+const msgBox=document.getElementById('msgBox');
+const urlInput=document.getElementById('urlInput');
+const enterBtn=document.getElementById('enterBtn');
+const recenterBtn=document.getElementById('recenterBtn');
+const fullscreenBtn=document.getElementById('fullscreenBtn');
+const redirectBtn=document.getElementById('redirectBtn');
+const embedCard=document.getElementById('embedCard');
 
-const DBG={info:(...a)=>console.log("%c[GL]","color:#bfefff;background:#012;padding:2px 6px;border-radius:4px;",...a),warn:(...a)=>console.warn("%c[GL WARN]","color:#ffd27f;background:#331a00;padding:2px 6px;border-radius:4px;",...a),error:(...a)=>console.error("%c[GL ERR]","color:#ff9fb5;background:#33000a;padding:2px 6px;border-radius:4px;",...a)};
-DBG.info("Launcher starting");
+/* Loader & messages */
+function showLoader(){loaderOverlay.classList.add('visible')}
+function hideLoader(){loaderOverlay.classList.remove('visible')}
+function showMsg(text,timeout=5000){msgBox.textContent=text;msgBox.classList.add('visible');setTimeout(()=>msgBox.classList.remove('visible'),timeout)}
 
-const canvas=document.getElementById('auroraCanvas');const ctx=canvas.getContext('2d',{alpha:true});let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;});
-
-class Oval{constructor(){this.reset()}reset(){this.x=Math.random()*W;this.y=Math.random()*H;this.w=300+Math.random()*900;this.h=80+Math.random()*380;this.hue=150+Math.random()*80;this.alpha=0.06+Math.random()*0.14;this.vx=0.02+Math.random()*0.18;this.vy=(Math.random()-0.5)*0.06;this.drift=(Math.random()<0.5?-1:1)*(0.01+Math.random()*0.03)}update(){this.x-=this.vx;this.y+=this.vy;this.hue+=this.drift*0.15;if(this.hue>240)this.hue=150;if(this.hue<150)this.hue=240;if(this.x<-this.w)this.x=W+this.w;if(this.y<-this.h)this.y=H+this.h;if(this.y>H+this.h)this.y=-this.h}draw(){const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);g.addColorStop(0,`hsla(${this.hue},86%,56%,${this.alpha})`);g.addColorStop(0.6,`hsla(${this.hue+20},76%,48%,${this.alpha*0.8})`);g.addColorStop(1,`hsla(200,40%,10%,0)`);ctx.globalCompositeOperation='lighter';ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(this.x,this.y,this.w,this.h,0,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation='source-over'}}
-
-const ovals=Array.from({length:14},()=>new Oval());
-(function loop(){ctx.clearRect(0,0,W,H);const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'rgba(3,8,18,0.22)');bg.addColorStop(1,'rgba(2,6,12,0.44)');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);for(const o of ovals){o.update();o.draw()}requestAnimationFrame(loop)})();
-
-/* ==================== UI ELEMENTS ==================== */
-const embedCard=document.getElementById('embedCard');const iframe=document.getElementById('embedFrame');const loaderOverlay=document.getElementById('loaderOverlay');const msgBox=document.getElementById('msgBox');const resizeEdge=document.getElementById('resizeEdge');const urlInput=document.getElementById('urlInput');const enterBtn=document.getElementById('enterBtn');const recenterBtn=document.getElementById('recenterBtn');const fullscreenBtn=document.getElementById('fullscreenBtn');const redirectBtn=document.getElementById('redirectBtn');
-let wasCentered=true;const PAD=10;const MIN_W=320;const MIN_H=260;
-const LOAD_TIMEOUT=12000;const LOAD_RETRIES=2;let loadTimer=null;let retries=0;
-
-function showLoader(){loaderOverlay.classList.add('visible');DBG.info('Loader shown')}
-function hideLoader(){loaderOverlay.classList.remove('visible');DBG.info('Loader hidden')}
-function showMsg(text,timeout=9000){msgBox.textContent=text;msgBox.classList.add('visible');DBG.warn('Message:',text);if(timeout>0)setTimeout(()=>msgBox.classList.remove('visible'),timeout)}
-function recenter(){embedCard.style.left='50%';embedCard.style.top='50%';embedCard.style.transform='translate(-50%,-50%)';DBG.info('Embed re-centered')}
-
-/* ==================== LOAD URL ==================== */
+/* Load URL */
 function loadURL(url){
-  if(!url.startsWith('http'))url='https://'+url;
-  iframe.src='about:blank';retries=0;
+  if(!url.startsWith('http')) url='https://'+url;
   showLoader();
-  function attempt(){
-    iframe.src=url;
-    loadTimer=setTimeout(()=>{
-      retries++;if(retries>LOAD_RETRIES){hideLoader();showMsg('Failed to load URL')}else attempt();
-    },LOAD_TIMEOUT);
-  }
-  attempt();
+  iframe.src=url;
 }
-
-/* ==================== EVENTS ==================== */
-enterBtn.addEventListener('click',()=>{loadURL(urlInput.value)});
-urlInput.addEventListener('keydown',e=>{if(e.key==='Enter'){loadURL(urlInput.value)}});
+enterBtn.addEventListener('click',()=>loadURL(urlInput.value));
+urlInput.addEventListener('keydown',e=>{if(e.key==='Enter') loadURL(urlInput.value)});
 
 /* Game buttons */
 document.querySelectorAll('.game-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{urlInput.value=btn.dataset.url;loadURL(btn.dataset.url)});
+  btn.addEventListener('click',()=>{
+    urlInput.value=btn.dataset.url;
+    loadURL(btn.dataset.url);
+  });
 });
 
-/* recenter */
-recenterBtn.addEventListener('click',()=>recenter());
+/* Centering */
+function recenter(){
+  embedCard.style.position='absolute';
+  embedCard.style.left='50%';
+  embedCard.style.top='50%';
+  embedCard.style.transform='translate(-50%, -50%)';
+}
+recenterBtn.addEventListener('click',recenter);
+window.addEventListener('resize',recenter);
+recenter(); // initial
 
-/* redirect */
+/* Redirect */
 redirectBtn.addEventListener('click',()=>{window.location.href=iframe.src});
 
-/* fullscreen toggle */
+/* Fullscreen toggle */
 let isFullscreen=false;
 fullscreenBtn.addEventListener('click',()=>{
   if(!isFullscreen){
@@ -249,20 +200,9 @@ fullscreenBtn.addEventListener('click',()=>{
   }
 });
 
-/* iframe loader events */
-iframe.addEventListener('load',()=>{
-  hideLoader();clearTimeout(loadTimer);DBG.info('iframe loaded',iframe.src)
-});
-iframe.addEventListener('error',()=>{hideLoader();showMsg('Error loading URL');DBG.warn('iframe error')});
-
-/* ==================== CENTER FIX (always center) ==================== */
-setInterval(()=>{if(wasCentered)recenter()},500);
-
-/* ==================== RESIZE EDGE ==================== */
-let isResizing=false;
-resizeEdge.addEventListener('mousedown',e=>{isResizing=true;e.preventDefault()});
-window.addEventListener('mousemove',e=>{if(isResizing){const newW=e.clientX-embedCard.getBoundingClientRect().left;embedCard.style.width=Math.max(newW,MIN_W)+'px'}})
-window.addEventListener('mouseup',()=>{isResizing=false});
+/* iframe load events */
+iframe.addEventListener('load',()=>{hideLoader()});
+iframe.addEventListener('error',()=>{hideLoader();showMsg('Error loading URL')});
 </script>
 </body>
 </html>
