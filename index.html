@@ -1,242 +1,448 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Modern Embed Launcher</title>
 <style>
-:root{
-  --bg-deep:#040612;
-  --bg-mid:#0a1526;
-  --accent-a:#3dd3c7;
-  --accent-b:#2b82ff;
-  --text:#eaf2ff;
-  --muted: rgba(230,235,255,0.48);
-  --radius:20px;
-  --max-width:1320px;
-}
+  :root{
+    --bg-deep:#040612; --bg-mid:#0a1526;
+    --accent-a:#3dd3c7; --accent-b:#2b82ff;
+    --text:#eaf2ff; --muted: rgba(230,235,255,0.48);
+    --radius:18px; --max-width:1320px;
+    --embed-min-w:320px; --embed-min-h:300px;
+  }
 
-/* Reset */
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;}
-html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;align-items:center;background:var(--bg-mid);}
-body{-webkit-font-smoothing:antialiased;}
+  /* Base layout: always full-viewport */
+  html,body{height:100%;width:100%;margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));-webkit-font-smoothing:antialiased;overflow:hidden;}
 
-/* Aurora background */
-.aurora-wrap{
-  position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;pointer-events:none;
-}
-.aurora-canvas{width:100%;height:100%;display:block;filter:blur(60px);}
+  /* Aurora - full-screen canvas behind everything */
+  .aurora-wrap{position:fixed;inset:0;z-index:-10;pointer-events:none;display:block;}
+  #auroraCanvas{width:100vw;height:100vh;display:block;filter:blur(48px) saturate(120%);opacity:0.95;transform:scale(1.02);} /* blur+scale for soft edges */
 
-/* Top search bar */
-.top-bar{position:relative;z-index:5;width:min(var(--max-width),96%);display:flex;justify-content:center;margin-top:20px;}
-.url-box{display:flex;width:100%;gap:12px;align-items:center;}
-.url-input{flex:1;padding:12px 16px;border-radius:14px;border:none;background:rgba(255,255,255,0.02);color:var(--text);font-size:16px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);transition:all .2s;}
-.url-input:focus{outline:none;box-shadow:0 0 15px var(--accent-b);}
-.url-input::placeholder{color:var(--muted);}
-.enter-btn{padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:white;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 10px 30px rgba(43,130,255,0.14);}
-.enter-btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(4,8,18,0.6);}
+  /* Top bar */
+  .top-bar{position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:30;width:min(var(--max-width),96%);display:flex;align-items:center;gap:12px;padding:6px 12px;}
+  .url-box{flex:1;display:flex;gap:12px;align-items:center;}
+  .url-input{flex:1;padding:12px 14px;border-radius:12px;border:none;background:rgba(255,255,255,0.02);color:var(--text);backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,14,0.6);font-size:15px}
+  .enter-btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(43,130,255,0.12)}
 
-/* Embed card container */
-.embed-wrap{position:relative;z-index:2;width:100%;flex:1;display:flex;justify-content:center;align-items:center;margin-top:12px;}
-.embed-card{
-  position:absolute;
-  width:80%;
-  max-width:1200px;
-  min-width:320px;
-  height:70%;
-  min-height:400px;
-  border-radius:var(--radius);
-  overflow:hidden;
-  background:rgba(255,255,255,0.01);
-  border:1px solid rgba(255,255,255,0.035);
-  box-shadow:0 30px 90px rgba(2,6,18,0.7);
-  display:flex;
-  flex-direction:column;
-  touch-action:none;
-}
+  /* Embed card - fixed and centered by default */
+  .embed-card{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%); /* centered until user drags */
+    width:80vw;
+    max-width:1100px;
+    min-width:var(--embed-min-w);
+    height:70vh;
+    min-height:var(--embed-min-h);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.035);
+    box-shadow:0 30px 80px rgba(2,6,18,0.7);
+    z-index:40;
+    display:flex;
+    flex-direction:column;
+    touch-action:none;
+    transition:box-shadow .18s, transform .12s;
+  }
+  .embed-card.dragging{transition:none;box-shadow:0 40px 120px rgba(2,6,18,0.82);}
 
-/* Iframe fills the card fully */
-.embed-iframe{width:100%;height:100%;border:none;flex:1;display:block;}
+  /* iframe fills */
+  .embed-iframe{width:100%;height:100%;border:0;background:#fff;flex:1;display:block;}
 
-/* Loader */
-.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,10,20,0.28);backdrop-filter:blur(8px);z-index:10;transition:opacity .3s;}
-.loader.hidden{opacity:0;pointer-events:none;}
-.spinner{
-  width:60px;height:60px;border:6px solid rgba(255,255,255,0.1);border-top:6px solid var(--accent-b);border-radius:50%;animation:spin 1s linear infinite;
-}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+  /* controls */
+  .embed-controls{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:60;}
+  .control-btn{width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+  .control-btn:hover{background:rgba(255,255,255,0.12)}
 
-/* Embed controls */
-.embed-controls{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:11;}
-.control-btn{
-  width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;
-}
-.control-btn:hover{background:rgba(255,255,255,0.12);}
+  /* resize handle bottom-right */
+  .resize-handle{position:absolute;right:8px;bottom:8px;width:20px;height:20px;cursor:se-resize;z-index:60;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-radius:4px;box-shadow:inset 0 -2px 6px rgba(0,0,0,0.35);}
 
-/* Resize handle (bottom-right) */
-.resize-handle{
-  position:absolute;
-  width:16px;height:16px;
-  right:4px;bottom:4px;
-  cursor:se-resize;
-  z-index:12;
-}
+  /* games list */
+  .games{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:30;width:min(var(--max-width),96%);display:flex;justify-content:center}
+  .game-list{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .game-btn{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:var(--text);cursor:pointer;font-weight:600;backdrop-filter:blur(6px)}
 
-/* Game buttons */
-.games{position:relative;z-index:2;width:min(1100px,96%);display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:12px;}
-.games h2{margin-top:6px;font-size:20px;color:var(--text);text-shadow:0 4px 18px rgba(0,0,0,0.6);}
-.game-list{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px;}
-.game-btn{padding:10px 18px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);cursor:pointer;backdrop-filter:blur(8px);transition:all .2s;color:var(--text);font-weight:600;position:relative;overflow:hidden;}
-.game-btn::after{content:'';position:absolute;inset:0;border-radius:999px;background:linear-gradient(90deg,var(--accent-a),var(--accent-b));opacity:0;transition:opacity .3s;}
-.game-btn:hover::after{opacity:0.25;}
-.game-btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(4,8,18,0.6);}
-
-/* Responsive */
-@media(max-width:1000px){.embed-card{height:60%;} .aurora-canvas{filter:blur(50px);}}
-@media(max-width:600px){.embed-card{height:50%;}.enter-btn{padding:10px 14px;}.url-input{padding:12px;} .aurora-canvas{filter:blur(40px);}}
+  /* small responsive tweaks */
+  @media (max-width:900px){
+    .embed-card{width:92vw;height:62vh}
+    .top-bar{top:12px}
+    .games{bottom:12px}
+  }
+  @media (max-width:480px){
+    .embed-card{width:96vw;height:56vh}
+    .url-input{font-size:14px}
+  }
 </style>
 </head>
 <body>
 
-<div class="aurora-wrap">
-  <canvas id="auroraCanvas" class="aurora-canvas"></canvas>
-</div>
+  <!-- Aurora -->
+  <div class="aurora-wrap"><canvas id="auroraCanvas"></canvas></div>
 
-<header class="top-bar">
-  <div class="url-box">
-    <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)">
-    <button id="enterBtn" class="enter-btn">Enter</button>
-  </div>
-</header>
+  <!-- Top search -->
+  <header class="top-bar" role="search">
+    <div class="url-box">
+      <input id="urlInput" class="url-input" placeholder="Enter URL (example: slowroads.io)" aria-label="URL to embed">
+      <button id="enterBtn" class="enter-btn">Enter</button>
+    </div>
+  </header>
 
-<main class="embed-wrap">
-  <div class="embed-card" id="embedCard">
-    <div class="embed-controls">
-      <button id="fullscreenBtn" class="control-btn" title="Fullscreen">&#x26F6;</button>
-      <button id="redirectBtn" class="control-btn" title="Open in new tab">&#x21AA;</button>
+  <!-- Embed card (centered by default) -->
+  <div id="embedCard" class="embed-card" role="region" aria-label="Embed area">
+    <div class="embed-controls" aria-hidden="true">
+      <button id="fullscreenBtn" class="control-btn" title="Fullscreen">⤢</button>
+      <button id="redirectBtn" class="control-btn" title="Open in new tab">↗</button>
     </div>
-    <div class="loader" id="loader">
-      <div class="spinner"></div>
+
+    <div id="loader" class="loader" aria-hidden="true" style="pointer-events:none;display:flex;align-items:center;justify-content:center;position:absolute;inset:0;z-index:50;background:rgba(6,10,20,0.24);backdrop-filter:blur(6px)">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:64px;height:64px;border-radius:50%;border:8px solid rgba(255,255,255,0.08);border-top-color:var(--accent-b);animation:spin 1s linear infinite;box-shadow:0 8px 28px rgba(43,130,255,0.12)"></div>
+        <div style="color:var(--muted);font-size:13px">Loading…</div>
+      </div>
     </div>
+
+    <!-- iframe: NOTE sandbox purposely excludes allow-same-origin for safety -->
     <iframe id="embedFrame" class="embed-iframe" src="about:blank" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
-    <div class="resize-handle" id="resizeHandle"></div>
-  </div>
-</main>
 
-<section class="games">
-  <h2>Games</h2>
-  <div class="game-list">
-    <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
-    <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
-    <button class="game-btn" data-url="https://diep.io">diep.io</button>
-    <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
-    <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
-    <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
-    <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
-    <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
-    <button class="game-btn" data-url="https://ev.io">ev.io</button>
-    <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
-    <button class="game-btn" data-url="https://html5games.com/">html5games</button>
-    <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">Browser</button>
+    <div id="resizeHandle" class="resize-handle" aria-hidden="true"></div>
   </div>
-</section>
+
+  <!-- Games -->
+  <section class="games" aria-label="Games list">
+    <div class="game-list" role="list">
+      <button class="game-btn" data-url="https://slowroads.io">slowroads.io</button>
+      <button class="game-btn" data-url="https://bloxd.io">bloxd.io</button>
+      <button class="game-btn" data-url="https://diep.io">diep.io</button>
+      <button class="game-btn" data-url="https://sandboxels.r74n.com">sandboxels</button>
+      <button class="game-btn" data-url="https://jellymar.io">jellymar.io</button>
+      <button class="game-btn" data-url="https://gamesnacks.com">gamesnacks</button>
+      <button class="game-btn" data-url="https://adarkroom.doublespeakgames.com">adarkroom</button>
+      <button class="game-btn" data-url="https://eaglercraft.com">eaglercraft</button>
+      <button class="game-btn" data-url="https://ev.io">ev.io</button>
+      <button class="game-btn" data-url="https://play.gidd.io">gidd.io</button>
+      <button class="game-btn" data-url="https://html5games.com/">html5games</button>
+      <button class="game-btn" data-url="https://dd-student-dash.educationate.space.cdn.cloudflare.net/indev">Browser</button>
+    </div>
+  </section>
 
 <script>
-// --- Aurora Canvas ---
-const canvas=document.getElementById('auroraCanvas');
-const ctx=canvas.getContext('2d');
-let width,height;
-function resizeCanvas(){width=canvas.width=window.innerWidth;height=canvas.height=window.innerHeight;}
-resizeCanvas();
-window.addEventListener('resize',resizeCanvas);
+/* -------------------------
+   Helper / Debug logger
+   ------------------------- */
+function logDbg(...args){ console.log("[EmbedLauncher " + new Date().toLocaleTimeString() + "]", ...args); }
 
-class AuroraOval{
-  constructor(){
-    this.x=Math.random()*width;
-    this.y=Math.random()*height;
-    this.w=300+Math.random()*600;
-    this.h=100+Math.random()*300;
-    this.hue=160+Math.random()*60;
-    this.speedX=0.05+Math.random()*0.05;
-    this.speedY=(Math.random()-0.5)*0.1;
-    this.alpha=0.1+Math.random()*0.15;
+/* -------------------------
+   Aurora - high-quality ovals
+   ------------------------- */
+const canvas = document.getElementById('auroraCanvas');
+const ctx = canvas.getContext('2d', {alpha:true});
+let W = canvas.width = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+window.addEventListener('resize', ()=>{ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
+
+/* Create layered ovals with additive blending for rich aurora */
+class Oval {
+  constructor(){ this.reset(); }
+  reset(){
+    this.x = Math.random()*W;
+    this.y = Math.random()*H;
+    this.w = 350 + Math.random()*700;
+    this.h = 100 + Math.random()*400;
+    this.hue = 150 + Math.random()*80; // green-blue range
+    this.alpha = 0.06 + Math.random()*0.14;
+    this.vx = 0.02 + Math.random()*0.15;
+    this.vy = (Math.random()-0.5) * 0.06;
+    this.drift = (Math.random()<0.5?-1:1) * (0.005 + Math.random()*0.02);
   }
   update(){
-    this.x-=this.speedX;
-    this.y+=this.speedY;
-    if(this.x<-this.w) this.x=width+this.w;
-    if(this.y<-this.h)this.y=height+this.h;
-    if(this.y>height+this.h)this.y= -this.h;
-    this.hue+=0.02;
+    this.x -= this.vx;
+    this.y += this.vy;
+    this.hue += this.drift;
+    if(this.hue > 220) this.hue = 150;
+    if(this.hue < 150) this.hue = 220;
+    if(this.x < -this.w) this.x = W + this.w;
+    if(this.y < -this.h) this.y = H + this.h;
+    if(this.y > H + this.h) this.y = -this.h;
   }
   draw(){
-    const grad=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.w);
-    grad.addColorStop(0,`hsla(${this.hue},80%,60%,${this.alpha})`);
-    grad.addColorStop(1,'hsla(200,50%,10%,0)');
-    ctx.fillStyle=grad;
+    const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.w);
+    g.addColorStop(0, `hsla(${this.hue}, 85%, 56%, ${this.alpha})`);
+    g.addColorStop(0.6, `hsla(${this.hue + 20}, 78%, 45%, ${this.alpha*0.7})`);
+    g.addColorStop(1, `hsla(200,40%,10%,0)`);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.ellipse(this.x,this.y,this.w,this.h,0,0,2*Math.PI);
+    ctx.ellipse(this.x, this.y, this.w, this.h, 0, 0, Math.PI*2);
     ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
   }
 }
-const auroras=Array.from({length:12},()=>new AuroraOval());
-function animateAurora(){ctx.clearRect(0,0,width,height);auroras.forEach(a=>{a.update();a.draw();});requestAnimationFrame(animateAurora);}
-animateAurora();
 
-// --- Embed logic ---
-const iframe=document.getElementById('embedFrame');
-const input=document.getElementById('urlInput');
-const enter=document.getElementById('enterBtn');
-const loader=document.getElementById('loader');
-const fullscreenBtn=document.getElementById('fullscreenBtn');
-const redirectBtn=document.getElementById('redirectBtn');
-const embedCard=document.getElementById('embedCard');
+const ovals = Array.from({length:12}, ()=> new Oval());
+let auroraTick = 0;
+function animateAurora(){
+  auroraTick++;
+  // subtle background wash so the blur has something to blend with
+  ctx.clearRect(0,0,W,H);
+  // draw a faint radial dark-to-deep layer first for depth
+  const bg = ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0, 'rgba(4,10,20,0.25)');
+  bg.addColorStop(1, 'rgba(2,6,14,0.4)');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-// --- Debug logging ---
-function logDebug(...args){console.log(`[EmbedLauncher ${new Date().toLocaleTimeString()}]`,...args);}
-logDebug("Window size:",window.innerWidth,window.innerHeight);
-logDebug("Document body size:",document.body.offsetWidth,document.body.offsetHeight);
-logDebug("Aurora canvas:",canvas);
-logDebug("Embed card:",embedCard);
-logDebug("Iframe:",iframe);
-logDebug("Loader:",loader);
+  // draw ovals with slow updates
+  for (let i=0;i<ovals.length;i++){
+    const o = ovals[i];
+    o.update();
+    o.draw();
+  }
 
-// Normalize URL
-function normalizeUrl(raw){raw=(raw||'').trim();if(!raw)return null;try{if(!/^https?:\/\//i.test(raw))raw='https://'+raw;new URL(raw);return raw;}catch(e){return null;}}
+  // very subtle global hue shift overlay (makes movement feel alive)
+  if (auroraTick % 300 === 0) logDbg("Aurora running - tick", auroraTick);
+  requestAnimationFrame(animateAurora);
+}
+requestAnimationFrame(animateAurora);
 
-function showLoader(){loader.classList.remove('hidden');logDebug('Loader shown');}
-function hideLoader(){loader.classList.add('hidden');logDebug('Loader hidden');}
+/* -------------------------
+   Embed / iframe logic
+   ------------------------- */
+const embedCard = document.getElementById('embedCard');
+const iframe = document.getElementById('embedFrame');
+const loader = document.getElementById('loader');
+const urlInput = document.getElementById('urlInput');
+const enterBtn = document.getElementById('enterBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const redirectBtn = document.getElementById('redirectBtn');
+const resizeHandle = document.getElementById('resizeHandle');
 
-// Iframe events
-iframe.addEventListener('load',()=>{hideLoader();logDebug('Iframe loaded',iframe.src);});
-iframe.addEventListener('error',()=>{hideLoader();logDebug('Iframe error',iframe.src);});
+logDbg("Init sizes", window.innerWidth, window.innerHeight);
 
-// Buttons
-enter.addEventListener('click',()=>{const url=normalizeUrl(input.value);if(!url){input.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:240,iterations:1});input.focus();logDebug('Invalid URL input',input.value);return;}showLoader();iframe.src=url;logDebug('URL loaded',url);});
-input.addEventListener('keydown',(e)=>{if(e.key==='Enter')enter.click();});
-document.querySelectorAll('.game-btn').forEach(btn=>{btn.addEventListener('click',()=>{const url=normalizeUrl(btn.dataset.url);if(!url)return;showLoader();iframe.src=url;logDebug('Game loaded',url);});});
+/* Helpers */
+function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+function showLoader(){ loader.style.display = 'flex'; loader.style.opacity = '1'; logDbg('Loader shown'); }
+function hideLoader(){ loader.style.opacity = '0'; setTimeout(()=>{ loader.style.display='none'; }, 300); logDbg('Loader hidden'); }
+function normalizeUrl(raw){
+  raw = (raw||'').trim();
+  if(!raw) return null;
+  try{
+    if(!/^https?:\/\//i.test(raw)) raw = 'https://'+raw;
+    new URL(raw);
+    return raw;
+  }catch(e){ return null; }
+}
 
-// Fullscreen & redirect
-fullscreenBtn.addEventListener('click',()=>{if(embedCard.requestFullscreen){embedCard.requestFullscreen();}else if(embedCard.webkitRequestFullscreen){embedCard.webkitRequestFullscreen();}logDebug('Fullscreen toggled');});
-redirectBtn.addEventListener('click',()=>{if(iframe.src)window.open(iframe.src,'_blank');logDebug('Redirect clicked',iframe.src);});
+/* Load URL into iframe (safe sandbox without allow-same-origin) */
+function loadUrl(url){
+  if(!url) return;
+  showLoader();
+  iframe.src = url;
+  logDbg('Loading URL', url);
+}
 
-// Resizable & draggable
-const resizeHandle=document.getElementById('resizeHandle');
-let isResizing=false;
-resizeHandle.addEventListener('mousedown',e=>{isResizing=true;e.preventDefault();logDebug('Resize started');});
-window.addEventListener('mousemove',e=>{if(!isResizing)return;let rect=embedCard.getBoundingClientRect();let maxW=window.innerWidth-rect.left-20;let maxH=window.innerHeight-rect.top-20;embedCard.style.width=Math.min(e.clientX-rect.left,maxW)+'px';embedCard.style.height=Math.min(e.clientY-rect.top,maxH)+'px';});
-window.addEventListener('mouseup',()=>{if(isResizing)logDebug('Resize ended');isResizing=false;});
+/* Buttons and input */
+enterBtn.addEventListener('click', ()=> {
+  const url = normalizeUrl(urlInput.value);
+  if(!url){ urlInput.focus(); urlInput.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220}); logDbg('Invalid URL'); return; }
+  loadUrl(url);
+});
+urlInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') enterBtn.click(); });
 
-let isDragging=false, offsetX=0, offsetY=0;
-embedCard.addEventListener('mousedown',e=>{if(e.target===resizeHandle)return;isDragging=true;offsetX=e.clientX-embedCard.getBoundingClientRect().left;offsetY=e.clientY-embedCard.getBoundingClientRect().top;logDebug('Drag started');});
-window.addEventListener('mousemove',e=>{if(!isDragging)return;let left=e.clientX-offsetX;let top=e.clientY-offsetY;left=Math.max(0,Math.min(window.innerWidth-embedCard.offsetWidth,left));top=Math.max(0,Math.min(window.innerHeight-embedCard.offsetHeight,top));embedCard.style.left=left+'px';embedCard.style.top=top+'px';});
-window.addEventListener('mouseup',()=>{if(isDragging)logDebug('Drag ended');isDragging=false;});
+document.querySelectorAll('.game-btn').forEach(b=>{
+  b.addEventListener('click', ()=> {
+    const url = normalizeUrl(b.dataset.url);
+    if(!url) return;
+    loadUrl(url);
+  });
+});
 
-// Center embed
-function centerEmbed(){embedCard.style.left=(window.innerWidth-embedCard.offsetWidth)/2+'px';embedCard.style.top=(window.innerHeight-embedCard.offsetHeight)/2+'px';logDebug('Embed centered');}
-window.addEventListener('resize',centerEmbed);
-centerEmbed();
+/* Iframe events */
+iframe.addEventListener('load', ()=> { hideLoader(); logDbg('iframe loaded', iframe.src); });
+iframe.addEventListener('error', ()=> { hideLoader(); logDbg('iframe error', iframe.src); });
+
+/* Fullscreen: make the iframe visible fullscreen by requesting fullscreen on the embedCard */
+fullscreenBtn.addEventListener('click', ()=> {
+  if(embedCard.requestFullscreen) embedCard.requestFullscreen();
+  else if(embedCard.webkitRequestFullscreen) embedCard.webkitRequestFullscreen();
+  logDbg('Requested fullscreen');
+});
+
+/* Redirect to actual page */
+redirectBtn.addEventListener('click', ()=> {
+  if(iframe.src && iframe.src !== 'about:blank') window.open(iframe.src, '_blank');
+  logDbg('Redirect clicked', iframe.src);
+});
+
+/* -------------------------
+   Center-lock + Dragging
+   - Card starts centered (transform used).
+   - When user mouses down (drag), release transform and set left/top.
+   - Clamp movement to viewport.
+   ------------------------- */
+let isDragging = false;
+let dragOffsetX = 0, dragOffsetY = 0;
+let wasCentered = true; // indicates transform center mode active
+
+function releaseCenteringAndSetLeftTop(){
+  if(!wasCentered) return;
+  // compute current pixel-centered left/top from transform
+  const rect = embedCard.getBoundingClientRect();
+  // convert transform center to explicit left/top (current center)
+  const leftPx = rect.left;
+  const topPx = rect.top;
+  // remove transform and set left/top in px
+  embedCard.style.transform = 'none';
+  embedCard.style.left = `${leftPx}px`;
+  embedCard.style.top = `${topPx}px`;
+  wasCentered = false;
+  logDbg('Centering released; switching to absolute left/top.');
+}
+
+embedCard.addEventListener('pointerdown', (e)=>{
+  // ignore if user clicked the resize handle or controls
+  const target = e.target;
+  if(target === resizeHandle || target.closest('.embed-controls')) return;
+  e.preventDefault();
+  // release centering on first drag
+  releaseCenteringAndSetLeftTop();
+  isDragging = true;
+  embedCard.classList.add('dragging');
+  const rect = embedCard.getBoundingClientRect();
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+  logDbg('Drag start', {left: rect.left, top: rect.top, w: rect.width, h: rect.height});
+  // capture pointer for smooth dragging
+  embedCard.setPointerCapture?.(e.pointerId);
+});
+
+window.addEventListener('pointermove', (e)=>{
+  if(!isDragging) return;
+  e.preventDefault();
+  // clamp so card stays fully visible
+  const cardW = embedCard.offsetWidth;
+  const cardH = embedCard.offsetHeight;
+  const minLeft = 8;
+  const maxLeft = window.innerWidth - cardW - 8;
+  const minTop = 8;
+  const maxTop = window.innerHeight - cardH - 8;
+  let left = e.clientX - dragOffsetX;
+  let top = e.clientY - dragOffsetY;
+  left = clamp(left, minLeft, Math.max(minLeft, maxLeft));
+  top  = clamp(top, minTop, Math.max(minTop, maxTop));
+  embedCard.style.left = `${left}px`;
+  embedCard.style.top  = `${top}px`;
+});
+
+window.addEventListener('pointerup', (e)=>{
+  if(isDragging){
+    isDragging = false;
+    embedCard.classList.remove('dragging');
+    embedCard.releasePointerCapture?.(e.pointerId);
+    logDbg('Drag end', {left: embedCard.style.left, top: embedCard.style.top});
+  }
+});
+
+/* -------------------------
+   Resizing with constraints
+   ------------------------- */
+let isResizing = false;
+let resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
+resizeHandle.addEventListener('pointerdown', (e)=>{
+  e.preventDefault(); e.stopPropagation();
+  releaseCenteringAndSetLeftTop();
+  isResizing = true;
+  resizeStartW = embedCard.offsetWidth;
+  resizeStartH = embedCard.offsetHeight;
+  resizeStartX = e.clientX;
+  resizeStartY = e.clientY;
+  embedCard.classList.add('dragging');
+  logDbg('Resize start', {w:resizeStartW,h:resizeStartH});
+  resizeHandle.setPointerCapture?.(e.pointerId);
+});
+
+window.addEventListener('pointermove', (e)=>{
+  if(!isResizing) return;
+  e.preventDefault();
+  const dx = e.clientX - resizeStartX;
+  const dy = e.clientY - resizeStartY;
+  let newW = Math.max(parseInt(getComputedStyle(embedCard).minWidth || 320), resizeStartW + dx);
+  let newH = Math.max(parseInt(getComputedStyle(embedCard).minHeight || 300), resizeStartH + dy);
+  // clamp to viewport so it never grows off-screen
+  const leftPx = wasCentered ? (window.innerWidth - newW) / 2 : parseFloat(embedCard.style.left || 0);
+  const topPx  = wasCentered ? (window.innerHeight - newH) / 2 : parseFloat(embedCard.style.top || 0);
+  newW = Math.min(newW, window.innerWidth - 16);      // 8px padding left/right
+  newH = Math.min(newH, window.innerHeight - 16);     // 8px padding top/bottom
+  embedCard.style.width = `${newW}px`;
+  embedCard.style.height = `${newH}px`;
+  // after resize, ensure position still clamped
+  const maxLeft = window.innerWidth - newW - 8;
+  const maxTop  = window.innerHeight - newH - 8;
+  if(!wasCentered){
+    let curLeft = parseFloat(embedCard.style.left || 0);
+    let curTop  = parseFloat(embedCard.style.top  || 0);
+    curLeft = clamp(curLeft, 8, Math.max(8, maxLeft));
+    curTop  = clamp(curTop, 8, Math.max(8, maxTop));
+    embedCard.style.left = curLeft + 'px';
+    embedCard.style.top  = curTop  + 'px';
+  } else {
+    // if still centered, keep it visually centered by adjusting left/top when transform removed
+    embedCard.style.left = ((window.innerWidth - newW)/2) + 'px';
+    embedCard.style.top  = ((window.innerHeight - newH)/2) + 'px';
+  }
+});
+
+window.addEventListener('pointerup', (e)=>{
+  if(isResizing){
+    isResizing = false;
+    embedCard.classList.remove('dragging');
+    resizeHandle.releasePointerCapture?.(e.pointerId);
+    logDbg('Resize end', {w:embedCard.offsetWidth, h:embedCard.offsetHeight, left:embedCard.style.left, top:embedCard.style.top});
+  }
+});
+
+/* -------------------------
+   Keep centered on window resize (only if not dragged)
+   ------------------------- */
+window.addEventListener('resize', ()=> {
+  if(wasCentered){
+    // keep transform centered; nothing needed because transform centers
+    logDbg('Window resized - still center-locked');
+  } else {
+    // if card is positioned absolute, clamp within new viewport
+    const w = embedCard.offsetWidth, h = embedCard.offsetHeight;
+    const left = parseFloat(embedCard.style.left || 0);
+    const top  = parseFloat(embedCard.style.top || 0);
+    const clampedLeft = clamp(left, 8, Math.max(8, window.innerWidth - w - 8));
+    const clampedTop  = clamp(top, 8, Math.max(8, window.innerHeight - h - 8));
+    embedCard.style.left = clampedLeft + 'px';
+    embedCard.style.top  = clampedTop  + 'px';
+    logDbg('Window resized - clamped card to viewport');
+  }
+});
+
+/* -------------------------
+   Initial safety: ensure embed card visible (unclipped)
+   ------------------------- */
+(function ensureVisibleOnStart(){
+  // quick clamp and center to viewport
+  const w = embedCard.offsetWidth, h = embedCard.offsetHeight;
+  const left = (window.innerWidth - w) / 2;
+  const top  = (window.innerHeight - h) / 2;
+  embedCard.style.left = left + 'px';
+  embedCard.style.top  = top + 'px';
+  // keep transform for perfect centering (we set left/top but transform still used)
+  wasCentered = true;
+  logDbg('Initial embed position set and center-locked');
+})();
+
+/* -------------------------
+   Safety notes in console
+   ------------------------- */
+logDbg('Sandbox used: allow-scripts, allow-forms, allow-modals, allow-popups (NO allow-same-origin)');
+
 </script>
-
 </body>
 </html>
