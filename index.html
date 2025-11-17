@@ -21,14 +21,14 @@
       -moz-osx-font-smoothing:grayscale;
     }
 
-    /* GPU hint */
+    /* Performance hint: GPU promotion for key containers */
     .frame-box, .sidebar, .topbar, .ctrl-btn, .window { will-change: transform, opacity; }
 
     /* Particles (behind everything) */
     #particles{position:fixed;inset:0;z-index:0;pointer-events:none}
-    .particle{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(138,176,255,0.08);box-shadow:0 0 12px rgba(138,176,255,0.06)}
+    .particle{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(138,176,255,0.08);box-shadow:0 0 12px rgba(138,176,255,0.06);transform-origin:center}
 
-    /* Ambient glow that follows the mouse */
+    /* Ambient glow */
     #ambient{
       position:fixed;left:0;top:0;width:420px;height:420px;pointer-events:none;z-index:1;opacity:0;mix-blend-mode:screen;transition:opacity .3s ease;
       background:radial-gradient(circle at center, rgba(138,176,255,0.18) 0%, rgba(10,30,60,0.0) 60%);
@@ -72,11 +72,31 @@
 
     iframe{width:100%;height:100%;border:0;background:white}
 
-    /* Loader */
-    #loader{position:absolute;z-index:10;width:64px;height:64px;border-radius:50%;border:6px solid rgba(255,255,255,0.06);border-top-color:#8ab0ff;animation:spin 1s linear infinite;opacity:0;transform:translateY(-20px);transition:opacity .22s, transform .22s}
-    .loading #loader{opacity:1;transform:translateY(0)}
-
-    @keyframes spin{to{transform:rotate(360deg)}}
+    /* ======== FIXED LOADER (no-freeze) ======== */
+    #loader{
+      position:absolute;
+      z-index:10;
+      width:64px;
+      height:64px;
+      border-radius:50%;
+      border:6px solid rgba(255,255,255,0.06);
+      border-top-color:#8ab0ff;
+      animation:spin 1s linear infinite;
+      opacity:0;
+      transform:translateY(-20px);
+      transition:opacity .22s, transform .22s;
+      will-change: transform, opacity, rotate;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); rotate: 0deg; }
+      100% { transform: rotate(360deg); rotate: 360deg; }
+    }
+    .frame-box.loading #loader{
+      opacity:1 !important;
+      transform:translateY(0) !important;
+    }
 
     /* Windowed mode */
     .window{position:absolute;width:80%;height:76%;left:10%;top:8%;border-radius:12px;background:linear-gradient(180deg, rgba(7,22,43,0.6), rgba(6,18,36,0.65));box-shadow:0 30px 80px rgba(4,12,30,0.6);border:1px solid rgba(138,176,255,0.06);z-index:20;display:flex;flex-direction:column;overflow:hidden;resize:both}
@@ -95,7 +115,10 @@
     @media (max-width:760px){
       /* hide desktop sidebar visually (we still keep it in DOM) */
       .sidebar{display:none}
-
+      /* remove heavy blurs & shadows on mobile for perf */
+      .frame-box{backdrop-filter:none;border-radius:0}
+      .topbar{backdrop-filter:none}
+      .proxy-btn .icon{box-shadow:none}
       /* topbar becomes compact with menu button */
       .topbar{width:100%;height:56px;border-radius:0;margin-top:0;padding:8px 12px;justify-content:flex-start}
       .stats{margin-left:8px}
@@ -118,6 +141,12 @@
 
       /* reduce particle intensity on mobile */
       .particle{display:none}
+    }
+
+    /* Prefer reduced motion: minimize animations */
+    @media (prefers-reduced-motion: reduce){
+      .frame-box::after, .proxy-btn, .ctrl-btn, .particle, #ambient { animation: none !important; transition: none !important; }
+      #loader { animation: none !important; }
     }
 
     /* Small helpers */
@@ -149,7 +178,7 @@
     </div>
 
     <section class="frame-box" id="frameBox">
-      <div id="loader"></div>
+      <div id="loader" aria-hidden="true"></div>
       <iframe id="frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
     </section>
   </main>
@@ -180,7 +209,7 @@
   </div>
 
 <script>
-// ---------- Proxy list ----------
+/* ========= DATA & DOM REFS (unchanged) ========= */
 const proxies = {
   "DayDreamX": "https://study.info.north-kazakhstan.su.cdn.cloudflare.net/",
   "Velera": "https://zearn.buzz.cdn.cloudflare.net/",
@@ -192,10 +221,7 @@ const proxies = {
   "DogeUB": "https://math.linked8.net/indev",
   "RammerHead": "https://geo.searchgpy.com/"
 };
-
-const icons = {
-  "DayDreamX":"🌙","Velera":"⚡","Truffled":"🎨","PeteZah":"🐶","UniUB v4":"🏛️","Rosin":"🧪","Nexus":"🔗","DogeUB":"🐕","RammerHead":"🛰️"
-}
+const icons = {"DayDreamX":"🌙","Velera":"⚡","Truffled":"🎨","PeteZah":"🐶","UniUB v4":"🏛️","Rosin":"🧪","Nexus":"🔗","DogeUB":"🐕","RammerHead":"🛰️"};
 
 const proxyList = document.getElementById('proxyList');
 const mobileProxyList = document.getElementById('mobileProxyList');
@@ -211,30 +237,28 @@ const mobileMenuClose = document.getElementById('mobileMenuClose');
 
 let activeName = null;
 
+/* ========= UI: create lists (unchanged) ========= */
 function makeButton(name,url){
   const btn = document.createElement('button');
   btn.className = 'proxy-btn';
-  btn.innerHTML = `<div class=\"icon\">${icons[name]||'🌐'}</div><div class=\"label\">${name}</div>`;
+  btn.innerHTML = `<div class="icon">${icons[name]||'🌐'}</div><div class="label">${name}</div>`;
   btn.onclick = () => switchProxy(name,url,btn);
   return btn;
 }
-
 function makeMobileButton(name,url){
   const div = document.createElement('div');
   div.className = 'mobile-proxy-btn';
-  div.innerHTML = `<div style=\"width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, rgba(138,176,255,0.08), rgba(90,120,255,0.04));font-size:20px\">${icons[name]||'🌐'}</div><div style=\"flex:1;font-weight:600\">${name}</div>`;
+  div.innerHTML = `<div style="width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, rgba(138,176,255,0.08), rgba(90,120,255,0.04));font-size:20px">${icons[name]||'🌐'}</div><div style="flex:1;font-weight:600">${name}</div>`;
   div.onclick = ()=>{ switchProxy(name,url); closeMobileMenu(); };
   return div;
 }
-
 Object.entries(proxies).forEach(([name,url])=>{
   proxyList.appendChild(makeButton(name,url));
-  mobileProxyList.appendChild(makeMobileButton(name,url));
+  if(mobileProxyList) mobileProxyList.appendChild(makeMobileButton(name,url));
 });
 
-// ---------- Switch proxy with animated tab change ----------
+/* ========= Switch proxies (unchanged behavior) ========= */
 function switchProxy(name,url,btn){
-  // deactive (desktop list)
   Array.from(proxyList.children).forEach(n=>n.classList.remove('active'));
   if(btn) btn.classList.add('active');
   activeName = name;
@@ -242,7 +266,6 @@ function switchProxy(name,url,btn){
   currentURL.textContent = url||'';
   showLoader(true);
 
-  // small animated fade-out/in of iframe for tab switch
   frame.style.transition = 'opacity .28s ease';
   frame.style.opacity = '0.12';
   setTimeout(()=>{
@@ -255,14 +278,13 @@ function switchProxy(name,url,btn){
     };
   }, 240);
 }
-
 function showLoader(show){ if(show){ frameBox.classList.add('loading'); } else { frameBox.classList.remove('loading'); } }
 
-// auto-select first
+/* auto-select first */
 const firstBtn = proxyList.querySelector('.proxy-btn');
 if(firstBtn) firstBtn.click();
 
-// ---------- Mobile menu handlers ----------
+/* ========= Mobile menu handlers (unchanged) ========= */
 function openMobileMenu(){
   mobileMenu.style.display = 'block';
   mobileMenuBtn.style.display = 'none';
@@ -273,82 +295,147 @@ function closeMobileMenu(){
   mobileMenuBtn.style.display = isMobile()? 'block':'none';
   document.body.style.overflow = '';
 }
-mobileMenuBtn.addEventListener('click',openMobileMenu);
-mobileMenuClose.addEventListener('click',closeMobileMenu);
+if(mobileMenuBtn) mobileMenuBtn.addEventListener('click',openMobileMenu);
+if(mobileMenuClose) mobileMenuClose.addEventListener('click',closeMobileMenu);
 
-// ---------- Particles (reduced on mobile) ----------
-const particles = document.getElementById('particles');
-function spawnParticles(n=28){
-  if(isMobile()) n = Math.max(0, Math.min(6, Math.floor(n/6))) ;
+/* ========= PERFORMANCE: Helpers & feature detection ========= */
+const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+function isMobile(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
+
+/* ========= PARTICLES: adaptive system ========= */
+let particleTimer = null;
+let desiredParticleBurst = 12;        // baseline
+let PARTICLE_MAX = 28;
+let lastParticleSpawn = 0;
+let particlesPaused = false;
+function spawnParticles(n=12){
+  if(particlesPaused || prefersReducedMotion) return;
+  // clamp n
+  n = Math.max(0, Math.min(PARTICLE_MAX, n));
+  const now = performance.now();
+  // throttle spawn frequency (don't spawn too often)
+  if(now - lastParticleSpawn < 600) return;
+  lastParticleSpawn = now;
+
   for(let i=0;i<n;i++){
     const p = document.createElement('div');
     p.className='particle';
     const left = Math.random()*100;
     p.style.left = left+'%';
     p.style.top = (90+Math.random()*20)+'%';
-    const size = 3+Math.random()*6;
+    const size = 2 + Math.random()*7;
     p.style.width = size+'px'; p.style.height = size+'px';
-    particles.appendChild(p);
-    const rise = 10+Math.random()*40;
-    const dur = 8+Math.random()*12;
-    p.animate([{transform:`translateY(0)`,opacity:1},{transform:`translateY(-${rise}vh)`,opacity:0}],{duration:dur*1000,iterations:1,easing:'ease-out'}).onfinish = ()=>p.remove();
+    document.getElementById('particles').appendChild(p);
+    const rise = 10 + Math.random()*40;
+    const dur = 6 + Math.random()*12;
+    // use Web Animations API (better control, and removed heavy CSS transitions)
+    try{
+      const anim = p.animate([{transform:'translateY(0)',opacity:1},{transform:`translateY(-${rise}vh)`,opacity:0}],{duration:dur*1000,easing:'ease-out'});
+      anim.onfinish = ()=> p.remove();
+    } catch(e){
+      // fallback
+      setTimeout(()=>p.remove(), (dur*1000)+100);
+    }
   }
 }
-setInterval(()=>spawnParticles(12),2200);
-spawnParticles(36);
 
-// ---------- Ambient glow follow pointer (only on non-touch to save perf) ----------
-const ambient = document.getElementById('ambient');
-if(!('ontouchstart' in window)){
-  window.addEventListener('mousemove',e=>{
-    ambient.style.left = (e.clientX-210)+'px';
-    ambient.style.top = (e.clientY-210)+'px';
-    ambient.style.opacity = 1;
-  });
-  window.addEventListener('mouseout',()=>ambient.style.opacity=0);
-} else {
-  // hide ambient on touch devices
-  ambient.style.display = 'none';
+/* Adaptive: reduce particles when FPS is low */
+let fpsSamples = [];
+function adaptiveParticleControl(fps){
+  // keep samples
+  fpsSamples.push(fps);
+  if(fpsSamples.length>8) fpsSamples.shift();
+  const avg = fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length;
+  if(avg < 35){
+    PARTICLE_MAX = 8; desiredParticleBurst = 6;
+  } else if(avg < 50){
+    PARTICLE_MAX = 16; desiredParticleBurst = 10;
+  } else {
+    PARTICLE_MAX = 28; desiredParticleBurst = 14;
+  }
 }
 
-// ---------- FPS counter (optimized) ----------
-let fpsLast = performance.now(); let fpsFrames = 0;
+/* Pause particles when document hidden */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ particlesPaused = true; } else { particlesPaused = false; spawnParticles(desiredParticleBurst); }
+}, {passive:true});
+
+/* start small bursts, but only if allowed */
+if(!isTouch && !prefersReducedMotion){
+  spawnParticles(36);
+  particleTimer = setInterval(()=>spawnParticles(desiredParticleBurst), 2200);
+}
+
+/* ========= Ambient glow: throttled pointer handling ========= */
+const ambient = document.getElementById('ambient');
+let ambientTick = null;
+let lastPointer = {x:0,y:0};
+function onPointerMove(e){
+  // throttle via requestAnimationFrame
+  lastPointer.x = e.clientX;
+  lastPointer.y = e.clientY;
+  if(ambientTick) return;
+  ambientTick = requestAnimationFrame(()=>{
+    ambient.style.left = (lastPointer.x - 210) + 'px';
+    ambient.style.top = (lastPointer.y - 210) + 'px';
+    ambient.style.opacity = 1;
+    ambientTick = null;
+  });
+}
+if(!isTouch && !prefersReducedMotion){
+  window.addEventListener('mousemove', onPointerMove, {passive:true});
+  window.addEventListener('mouseout', ()=> ambient.style.opacity = 0, {passive:true});
+} else {
+  // hide ambient on touch devices or reduced motion
+  if(ambient) ambient.style.display = 'none';
+}
+
+/* ========= FPS counter (optimized) ========= */
+let fpsLast = performance.now(), fpsFrames = 0;
 function updateFPS(now){
   fpsFrames++;
-  if(now - fpsLast >= 1000){ document.getElementById('fps').textContent = `FPS: ${fpsFrames}`; fpsFrames = 0; fpsLast = now; }
+  if(now - fpsLast >= 1000){
+    const fps = fpsFrames;
+    document.getElementById('fps').textContent = `FPS: ${fps}`;
+    fpsFrames = 0;
+    fpsLast = now;
+    adaptiveParticleControl(fps);
+  }
   requestAnimationFrame(updateFPS);
 }
 requestAnimationFrame(updateFPS);
 
-// ---------- Accurate Ping (Image technique) ----------
+/* ========= Ping (unchanged image technique, low overhead) ========= */
 async function pingHost(){
-  return new Promise(resolve=>{
-    try{
-      const img = new Image();
-      const start = performance.now();
-      img.onload = img.onerror = ()=>{
-        const ms = Math.max(1, Math.round(performance.now()-start));
-        document.getElementById('ping').textContent = `PING: ${ms}ms`;
-        resolve(ms);
-      };
-      // randomize to avoid cache
-      img.src = 'https://www.google.com/favicon.ico?cachebust=' + Math.random();
-    }catch(e){ document.getElementById('ping').textContent = 'PING: --'; resolve(null); }
-  });
+  if(prefersReducedMotion) return;
+  try{
+    const img = new Image();
+    const start = performance.now();
+    img.onload = img.onerror = ()=>{
+      const ms = Math.max(1, Math.round(performance.now()-start));
+      document.getElementById('ping').textContent = `PING: ${ms}ms`;
+    };
+    img.src = 'https://www.google.com/favicon.ico?cachebust=' + Math.random();
+  }catch(e){ document.getElementById('ping').textContent = 'PING: --'; }
 }
-setInterval(()=>{ pingHost(); }, 1500);
+setInterval(()=>{ if(!document.hidden) pingHost(); }, 1500);
 pingHost();
 
-// ---------- Status/time ----------
+/* ========= Status/time (unchanged) ========= */
 function updateTime(){document.getElementById('localTime').textContent = new Date().toLocaleString();}
 setInterval(updateTime,1000); updateTime();
 
-// ---------- Fullscreen ----------
-document.getElementById('fullscreen').addEventListener('click',()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); });
+/* ========= Fullscreen (unchanged) ========= */
+document.getElementById('fullscreen').addEventListener('click', ()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}, {passive:true});
 
-// ---------- Windowed mode (draggable + resizable) with mobile scroll lock ----------
-let win = null; const winToggle = document.getElementById('windowToggle');
-winToggle.addEventListener('click',()=>{ if(!win) openWindowed(); else closeWindowed(); });
+/* ========= Windowed mode (unchanged, with scroll lock) ========= */
+let win = null;
+const winToggle = document.getElementById('windowToggle');
+winToggle.addEventListener('click', ()=>{ if(!win) openWindowed(); else closeWindowed(); }, {passive:true});
 
 function lockScroll(lock){ document.body.style.overflow = lock ? 'hidden' : ''; }
 
@@ -368,28 +455,37 @@ function onDragStart(e){ lockScroll(true); dragState={x:e.clientX,y:e.clientY,le
 function onDragMove(e){ if(!dragState) return; const dx=e.clientX-dragState.x, dy=e.clientY-dragState.y; win.style.left = (dragState.left+dx)+'px'; win.style.top = (dragState.top+dy)+'px'; }
 function onDragEnd(){ lockScroll(false); dragState=null; if(win) win.style.cursor='default'; window.removeEventListener('pointermove',onDragMove); window.removeEventListener('pointerup',onDragEnd); }
 
-// ---------- Extra polish: small fades on hover for frameBox ----------
-frameBox.addEventListener('mouseenter',()=>frameBox.style.transform='translateY(-6px)'); frameBox.addEventListener('mouseleave',()=>frameBox.style.transform='translateY(0)');
+/* ========= Hover polish (unchanged) ========= */
+frameBox.addEventListener('mouseenter', ()=> frameBox.style.transform = 'translateY(-6px)');
+frameBox.addEventListener('mouseleave', ()=> frameBox.style.transform = 'translateY(0)');
 
-// ---------- graceful iframe errors ----------
-frame.addEventListener('error',()=>{showLoader(false);statusText.textContent='Load failed (may block embed)';});
+/* ========= Graceful iframe error (unchanged) ========= */
+frame.addEventListener('error', ()=> { showLoader(false); statusText.textContent='Load failed (may block embed)'; });
 
-// ---------- Small accessibility: keyboard nav ----------
+/* ========= Keyboard nav (unchanged) ========= */
 window.addEventListener('keydown',(e)=>{
   if(e.key==='ArrowRight' || e.key==='ArrowDown'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const next=btns[(idx+1)%btns.length]; if(next) next.click(); }
   else if(e.key==='ArrowLeft' || e.key==='ArrowUp'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const prev=btns[(idx-1+btns.length)%btns.length]; if(prev) prev.click(); }
 });
 
-// ---------- Mobile detection helpers ----------
-function isMobile(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
-
-// show/hide mobile menu button based on device
+/* ========= Mobile helpers (unchanged) ========= */
 function applyMobileUI(){ if(isMobile()){ mobileMenuBtn.style.display='block'; } else { mobileMenuBtn.style.display='none'; mobileMenu.style.display='none'; document.body.style.overflow=''; } }
-window.addEventListener('resize',applyMobileUI); applyMobileUI();
+window.addEventListener('resize', applyMobileUI, {passive:true}); applyMobileUI();
 
-// ---------- initial small spawn of particles periodically ----------
-setInterval(()=>spawnParticles(6),3500);
+/* ========= Visibility / cleanup ========= */
+window.addEventListener('beforeunload', ()=>{
+  // cleanup timers/animations
+  if(particleTimer) clearInterval(particleTimer);
+}, {passive:true});
 
+/* ========= Kick off small periodic work responsibly ========= */
+if(!document.hidden && !prefersReducedMotion){
+  // spawn adaptive particle bursts periodically at low priority
+  setTimeout(()=>spawnParticles(desiredParticleBurst), 800);
+  // continued bursts are already scheduled above only if not touch/reduced
+}
+
+/* ========= End of script ========= */
 </script>
 </body>
 </html>
