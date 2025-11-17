@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Modern Proxy Hub</title>
+
+  <!-- TAB TITLE + FAVICON -->
+  <title>Home</title>
+  <link rel="icon" type="image/png" href="https://ssl.gstatic.com/classroom/favicon.png">
+
   <style>
     /* Reset & base */
     *{box-sizing:border-box;margin:0;padding:0}
@@ -17,6 +21,9 @@
       -moz-osx-font-smoothing:grayscale;
     }
 
+    /* GPU hint */
+    .frame-box, .sidebar, .topbar, .ctrl-btn, .window { will-change: transform, opacity; }
+
     /* Particles (behind everything) */
     #particles{position:fixed;inset:0;z-index:0;pointer-events:none}
     .particle{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(138,176,255,0.08);box-shadow:0 0 12px rgba(138,176,255,0.06)}
@@ -28,7 +35,7 @@
       filter:blur(40px);
     }
 
-    /* Sidebar */
+    /* Sidebar (desktop) */
     .sidebar{
       position:fixed;left:0;top:0;height:100vh;width:72px;padding:14px;z-index:5;
       background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
@@ -39,10 +46,7 @@
     .sidebar h2{font-size:16px;margin-bottom:10px;letter-spacing:0.2px;opacity:0;color:#dce9ff}
     .sidebar:hover h2{opacity:1}
     .proxy-list{display:flex;flex-direction:column;gap:8px}
-    .proxy-btn{
-      display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:10px;cursor:pointer;
-      background:transparent;color:inherit;border:none;outline:none;transition:transform .12s ease, background .18s;
-    }
+    .proxy-btn{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:10px;cursor:pointer;background:transparent;color:inherit;border:none;outline:none;transition:transform .12s ease, background .18s}
     .proxy-btn .icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:linear-gradient(135deg, rgba(138,176,255,0.12), rgba(90,120,255,0.06));box-shadow:inset 0 -6px 16px rgba(5,10,20,0.18)}
     .proxy-btn .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0}
     .sidebar:hover .proxy-btn .label{opacity:1}
@@ -87,15 +91,44 @@
     .status-left{display:flex;gap:12px;align-items:center;font-size:13px}
     .status-right{display:flex;gap:12px;align-items:center;font-size:13px}
 
+    /* Mobile: Option C full mobile redesign */
+    @media (max-width:760px){
+      /* hide desktop sidebar visually (we still keep it in DOM) */
+      .sidebar{display:none}
+
+      /* topbar becomes compact with menu button */
+      .topbar{width:100%;height:56px;border-radius:0;margin-top:0;padding:8px 12px;justify-content:flex-start}
+      .stats{margin-left:8px}
+      .top-actions{right:8px}
+      .ctrl-btn{width:40px;height:40px}
+
+      /* make iframe area full */
+      .main{margin-left:0;padding:8px}
+      .frame-box{width:100%;height:calc(100vh - 56px);margin-top:8px;border-radius:0}
+      iframe{border-radius:0}
+
+      /* status-bar moved into compact footer or hidden */
+      .status-bar{left:8px;right:8px;bottom:8px;height:44px;border-radius:8px}
+
+      /* overlay menu (popup) */
+      .mobile-menu-overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(3,8,18,0.9), rgba(3,8,18,0.94));z-index:40;display:flex;flex-direction:column;padding:18px;gap:12px}
+      .mobile-menu-header{display:flex;align-items:center;justify-content:space-between}
+      .mobile-proxy-list{display:flex;flex-direction:column;gap:10px;overflow:auto;padding-top:8px}
+      .mobile-proxy-btn{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);cursor:pointer}
+
+      /* reduce particle intensity on mobile */
+      .particle{display:none}
+    }
+
     /* Small helpers */
     .label-muted{opacity:0.7;font-weight:500}
-    @media (max-width:900px){.sidebar{width:56px}.sidebar:hover{width:160px}.main{margin-left:56px}.frame-box{width:calc(100% - 96px)}}
   </style>
 </head>
 <body>
   <div id="particles"></div>
   <div id="ambient"></div>
 
+  <!-- Desktop sidebar (hidden on mobile) -->
   <aside class="sidebar" id="sidebar">
     <h2>Proxies</h2>
     <div class="proxy-list" id="proxyList"></div>
@@ -103,7 +136,11 @@
 
   <main class="main">
     <div class="topbar">
-      <div class="stats"><div id="fps">FPS: [ ]</div><div id="ping">PING: [ ]</div></div>
+      <!-- Mobile menu button (visible on mobile) -->
+      <div id="mobileMenuBtn" style="display:none;cursor:pointer;padding:6px;border-radius:8px;background:rgba(255,255,255,0.02);margin-right:8px">☰</div>
+
+      <div class="stats"><div id="fps">FPS: [ ]</div><div id="ping" style="margin-left:14px">PING: [ ]</div></div>
+
       <div class="top-actions">
         <div class="ctrl-btn" id="fullscreen" title="Fullscreen">⛶</div>
         <div class="ctrl-btn" id="redirect" title="Open in new tab">↗</div>
@@ -116,6 +153,17 @@
       <iframe id="frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
     </section>
   </main>
+
+  <!-- Mobile overlay menu (Option C) -->
+  <div id="mobileMenu" style="display:none">
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+      <div class="mobile-menu-header">
+        <div style="font-weight:700;font-size:18px">Proxies</div>
+        <div id="mobileMenuClose" style="cursor:pointer">✕</div>
+      </div>
+      <div class="mobile-proxy-list" id="mobileProxyList"></div>
+    </div>
+  </div>
 
   <div class="status-bar" id="statusBar">
     <div class="status-left">
@@ -150,45 +198,56 @@ const icons = {
 }
 
 const proxyList = document.getElementById('proxyList');
+const mobileProxyList = document.getElementById('mobileProxyList');
 const frame = document.getElementById('frame');
 const loader = document.getElementById('loader');
 const frameBox = document.getElementById('frameBox');
 const statusText = document.getElementById('statusText');
 const currentURL = document.getElementById('currentURL');
 const redirectBtn = document.getElementById('redirect');
+const mobileMenu = document.getElementById('mobileMenu');
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const mobileMenuClose = document.getElementById('mobileMenuClose');
 
 let activeName = null;
 
 function makeButton(name,url){
   const btn = document.createElement('button');
   btn.className = 'proxy-btn';
-  btn.innerHTML = `<div class="icon">${icons[name]||'🌐'}</div><div class="label">${name}</div>`;
+  btn.innerHTML = `<div class=\"icon\">${icons[name]||'🌐'}</div><div class=\"label\">${name}</div>`;
   btn.onclick = () => switchProxy(name,url,btn);
   return btn;
 }
 
+function makeMobileButton(name,url){
+  const div = document.createElement('div');
+  div.className = 'mobile-proxy-btn';
+  div.innerHTML = `<div style=\"width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, rgba(138,176,255,0.08), rgba(90,120,255,0.04));font-size:20px\">${icons[name]||'🌐'}</div><div style=\"flex:1;font-weight:600\">${name}</div>`;
+  div.onclick = ()=>{ switchProxy(name,url); closeMobileMenu(); };
+  return div;
+}
+
 Object.entries(proxies).forEach(([name,url])=>{
   proxyList.appendChild(makeButton(name,url));
+  mobileProxyList.appendChild(makeMobileButton(name,url));
 });
 
 // ---------- Switch proxy with animated tab change ----------
 function switchProxy(name,url,btn){
-  // deactive
+  // deactive (desktop list)
   Array.from(proxyList.children).forEach(n=>n.classList.remove('active'));
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
   activeName = name;
   statusText.textContent = `Loading ${name}...`;
-  currentURL.textContent = url;
+  currentURL.textContent = url||'';
   showLoader(true);
 
   // small animated fade-out/in of iframe for tab switch
   frame.style.transition = 'opacity .28s ease';
   frame.style.opacity = '0.12';
   setTimeout(()=>{
-    // set src and hook onload
     frame.src = url;
     redirectBtn.onclick = ()=>window.open(url,'_blank');
-    // record status
     frame.onload = ()=>{
       frame.style.opacity = '1';
       showLoader(false);
@@ -197,21 +256,30 @@ function switchProxy(name,url,btn){
   }, 240);
 }
 
-function showLoader(show){
-  if(show){
-    frameBox.classList.add('loading');
-  } else {
-    frameBox.classList.remove('loading');
-  }
-}
+function showLoader(show){ if(show){ frameBox.classList.add('loading'); } else { frameBox.classList.remove('loading'); } }
 
 // auto-select first
 const firstBtn = proxyList.querySelector('.proxy-btn');
 if(firstBtn) firstBtn.click();
 
-// ---------- Particles ----------
+// ---------- Mobile menu handlers ----------
+function openMobileMenu(){
+  mobileMenu.style.display = 'block';
+  mobileMenuBtn.style.display = 'none';
+  document.body.style.overflow = 'hidden';
+}
+function closeMobileMenu(){
+  mobileMenu.style.display = 'none';
+  mobileMenuBtn.style.display = isMobile()? 'block':'none';
+  document.body.style.overflow = '';
+}
+mobileMenuBtn.addEventListener('click',openMobileMenu);
+mobileMenuClose.addEventListener('click',closeMobileMenu);
+
+// ---------- Particles (reduced on mobile) ----------
 const particles = document.getElementById('particles');
 function spawnParticles(n=28){
+  if(isMobile()) n = Math.max(0, Math.min(6, Math.floor(n/6))) ;
   for(let i=0;i<n;i++){
     const p = document.createElement('div');
     p.className='particle';
@@ -222,72 +290,83 @@ function spawnParticles(n=28){
     p.style.width = size+'px'; p.style.height = size+'px';
     particles.appendChild(p);
     const rise = 10+Math.random()*40;
-    const dur = 10+Math.random()*18;
+    const dur = 8+Math.random()*12;
     p.animate([{transform:`translateY(0)`,opacity:1},{transform:`translateY(-${rise}vh)`,opacity:0}],{duration:dur*1000,iterations:1,easing:'ease-out'}).onfinish = ()=>p.remove();
   }
 }
 setInterval(()=>spawnParticles(12),2200);
 spawnParticles(36);
 
-// ---------- Ambient glow follow mouse ----------
+// ---------- Ambient glow follow pointer (only on non-touch to save perf) ----------
 const ambient = document.getElementById('ambient');
-window.addEventListener('mousemove',e=>{
-  ambient.style.left = (e.clientX-210)+'px';
-  ambient.style.top = (e.clientY-210)+'px';
-  ambient.style.opacity = 1;
-});
-window.addEventListener('mouseout',()=>ambient.style.opacity=0);
-
-// ---------- FPS counter ----------
-let last = performance.now(); let frames = 0; let fps=0;
-function tick(now){
-  frames++;
-  if(now-last>=1000){fps=frames;frames=0;last=now;document.getElementById('fps').textContent=`FPS: ${fps}`}
-  requestAnimationFrame(tick);
+if(!('ontouchstart' in window)){
+  window.addEventListener('mousemove',e=>{
+    ambient.style.left = (e.clientX-210)+'px';
+    ambient.style.top = (e.clientY-210)+'px';
+    ambient.style.opacity = 1;
+  });
+  window.addEventListener('mouseout',()=>ambient.style.opacity=0);
+} else {
+  // hide ambient on touch devices
+  ambient.style.display = 'none';
 }
-requestAnimationFrame(tick);
 
-// ---------- Ping (approx) ----------
+// ---------- FPS counter (optimized) ----------
+let fpsLast = performance.now(); let fpsFrames = 0;
+function updateFPS(now){
+  fpsFrames++;
+  if(now - fpsLast >= 1000){ document.getElementById('fps').textContent = `FPS: ${fpsFrames}`; fpsFrames = 0; fpsLast = now; }
+  requestAnimationFrame(updateFPS);
+}
+requestAnimationFrame(updateFPS);
+
+// ---------- Accurate Ping (Image technique) ----------
 async function pingHost(){
-  const start = Date.now();
-  try{ await fetch('https://cloudflare.com', {mode:'no-cors'}); }catch(e){}
-  const ms = Date.now()-start; document.getElementById('ping').textContent = `PING: ${ms}ms`;
+  return new Promise(resolve=>{
+    try{
+      const img = new Image();
+      const start = performance.now();
+      img.onload = img.onerror = ()=>{
+        const ms = Math.max(1, Math.round(performance.now()-start));
+        document.getElementById('ping').textContent = `PING: ${ms}ms`;
+        resolve(ms);
+      };
+      // randomize to avoid cache
+      img.src = 'https://www.google.com/favicon.ico?cachebust=' + Math.random();
+    }catch(e){ document.getElementById('ping').textContent = 'PING: --'; resolve(null); }
+  });
 }
-setInterval(pingHost,1500);
+setInterval(()=>{ pingHost(); }, 1500);
+pingHost();
 
 // ---------- Status/time ----------
 function updateTime(){document.getElementById('localTime').textContent = new Date().toLocaleString();}
 setInterval(updateTime,1000); updateTime();
 
 // ---------- Fullscreen ----------
-document.getElementById('fullscreen').addEventListener('click',()=>{
-  if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen();
-});
+document.getElementById('fullscreen').addEventListener('click',()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); });
 
-// ---------- Windowed mode (draggable + resizable) ----------
+// ---------- Windowed mode (draggable + resizable) with mobile scroll lock ----------
 let win = null; const winToggle = document.getElementById('windowToggle');
-winToggle.addEventListener('click',()=>{
-  if(!win) openWindowed(); else closeWindowed();
-});
+winToggle.addEventListener('click',()=>{ if(!win) openWindowed(); else closeWindowed(); });
+
+function lockScroll(lock){ document.body.style.overflow = lock ? 'hidden' : ''; }
 
 function openWindowed(){
-  // create window container
   win = document.createElement('div'); win.className='window';
+  win.style.left = '10%'; win.style.top = '8%';
   win.innerHTML = `<div class="win-header"><div class="win-title">${activeName||'Window'}</div><div class="win-controls"><div class="win-btn" id="dock">Dock</div></div></div><div style="flex:1;overflow:hidden;"><iframe style="width:100%;height:100%;border:0;" src="${frame.src||''}"></iframe></div><div class="resize-handle"></div>`;
   document.body.appendChild(win);
-  // make draggable
   const header = win.querySelector('.win-header'); header.addEventListener('pointerdown', onDragStart);
   win.querySelector('#dock').addEventListener('click', closeWindowed);
-  // simple resize via css resize allowed (modern browsers) - fallback: user can drag corner
-  // hide original iframe while windowed
   frame.style.visibility='hidden';
 }
-function closeWindowed(){ if(!win) return; win.remove(); win=null; frame.style.visibility='visible'; }
+function closeWindowed(){ if(!win) return; win.remove(); win=null; frame.style.visibility='visible'; lockScroll(false); }
 
 let dragState=null;
-function onDragStart(e){ dragState={x:e.clientX,y:e.clientY,left:parseFloat(getComputedStyle(win).left),top:parseFloat(getComputedStyle(win).top)}; win.style.cursor='grabbing'; window.addEventListener('pointermove',onDragMove); window.addEventListener('pointerup',onDragEnd); }
+function onDragStart(e){ lockScroll(true); dragState={x:e.clientX,y:e.clientY,left:parseFloat(getComputedStyle(win).left)||0,top:parseFloat(getComputedStyle(win).top)||0}; win.style.cursor='grabbing'; window.addEventListener('pointermove',onDragMove); window.addEventListener('pointerup',onDragEnd); }
 function onDragMove(e){ if(!dragState) return; const dx=e.clientX-dragState.x, dy=e.clientY-dragState.y; win.style.left = (dragState.left+dx)+'px'; win.style.top = (dragState.top+dy)+'px'; }
-function onDragEnd(){ dragState=null; win.style.cursor='default'; window.removeEventListener('pointermove',onDragMove); window.removeEventListener('pointerup',onDragEnd); }
+function onDragEnd(){ lockScroll(false); dragState=null; if(win) win.style.cursor='default'; window.removeEventListener('pointermove',onDragMove); window.removeEventListener('pointerup',onDragEnd); }
 
 // ---------- Extra polish: small fades on hover for frameBox ----------
 frameBox.addEventListener('mouseenter',()=>frameBox.style.transform='translateY(-6px)'); frameBox.addEventListener('mouseleave',()=>frameBox.style.transform='translateY(0)');
@@ -297,12 +376,16 @@ frame.addEventListener('error',()=>{showLoader(false);statusText.textContent='Lo
 
 // ---------- Small accessibility: keyboard nav ----------
 window.addEventListener('keydown',(e)=>{
-  if(e.key==='ArrowRight' || e.key==='ArrowDown'){ // next
-    const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const next=btns[(idx+1)%btns.length]; if(next) next.click();
-  } else if(e.key==='ArrowLeft' || e.key==='ArrowUp'){
-    const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const prev=btns[(idx-1+btns.length)%btns.length]; if(prev) prev.click();
-  }
+  if(e.key==='ArrowRight' || e.key==='ArrowDown'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const next=btns[(idx+1)%btns.length]; if(next) next.click(); }
+  else if(e.key==='ArrowLeft' || e.key==='ArrowUp'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const prev=btns[(idx-1+btns.length)%btns.length]; if(prev) prev.click(); }
 });
+
+// ---------- Mobile detection helpers ----------
+function isMobile(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
+
+// show/hide mobile menu button based on device
+function applyMobileUI(){ if(isMobile()){ mobileMenuBtn.style.display='block'; } else { mobileMenuBtn.style.display='none'; mobileMenu.style.display='none'; document.body.style.overflow=''; } }
+window.addEventListener('resize',applyMobileUI); applyMobileUI();
 
 // ---------- initial small spawn of particles periodically ----------
 setInterval(()=>spawnParticles(6),3500);
