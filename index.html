@@ -6,11 +6,11 @@
   <title>Home</title>
   <link rel="icon" type="image/png" href="https://ssl.gstatic.com/classroom/favicon.png">
 
-  <!-- PERF: preconnect to worker -->
-  <link rel="preconnect" href="https://wild-bonus-f4be.very-cool-email2001-785.workers.dev">
+  <!-- PERF: preconnect to worker and common hosts -->
+  <link rel="preconnect" href="https://wild-bonus-f4be.very-cool-email2001-785.workers.dev" crossorigin>
 
   <style>
-    /* (styles from your Option B preserved) */
+    /* Reset & base (keeps your Option B visuals and layout exactly) */
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
@@ -21,10 +21,14 @@
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
     }
+
     .frame-box, .sidebar, .topbar, .ctrl-btn, .window { will-change: transform, opacity; }
+
     #particles{position:fixed;inset:0;z-index:0;pointer-events:none}
     .particle{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(138,176,255,0.08);box-shadow:0 0 12px rgba(138,176,255,0.06);transform-origin:center}
+
     #ambient{position:fixed;left:0;top:0;width:420px;height:420px;pointer-events:none;z-index:1;opacity:0;mix-blend-mode:screen;transition:opacity .3s ease;background:radial-gradient(circle at center, rgba(138,176,255,0.18) 0%, rgba(10,30,60,0.0) 60%);filter:blur(40px);}
+
     .sidebar{position:fixed;left:0;top:0;height:100vh;width:72px;padding:14px;z-index:5;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,0.04);transition:width .32s ease;}
     .sidebar:hover{width:220px}
     .sidebar h2{font-size:16px;margin-bottom:10px;letter-spacing:0.2px;opacity:0;color:#dce9ff}
@@ -36,7 +40,9 @@
     .sidebar:hover .proxy-btn .label{opacity:1}
     .proxy-btn:hover{transform:translateY(-3px);background:rgba(138,176,255,0.04)}
     .proxy-btn.active{background:linear-gradient(90deg, rgba(138,176,255,0.08), rgba(80,110,240,0.04));box-shadow:0 6px 24px rgba(70,110,255,0.06)}
+
     .main{position:relative;z-index:2;margin-left:72px;height:100vh;padding:20px;display:flex;flex-direction:column;align-items:center}
+
     .topbar{width:calc(100% - 160px);max-width:1400px;height:60px;margin-top:4px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;position:relative;border:1px solid rgba(255,255,255,0.04);padding:0 12px}
     .top-left{display:flex;align-items:center;gap:14px;font-weight:600}
     .top-center{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;margin:0 12px;min-width:0}
@@ -46,21 +52,29 @@
     .top-actions{display:flex;gap:10px;align-items:center}
     .ctrl-btn{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.04);transition:transform .15s,box-shadow .15s}
     .ctrl-btn:hover{transform:scale(1.06);box-shadow:0 10px 30px rgba(70,110,255,0.08);}
+
     .stats{display:flex;gap:10px;align-items:center}
+
     .frame-box{width:calc(100% - 120px);max-width:1400px;height:calc(100vh - 150px);margin-top:18px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));border:1px solid rgba(138,176,255,0.06);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:all .18s ease}
+
     .frame-box::after{content:'';position:absolute;inset:3px;border-radius:14px;pointer-events:none;box-shadow:0 0 0 rgba(138,176,255,0);animation:neon 3s ease-in-out infinite}
     @keyframes neon{0%{box-shadow:0 0 0 rgba(138,176,255,0)}50%{box-shadow:0 0 36px rgba(138,176,255,0.12)}100%{box-shadow:0 0 0 rgba(138,176,255,0)}}
+
     iframe{width:100%;height:100%;border:0;background:white}
+
     #loader{position:absolute;z-index:10;width:64px;height:64px;border-radius:50%;border:6px solid rgba(255,255,255,0.06);border-top-color:#8ab0ff;animation:spin 1s linear infinite;opacity:0;transform:translateY(-20px);transition:opacity .22s, transform .22s;will-change: transform, opacity, rotate;backface-visibility: hidden;-webkit-backface-visibility: hidden;}
     @keyframes spin{0%{transform:rotate(0deg);rotate:0deg}100%{transform:rotate(360deg);rotate:360deg}}
     .frame-box.loading #loader{opacity:1 !important;transform:translateY(0) !important}
+
     .window{position:absolute;width:80%;height:76%;left:10%;top:8%;border-radius:12px;background:linear-gradient(180deg, rgba(7,22,43,0.6), rgba(6,18,36,0.65));box-shadow:0 30px 80px rgba(4,12,30,0.6);border:1px solid rgba(138,176,255,0.06);z-index:30;display:flex;flex-direction:column;overflow:hidden;resize:both}
     .win-header{height:44px;display:flex;align-items:center;padding:0 12px;gap:8px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));cursor:grab}
     .win-title{flex:1;font-weight:600}
     .win-controls{display:flex;gap:6px}
     .win-btn{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.03);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
     .resize-handle{position:absolute;right:6px;bottom:6px;width:18px;height:18px;background:transparent;cursor:se-resize}
+
     .status-bar{display:none}
+
     @media (max-width:760px){
       .sidebar{display:none}
       .frame-box{backdrop-filter:none;border-radius:0}
@@ -72,12 +86,17 @@
       .top-center{display:none}
       .top-left{margin-left:6px}
     }
+
     @media (prefers-reduced-motion: reduce){
       .frame-box::after, .proxy-btn, .ctrl-btn, .particle, #ambient { animation:none!important; transition:none!important; }
       #loader { animation: none !important; }
     }
+
     .label-muted{opacity:0.7;font-weight:500}
     .small-muted{font-size:12px;opacity:0.7}
+
+    /* small helper for fallback messaging inside frame container */
+    .fallback-shell{padding:22px;max-width:760px;border-radius:12px;background:rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(0,0,0,0.6);color:#eaf2ff}
   </style>
 </head>
 <body>
@@ -113,12 +132,15 @@
       </div>
     </div>
 
-    <section class="frame-box" id="frameBox">
+    <section class="frame-box" id="frameBox" aria-live="polite">
       <div id="loader" aria-hidden="true"></div>
-      <iframe id="frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" title="Proxy iframe"></iframe>
+      <iframe id="frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" title="Proxy iframe" allow="clipboard-write;fullscreen"></iframe>
+      <!-- fallback message container (in case we can't embed at all) -->
+      <div id="fallback" style="display:none;position:absolute;inset:20px;z-index:20;align-items:center;justify-content:center"></div>
     </section>
   </main>
 
+  <!-- Mobile overlay menu -->
   <div id="mobileMenu" style="display:none">
     <div class="mobile-menu-overlay" id="mobileMenuOverlay">
       <div class="mobile-menu-header">
@@ -131,11 +153,9 @@
 
 <script>
 /* ========== CONFIG ========== */
-// Set this to your worker hostname (the worker URL you gave earlier).
-const WORKER_BASE = 'https://wild-bonus-f4be.very-cool-email2001-785.workers.dev';
+const WORKER_BASE = 'https://wild-bonus-f4be.very-cool-email2001-785.workers.dev'; // your worker URL
 const WORKER_PROXY_PATH = '/proxy?target=';
 
-/* ========== list of proxies (unchanged targets) ========== */
 const proxies = {
   "DayDreamX": "https://study.info.north-kazakhstan.su.cdn.cloudflare.net/",
   "Velera": "https://zearn.buzz.cdn.cloudflare.net/",
@@ -172,11 +192,16 @@ const redirectBtn = document.getElementById('redirect');
 const fpsEl = document.getElementById('fps');
 const pingEl = document.getElementById('ping');
 const localTimeEl = document.getElementById('localTime');
+const fallbackBox = document.getElementById('fallback');
 
 let activeName = null;
+let lastAttempt = { method: 'direct' };
 
-/* ========== UTIL ========== */
+/* ========== UTILS ========== */
 function toProxy(url){ return WORKER_BASE + WORKER_PROXY_PATH + encodeURIComponent(url); }
+function setStatus(s){ if(statusText) statusText.textContent = s; }
+function showLoader(on){ if(on) frameBox.classList.add('loading'); else frameBox.classList.remove('loading'); }
+function isMobile(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
 
 /* ========== UI builders ========== */
 function makeButton(name,url){
@@ -198,36 +223,147 @@ Object.entries(proxies).forEach(([name,url])=>{
   if(mobileProxyList) mobileProxyList.appendChild(makeMobileButton(name,url));
 });
 
-/* ========== SWITCH PROXY (use worker) ========== */
+/* ========== Smart proxy switcher (direct -> worker fallback) ========== */
+let loadTimeout = null;
+const LOAD_TIMEOUT_MS = 6500; // if no onload within ~6.5s, fall back
+
 function switchProxy(name,url,btn){
   Array.from(proxyList.children).forEach(n=>n.classList.remove('active'));
   if(btn) btn.classList.add('active');
   activeName = name;
-  statusText.textContent = `Loading ${name}...`;
+  setStatus(`Loading ${name} (direct)...`);
   currentURL.textContent = url || '';
   showLoader(true);
+  fallbackBox.style.display = 'none';
+  lastAttempt = { method: 'direct', timestamp: Date.now() };
 
-  frame.style.transition = 'opacity .22s ease';
+  // clear iframe before setting src to ensure load events fire cleanly
+  frame.removeAttribute('src');
   frame.style.opacity = '0.12';
 
-  setTimeout(()=>{
-    const proxied = toProxy(url);
-    frame.src = proxied;
-    // redirect should open original target (not proxied)
-    redirectBtn.onclick = ()=>window.open(url,'_blank');
+  // install handlers
+  const onLoaded = () => {
+    cleanupListeners();
+    frame.style.opacity = '1';
+    showLoader(false);
+    setStatus(`Loaded ${name} (direct)`);
+  };
+  const onError = () => {
+    cleanupListeners();
+    showLoader(false);
+    setStatus(`Direct embed blocked. Retrying via worker...`);
+    attemptWorkerFallback(name, url);
+  };
 
-    frame.onload = ()=>{
-      frame.style.opacity = '1';
-      showLoader(false);
-      statusText.textContent = `Loaded ${name}`;
-    };
-    frame.onerror = ()=>{
-      showLoader(false);
-      statusText.textContent = `Load failed for ${name}`;
-    };
-  }, 180);
+  function cleanupListeners(){
+    frame.removeEventListener('load', onLoaded);
+    frame.removeEventListener('error', onError);
+    if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout = null; }
+  }
+
+  frame.addEventListener('load', onLoaded, {once:true, passive:true});
+  frame.addEventListener('error', onError, {once:true, passive:true});
+
+  // set timeout to detect hangs / silent blocking (CSP / X-Frame-Options often don't trigger error)
+  loadTimeout = setTimeout(()=>{
+    // if previously set to direct and still no load => worker fallback
+    frame.removeEventListener('load', onLoaded);
+    frame.removeEventListener('error', onError);
+    showLoader(false);
+    setStatus(`No response from direct embed. Trying worker fallback...`);
+    attemptWorkerFallback(name,url);
+  }, LOAD_TIMEOUT_MS);
+
+  // try direct
+  try {
+    frame.src = url;
+    // set redirect button to open original target (direct)
+    redirectBtn.onclick = ()=> window.open(url, '_blank');
+  } catch(e){
+    // e.g. invalid URL
+    cleanupListeners();
+    showLoader(false);
+    setStatus(`Invalid URL: ${e.message}`);
+  }
 }
-function showLoader(show){ if(show){ frameBox.classList.add('loading'); } else { frameBox.classList.remove('loading'); } }
+
+function attemptWorkerFallback(name, originalUrl){
+  lastAttempt = { method: 'worker', timestamp: Date.now() };
+  showLoader(true);
+  // clear previous handlers
+  frame.removeAttribute('src');
+  frame.style.opacity = '0.12';
+  const proxied = toProxy(originalUrl);
+
+  // attach handlers
+  const onLoaded = ()=> {
+    cleanup();
+    frame.style.opacity = '1';
+    showLoader(false);
+    setStatus(`Loaded ${name} (via worker)`);
+  };
+  const onError = ()=> {
+    cleanup();
+    showLoader(false);
+    setStatus(`Worker also failed to load ${name}`);
+    showFallbackUI(originalUrl, `Both direct and worker proxy could not load the site. It may require WebSockets or actively block frames.`);
+  };
+  function cleanup(){
+    frame.removeEventListener('load', onLoaded);
+    frame.removeEventListener('error', onError);
+    if(loadTimeout) { clearTimeout(loadTimeout); loadTimeout = null; }
+  }
+
+  frame.addEventListener('load', onLoaded, {once:true, passive:true});
+  frame.addEventListener('error', onError, {once:true, passive:true});
+
+  // set a slightly longer timeout for worker
+  loadTimeout = setTimeout(()=>{
+    cleanup();
+    showLoader(false);
+    setStatus(`Timed out loading via worker.`);
+    showFallbackUI(originalUrl, `Timed out after attempting worker fallback.`);
+  }, LOAD_TIMEOUT_MS + 3500);
+
+  // set redirect to open original in new tab (original link)
+  redirectBtn.onclick = ()=> window.open(originalUrl, '_blank');
+
+  // finally point iframe at proxied URL
+  frame.src = proxied;
+}
+
+/* show friendly fallback inside frame area (with Open Original / Try Proxy buttons) */
+function showFallbackUI(originalUrl, reason){
+  fallbackBox.innerHTML = '';
+  fallbackBox.style.display = 'flex';
+  fallbackBox.style.alignItems = 'center';
+  fallbackBox.style.justifyContent = 'center';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'fallback-shell';
+  wrap.innerHTML = `<h3 style="margin:0 0 10px 0">Could not embed</h3>
+    <p style="opacity:.9;margin:0 0 12px 0">${escapeHtml(reason)}</p>
+    <p style="margin:0 0 12px 0">Try one of the options below:</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button id="openOriginal" style="padding:10px 12px;border-radius:8px;cursor:pointer">Open original</button>
+      <button id="tryProxy" style="padding:10px 12px;border-radius:8px;cursor:pointer">Open via Worker proxy</button>
+      <button id="removeFallback" style="padding:10px 12px;border-radius:8px;cursor:pointer">Close</button>
+    </div>`;
+  fallbackBox.appendChild(wrap);
+
+  document.getElementById('openOriginal').onclick = ()=> window.open(originalUrl,'_blank');
+  document.getElementById('tryProxy').onclick = ()=> {
+    // route to worker proxied view in new tab (or reopen in iframe)
+    window.open(toProxy(originalUrl), '_blank');
+  };
+  document.getElementById('removeFallback').onclick = ()=> {
+    fallbackBox.style.display = 'none';
+    setStatus('Ready');
+  };
+}
+
+/* small escaping helper */
+function escapeHtml(s){ return String(s).replace(/[&<>'"]/g, c=>'&'+({ '&':'amp','<':'lt','>':'gt',"'":"#39",'"':'quot' }[c])+';'); }
 
 /* ========== Mobile menu handlers ========== */
 const mobileMenu = document.getElementById('mobileMenu');
@@ -238,12 +374,10 @@ function closeMobileMenu(){ if(!mobileMenu) return; mobileMenu.style.display='no
 if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileMenu);
 if(mobileMenuClose) mobileMenuClose.addEventListener('click', closeMobileMenu);
 
-/* ========== PERFORMANCE helpers ========== */
+/* ========== Particles, ambient pointer, FPS, ping, time (kept from Option B) ========== */
 const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-function isMobile(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
 
-/* ========== PARTICLES & ambient (unchanged) ========== */
 let particleTimer = null, desiredParticleBurst = 12, PARTICLE_MAX = 28, lastParticleSpawn = 0, particlesPaused = false;
 function spawnParticles(n=12){
   if(particlesPaused || prefersReducedMotion) return;
@@ -267,12 +401,7 @@ function spawnParticles(n=12){
   }
 }
 let fpsSamples = [];
-function adaptiveParticleControl(fps){
-  fpsSamples.push(fps);
-  if(fpsSamples.length>8) fpsSamples.shift();
-  const avg = fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length;
-  if(avg < 35){ PARTICLE_MAX = 8; desiredParticleBurst = 6; } else if(avg < 50){ PARTICLE_MAX = 16; desiredParticleBurst = 10; } else { PARTICLE_MAX = 28; desiredParticleBurst = 14; }
-}
+function adaptiveParticleControl(fps){ fpsSamples.push(fps); if(fpsSamples.length>8) fpsSamples.shift(); const avg = fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length; if(avg < 35){ PARTICLE_MAX = 8; desiredParticleBurst = 6; } else if(avg < 50){ PARTICLE_MAX = 16; desiredParticleBurst = 10; } else { PARTICLE_MAX = 28; desiredParticleBurst = 14; } }
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ particlesPaused = true; } else { particlesPaused = false; spawnParticles(desiredParticleBurst); } }, {passive:true});
 if(!isTouch && !prefersReducedMotion){ spawnParticles(36); particleTimer = setInterval(()=>spawnParticles(desiredParticleBurst), 2200); }
 
@@ -280,68 +409,45 @@ const ambientEl = document.getElementById('ambient'); let ambientTick = null; le
 function onPointerMove(e){ lastPointer.x = e.clientX; lastPointer.y = e.clientY; if(ambientTick) return; ambientTick = requestAnimationFrame(()=>{ ambientEl.style.left = (lastPointer.x - 210) + 'px'; ambientEl.style.top = (lastPointer.y - 210) + 'px'; ambientEl.style.opacity = 1; ambientTick = null; }); }
 if(!isTouch && !prefersReducedMotion){ window.addEventListener('mousemove', onPointerMove, {passive:true}); window.addEventListener('mouseout', ()=> ambientEl.style.opacity = 0, {passive:true}); } else { if(ambientEl) ambientEl.style.display = 'none'; }
 
-/* ========== FPS & ping ========== */
 let fpsLast = performance.now(), fpsFrames = 0;
-function updateFPS(now){
-  fpsFrames++;
-  if(now - fpsLast >= 1000){
-    const fps = fpsFrames;
-    if(fpsEl) fpsEl.textContent = `FPS: ${fps}`;
-    fpsFrames = 0; fpsLast = now; adaptiveParticleControl(fps);
-  }
-  requestAnimationFrame(updateFPS);
-}
+function updateFPS(now){ fpsFrames++; if(now - fpsLast >= 1000){ const fps = fpsFrames; if(fpsEl) fpsEl.textContent = `FPS: ${fps}`; fpsFrames = 0; fpsLast = now; adaptiveParticleControl(fps); } requestAnimationFrame(updateFPS); }
 requestAnimationFrame(updateFPS);
 
 async function pingHost(){
   if(prefersReducedMotion) return;
   try{
-    const start = performance.now();
-    // ping worker health endpoint
-    await fetch(WORKER_BASE + '/health?cachebust=' + Math.random(), {cache: 'no-store'});
-    const ms = Math.max(1, Math.round(performance.now()-start));
-    if(pingEl) pingEl.textContent = `PING: ${ms}ms`;
+    const img = new Image(); const start = performance.now();
+    img.onload = img.onerror = ()=>{ const ms = Math.max(1, Math.round(performance.now()-start)); if(pingEl) pingEl.textContent = `PING: ${ms}ms`; };
+    img.src = WORKER_BASE + '/health?cachebust=' + Math.random();
   }catch(e){ if(pingEl) pingEl.textContent = 'PING: --'; }
 }
 setInterval(()=>{ if(!document.hidden) pingHost(); }, 1500);
 pingHost();
 
-/* ========== Time & fullscreen/windowed (unchanged behavior) ========== */
 function updateTime(){ if(localTimeEl) localTimeEl.textContent = new Date().toLocaleString(); }
 setInterval(updateTime,1000); updateTime();
 
+/* ========== Fullscreen improvements (keep topbar visible) ========== */
 let iframeFull = false;
 const fullscreenBtn = document.getElementById('fullscreen');
 function enterIframeFullscreen(){
-  if(iframeFull) return;
-  iframeFull = true;
+  if(iframeFull) return; iframeFull = true;
   const topbar = document.getElementById('topbar');
   const topH = topbar ? topbar.getBoundingClientRect().height : 60;
-  Object.assign(frameBox.style, {
-    position: 'fixed', left:'0', right:'0', top: topH + 'px', bottom:'0',
-    width:'100%', height: `calc(100vh - ${topH}px)`, zIndex: 9998, marginTop: '0', borderRadius: '0'
-  });
+  Object.assign(frameBox.style, { position: 'fixed', left:'0', right:'0', top: topH + 'px', bottom:'0', width:'100%', height: `calc(100vh - ${topH}px)`, zIndex: 9998, marginTop: '0', borderRadius: '0' });
   const sidebar = document.getElementById('sidebar'); if(sidebar) sidebar.style.display = 'none';
   frame.setAttribute('tabindex','-1'); frame.focus();
 }
 function exitIframeFullscreen(){
-  if(!iframeFull) return;
-  iframeFull = false;
-  Object.assign(frameBox.style, {
-    position:'', left:'', right:'', top:'', bottom:'', width:'', height:'', zIndex:'', marginTop:'', borderRadius:''
-  });
+  if(!iframeFull) return; iframeFull = false;
+  Object.assign(frameBox.style, { position:'', left:'', right:'', top:'', bottom:'', width:'', height:'', zIndex:'', marginTop:'', borderRadius:'' });
   const sidebar = document.getElementById('sidebar'); if(sidebar) sidebar.style.display = '';
 }
-if(fullscreenBtn){
-  fullscreenBtn.addEventListener('click', ()=>{ if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen(); }, {passive:true});
-}
+if(fullscreenBtn){ fullscreenBtn.addEventListener('click', ()=>{ if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen(); }, {passive:true}); }
 window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && iframeFull) exitIframeFullscreen(); });
 frameBox.addEventListener('dblclick', ()=> { if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen(); }, {passive:true});
 
-/* ========== Redirect open-in-new-tab ========= */
-if(redirectBtn) redirectBtn.addEventListener('click', ()=>{ if(frame && frame.src) window.open(frame.src, '_blank'); }, {passive:true});
-
-/* ========== Windowed mode (draggable/resizable) ========== */
+/* ========== Windowed mode (draggable) ========== */
 let win = null; const winToggle = document.getElementById('windowToggle');
 if(winToggle) winToggle.addEventListener('click', ()=>{ if(!win) openWindowed(); else closeWindowed(); }, {passive:true});
 function lockScroll(lock){ document.body.style.overflow = lock ? 'hidden' : ''; }
@@ -360,27 +466,22 @@ function onDragStart(e){ lockScroll(true); dragState={x:e.clientX,y:e.clientY,le
 function onDragMove(e){ if(!dragState) return; const dx=e.clientX-dragState.x, dy=e.clientY-dragState.y; win.style.left = (dragState.left+dx)+'px'; win.style.top = (dragState.top+dy)+'px'; }
 function onDragEnd(){ lockScroll(false); dragState=null; if(win) win.style.cursor='default'; window.removeEventListener('pointermove',onDragMove); window.removeEventListener('pointerup',onDragEnd); }
 
-/* hover polish & errors */
+/* ========== Hover polish & iframe error message (already in) ========== */
 if(frameBox){ frameBox.addEventListener('mouseenter', ()=> frameBox.style.transform = 'translateY(-6px)'); frameBox.addEventListener('mouseleave', ()=> frameBox.style.transform = 'translateY(0)'); }
-if(frame){ frame.addEventListener('error', ()=> { showLoader(false); statusText.textContent='Load failed (may block embed)'; }); }
+if(frame){ frame.addEventListener('error', ()=> { showLoader(false); setStatus('Load failed (may block embed)'); }); }
 
-/* keyboard nav for proxies */
+/* ========== keyboard nav for proxies ========== */
 window.addEventListener('keydown',(e)=>{ if(e.key==='ArrowRight' || e.key==='ArrowDown'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const next=btns[(idx+1)%btns.length]; if(next) next.click(); } else if(e.key==='ArrowLeft' || e.key==='ArrowUp'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const prev=btns[(idx-1+btns.length)%btns.length]; if(prev) prev.click(); } });
 
-/* mobile UI */
+/* ========== mobile UI helpers ========== */
 function applyMobileUI(){ if(isMobile()){ if(mobileMenuBtn) mobileMenuBtn.style.display='block'; } else { if(mobileMenuBtn) mobileMenuBtn.style.display='none'; if(mobileMenu) mobileMenu.style.display='none'; document.body.style.overflow=''; } }
 window.addEventListener('resize', applyMobileUI, {passive:true}); applyMobileUI();
 
-/* cleanup */
+/* ========== cleanup & start lightweight tasks ========== */
 window.addEventListener('beforeunload', ()=>{ if(particleTimer) clearInterval(particleTimer); }, {passive:true});
-
-/* small loader helper */
-function showLoader(on){ if(on) frameBox.classList.add('loading'); else frameBox.classList.remove('loading'); }
-
-/* kick off */
 if(!document.hidden && !prefersReducedMotion){ setTimeout(()=>spawnParticles(desiredParticleBurst), 800); }
 
-/* auto-select first */
+/* ========== Auto-select first proxy on load ========== */
 const firstBtn = proxyList.querySelector('.proxy-btn');
 if(firstBtn) firstBtn.click();
 </script>
