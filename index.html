@@ -6,8 +6,11 @@
   <title>Home</title>
   <link rel="icon" type="image/png" href="https://ssl.gstatic.com/classroom/favicon.png">
 
+  <!-- PERF: preconnect to worker -->
+  <link rel="preconnect" href="https://wild-bonus-f4be.very-cool-email2001-785.workers.dev">
+
   <style>
-    /* Reset & base */
+    /* (styles from your Option B preserved) */
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
@@ -18,28 +21,11 @@
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
     }
-
-    /* Promote GPU for big moving things */
     .frame-box, .sidebar, .topbar, .ctrl-btn, .window { will-change: transform, opacity; }
-
-    /* Particles (behind everything) */
     #particles{position:fixed;inset:0;z-index:0;pointer-events:none}
     .particle{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(138,176,255,0.08);box-shadow:0 0 12px rgba(138,176,255,0.06);transform-origin:center}
-
-    /* Ambient glow */
-    #ambient{
-      position:fixed;left:0;top:0;width:420px;height:420px;pointer-events:none;z-index:1;opacity:0;mix-blend-mode:screen;transition:opacity .3s ease;
-      background:radial-gradient(circle at center, rgba(138,176,255,0.18) 0%, rgba(10,30,60,0.0) 60%);
-      filter:blur(40px);
-    }
-
-    /* Sidebar (desktop) */
-    .sidebar{
-      position:fixed;left:0;top:0;height:100vh;width:72px;padding:14px;z-index:5;
-      background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-      backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,0.04);
-      transition:width .32s ease;
-    }
+    #ambient{position:fixed;left:0;top:0;width:420px;height:420px;pointer-events:none;z-index:1;opacity:0;mix-blend-mode:screen;transition:opacity .3s ease;background:radial-gradient(circle at center, rgba(138,176,255,0.18) 0%, rgba(10,30,60,0.0) 60%);filter:blur(40px);}
+    .sidebar{position:fixed;left:0;top:0;height:100vh;width:72px;padding:14px;z-index:5;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,0.04);transition:width .32s ease;}
     .sidebar:hover{width:220px}
     .sidebar h2{font-size:16px;margin-bottom:10px;letter-spacing:0.2px;opacity:0;color:#dce9ff}
     .sidebar:hover h2{opacity:1}
@@ -50,11 +36,7 @@
     .sidebar:hover .proxy-btn .label{opacity:1}
     .proxy-btn:hover{transform:translateY(-3px);background:rgba(138,176,255,0.04)}
     .proxy-btn.active{background:linear-gradient(90deg, rgba(138,176,255,0.08), rgba(80,110,240,0.04));box-shadow:0 6px 24px rgba(70,110,255,0.06)}
-
-    /* Main content */
     .main{position:relative;z-index:2;margin-left:72px;height:100vh;padding:20px;display:flex;flex-direction:column;align-items:center}
-
-    /* Topbar - reformatted: left (stats), center (status+URL), right (time/state + actions) */
     .topbar{width:calc(100% - 160px);max-width:1400px;height:60px;margin-top:4px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;position:relative;border:1px solid rgba(255,255,255,0.04);padding:0 12px}
     .top-left{display:flex;align-items:center;gap:14px;font-weight:600}
     .top-center{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;margin:0 12px;min-width:0}
@@ -64,48 +46,21 @@
     .top-actions{display:flex;gap:10px;align-items:center}
     .ctrl-btn{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.04);transition:transform .15s,box-shadow .15s}
     .ctrl-btn:hover{transform:scale(1.06);box-shadow:0 10px 30px rgba(70,110,255,0.08);}
-
     .stats{display:flex;gap:10px;align-items:center}
-
-    /* Frame area */
     .frame-box{width:calc(100% - 120px);max-width:1400px;height:calc(100vh - 150px);margin-top:18px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));border:1px solid rgba(138,176,255,0.06);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:all .18s ease}
-
-    /* Neon pulsing border */
     .frame-box::after{content:'';position:absolute;inset:3px;border-radius:14px;pointer-events:none;box-shadow:0 0 0 rgba(138,176,255,0);animation:neon 3s ease-in-out infinite}
     @keyframes neon{0%{box-shadow:0 0 0 rgba(138,176,255,0)}50%{box-shadow:0 0 36px rgba(138,176,255,0.12)}100%{box-shadow:0 0 0 rgba(138,176,255,0)}}
-
     iframe{width:100%;height:100%;border:0;background:white}
-
-    /* Loader (fixed, unfrozen) */
-    #loader{
-      position:absolute;
-      z-index:10;
-      width:64px;height:64px;border-radius:50%;
-      border:6px solid rgba(255,255,255,0.06);
-      border-top-color:#8ab0ff;
-      animation:spin 1s linear infinite;
-      opacity:0;
-      transform:translateY(-20px);
-      transition:opacity .22s, transform .22s;
-      will-change: transform, opacity, rotate;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-    }
+    #loader{position:absolute;z-index:10;width:64px;height:64px;border-radius:50%;border:6px solid rgba(255,255,255,0.06);border-top-color:#8ab0ff;animation:spin 1s linear infinite;opacity:0;transform:translateY(-20px);transition:opacity .22s, transform .22s;will-change: transform, opacity, rotate;backface-visibility: hidden;-webkit-backface-visibility: hidden;}
     @keyframes spin{0%{transform:rotate(0deg);rotate:0deg}100%{transform:rotate(360deg);rotate:360deg}}
     .frame-box.loading #loader{opacity:1 !important;transform:translateY(0) !important}
-
-    /* Windowed mode */
     .window{position:absolute;width:80%;height:76%;left:10%;top:8%;border-radius:12px;background:linear-gradient(180deg, rgba(7,22,43,0.6), rgba(6,18,36,0.65));box-shadow:0 30px 80px rgba(4,12,30,0.6);border:1px solid rgba(138,176,255,0.06);z-index:30;display:flex;flex-direction:column;overflow:hidden;resize:both}
     .win-header{height:44px;display:flex;align-items:center;padding:0 12px;gap:8px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));cursor:grab}
     .win-title{flex:1;font-weight:600}
     .win-controls{display:flex;gap:6px}
     .win-btn{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.03);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
     .resize-handle{position:absolute;right:6px;bottom:6px;width:18px;height:18px;background:transparent;cursor:se-resize}
-
-    /* Bottom status bar: hidden; content moved to topbar */
     .status-bar{display:none}
-
-    /* Mobile adjustments */
     @media (max-width:760px){
       .sidebar{display:none}
       .frame-box{backdrop-filter:none;border-radius:0}
@@ -114,16 +69,13 @@
       .main{margin-left:0;padding:8px}
       .frame-box{width:100%;height:calc(100vh - 56px);margin-top:8px;border-radius:0}
       iframe{border-radius:0}
-      .top-center{display:none} /* keep center minimal on mobile */
+      .top-center{display:none}
       .top-left{margin-left:6px}
     }
-
-    /* prefers-reduced-motion: cut animations */
     @media (prefers-reduced-motion: reduce){
       .frame-box::after, .proxy-btn, .ctrl-btn, .particle, #ambient { animation:none!important; transition:none!important; }
       #loader { animation: none !important; }
     }
-
     .label-muted{opacity:0.7;font-weight:500}
     .small-muted{font-size:12px;opacity:0.7}
   </style>
@@ -167,7 +119,6 @@
     </section>
   </main>
 
-  <!-- Mobile overlay menu -->
   <div id="mobileMenu" style="display:none">
     <div class="mobile-menu-overlay" id="mobileMenuOverlay">
       <div class="mobile-menu-header">
@@ -178,11 +129,13 @@
     </div>
   </div>
 
-  <!-- (previous bottom status bar hidden - content moved to topbar) -->
-  <div class="status-bar" id="statusBar" aria-hidden="true" style="display:none"></div>
-
 <script>
-/* ========== DATA (added proxies + previous ones) ========== */
+/* ========== CONFIG ========== */
+// Set this to your worker hostname (the worker URL you gave earlier).
+const WORKER_BASE = 'https://wild-bonus-f4be.very-cool-email2001-785.workers.dev';
+const WORKER_PROXY_PATH = '/proxy?target=';
+
+/* ========== list of proxies (unchanged targets) ========== */
 const proxies = {
   "DayDreamX": "https://study.info.north-kazakhstan.su.cdn.cloudflare.net/",
   "Velera": "https://zearn.buzz.cdn.cloudflare.net/",
@@ -193,7 +146,6 @@ const proxies = {
   "Nexus": "https://nexus-is.onthewifi.com/",
   "DogeUB": "https://math.linked8.net/indev",
   "RammerHead": "https://geo.searchgpy.com/",
-  /* NEW proxies you provided */
   "CBmagic": "https://soloo.fun",
   "Axiom": "https://ultralight.mwbread.com",
   "Quasar": "https://tuition.oneuniversity.info",
@@ -208,25 +160,23 @@ const icons = {
   "CBmagic":"✨","Axiom":"🌀","Quasar":"🪐","Boredom":"😴","SomeStuff":"📦","Galaxy":"🌌","Eldardo":"🛠️"
 };
 
-/* ========== DOM Refs ========== */
+/* ========== DOM refs ========== */
 const proxyList = document.getElementById('proxyList');
 const mobileProxyList = document.getElementById('mobileProxyList');
 const frame = document.getElementById('frame');
-const loader = document.getElementById('loader');
 const frameBox = document.getElementById('frameBox');
+const loader = document.getElementById('loader');
 const statusText = document.getElementById('statusText');
 const currentURL = document.getElementById('currentURL');
 const redirectBtn = document.getElementById('redirect');
-const mobileMenu = document.getElementById('mobileMenu');
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-const mobileMenuClose = document.getElementById('mobileMenuClose');
 const fpsEl = document.getElementById('fps');
 const pingEl = document.getElementById('ping');
 const localTimeEl = document.getElementById('localTime');
-const connectionStateEl = document.getElementById('connectionState');
-const topCenter = document.getElementById('topCenter');
 
 let activeName = null;
+
+/* ========== UTIL ========== */
+function toProxy(url){ return WORKER_BASE + WORKER_PROXY_PATH + encodeURIComponent(url); }
 
 /* ========== UI builders ========== */
 function makeButton(name,url){
@@ -248,7 +198,7 @@ Object.entries(proxies).forEach(([name,url])=>{
   if(mobileProxyList) mobileProxyList.appendChild(makeMobileButton(name,url));
 });
 
-/* ========== Switch proxy (unchanged behavior) ========== */
+/* ========== SWITCH PROXY (use worker) ========== */
 function switchProxy(name,url,btn){
   Array.from(proxyList.children).forEach(n=>n.classList.remove('active'));
   if(btn) btn.classList.add('active');
@@ -257,69 +207,57 @@ function switchProxy(name,url,btn){
   currentURL.textContent = url || '';
   showLoader(true);
 
-  frame.style.transition = 'opacity .28s ease';
+  frame.style.transition = 'opacity .22s ease';
   frame.style.opacity = '0.12';
+
   setTimeout(()=>{
-    frame.src = url;
+    const proxied = toProxy(url);
+    frame.src = proxied;
+    // redirect should open original target (not proxied)
     redirectBtn.onclick = ()=>window.open(url,'_blank');
+
     frame.onload = ()=>{
       frame.style.opacity = '1';
       showLoader(false);
       statusText.textContent = `Loaded ${name}`;
     };
-  }, 240);
+    frame.onerror = ()=>{
+      showLoader(false);
+      statusText.textContent = `Load failed for ${name}`;
+    };
+  }, 180);
 }
 function showLoader(show){ if(show){ frameBox.classList.add('loading'); } else { frameBox.classList.remove('loading'); } }
 
-/* auto-select first */
-const firstBtn = proxyList.querySelector('.proxy-btn');
-if(firstBtn) firstBtn.click();
-
 /* ========== Mobile menu handlers ========== */
-function openMobileMenu(){
-  if(!mobileMenu) return;
-  mobileMenu.style.display = 'block';
-  if(mobileMenuBtn) mobileMenuBtn.style.display = 'none';
-  document.body.style.overflow = 'hidden';
-}
-function closeMobileMenu(){
-  if(!mobileMenu) return;
-  mobileMenu.style.display = 'none';
-  if(mobileMenuBtn) mobileMenuBtn.style.display = isMobile()? 'block':'none';
-  document.body.style.overflow = '';
-}
+const mobileMenu = document.getElementById('mobileMenu');
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const mobileMenuClose = document.getElementById('mobileMenuClose');
+function openMobileMenu(){ if(!mobileMenu) return; mobileMenu.style.display='block'; if(mobileMenuBtn) mobileMenuBtn.style.display='none'; document.body.style.overflow='hidden'; }
+function closeMobileMenu(){ if(!mobileMenu) return; mobileMenu.style.display='none'; if(mobileMenuBtn) mobileMenuBtn.style.display = isMobile()? 'block':'none'; document.body.style.overflow=''; }
 if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileMenu);
 if(mobileMenuClose) mobileMenuClose.addEventListener('click', closeMobileMenu);
 
-/* ========== Performance helpers ========== */
+/* ========== PERFORMANCE helpers ========== */
 const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 function isMobile(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
 
-/* ========== PARTICLES (adaptive) ========== */
-let particleTimer = null;
-let desiredParticleBurst = 12;
-let PARTICLE_MAX = 28;
-let lastParticleSpawn = 0;
-let particlesPaused = false;
+/* ========== PARTICLES & ambient (unchanged) ========== */
+let particleTimer = null, desiredParticleBurst = 12, PARTICLE_MAX = 28, lastParticleSpawn = 0, particlesPaused = false;
 function spawnParticles(n=12){
   if(particlesPaused || prefersReducedMotion) return;
   n = Math.max(0, Math.min(PARTICLE_MAX, n));
   const now = performance.now();
   if(now - lastParticleSpawn < 600) return;
   lastParticleSpawn = now;
-
   for(let i=0;i<n;i++){
-    const p = document.createElement('div');
-    p.className='particle';
-    const left = Math.random()*100;
-    p.style.left = left+'%';
+    const p = document.createElement('div'); p.className='particle';
+    const left = Math.random()*100; p.style.left = left+'%';
     p.style.top = (90+Math.random()*20)+'%';
-    const size = 2 + Math.random()*7;
-    p.style.width = size+'px'; p.style.height = size+'px';
+    const size = 2 + Math.random()*7; p.style.width = size+'px'; p.style.height = size+'px';
     document.getElementById('particles').appendChild(p);
-    const rise = 10 + Math.random()*40;
-    const dur = 6 + Math.random()*12;
+    const rise = 10 + Math.random()*40; const dur = 6 + Math.random()*12;
     try{
       const anim = p.animate([{transform:'translateY(0)',opacity:1},{transform:`translateY(-${rise}vh)`,opacity:0}],{duration:dur*1000,easing:'ease-out'});
       anim.onfinish = ()=> p.remove();
@@ -335,133 +273,76 @@ function adaptiveParticleControl(fps){
   const avg = fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length;
   if(avg < 35){ PARTICLE_MAX = 8; desiredParticleBurst = 6; } else if(avg < 50){ PARTICLE_MAX = 16; desiredParticleBurst = 10; } else { PARTICLE_MAX = 28; desiredParticleBurst = 14; }
 }
-document.addEventListener('visibilitychange', ()=>{
-  if(document.hidden){ particlesPaused = true; } else { particlesPaused = false; spawnParticles(desiredParticleBurst); }
-}, {passive:true});
-if(!isTouch && !prefersReducedMotion){
-  spawnParticles(36);
-  particleTimer = setInterval(()=>spawnParticles(desiredParticleBurst), 2200);
-}
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ particlesPaused = true; } else { particlesPaused = false; spawnParticles(desiredParticleBurst); } }, {passive:true});
+if(!isTouch && !prefersReducedMotion){ spawnParticles(36); particleTimer = setInterval(()=>spawnParticles(desiredParticleBurst), 2200); }
 
-/* ========== Ambient - throttled pointer handling ========== */
-const ambient = document.getElementById('ambient');
-let ambientTick = null;
-let lastPointer = {x:0,y:0};
-function onPointerMove(e){
-  lastPointer.x = e.clientX; lastPointer.y = e.clientY;
-  if(ambientTick) return;
-  ambientTick = requestAnimationFrame(()=>{
-    ambient.style.left = (lastPointer.x - 210) + 'px';
-    ambient.style.top = (lastPointer.y - 210) + 'px';
-    ambient.style.opacity = 1;
-    ambientTick = null;
-  });
-}
-if(!isTouch && !prefersReducedMotion){
-  window.addEventListener('mousemove', onPointerMove, {passive:true});
-  window.addEventListener('mouseout', ()=> ambient.style.opacity = 0, {passive:true});
-} else {
-  if(ambient) ambient.style.display = 'none';
-}
+const ambientEl = document.getElementById('ambient'); let ambientTick = null; let lastPointer = {x:0,y:0};
+function onPointerMove(e){ lastPointer.x = e.clientX; lastPointer.y = e.clientY; if(ambientTick) return; ambientTick = requestAnimationFrame(()=>{ ambientEl.style.left = (lastPointer.x - 210) + 'px'; ambientEl.style.top = (lastPointer.y - 210) + 'px'; ambientEl.style.opacity = 1; ambientTick = null; }); }
+if(!isTouch && !prefersReducedMotion){ window.addEventListener('mousemove', onPointerMove, {passive:true}); window.addEventListener('mouseout', ()=> ambientEl.style.opacity = 0, {passive:true}); } else { if(ambientEl) ambientEl.style.display = 'none'; }
 
-/* ========== FPS counter (optimized) ========== */
+/* ========== FPS & ping ========== */
 let fpsLast = performance.now(), fpsFrames = 0;
 function updateFPS(now){
   fpsFrames++;
   if(now - fpsLast >= 1000){
     const fps = fpsFrames;
     if(fpsEl) fpsEl.textContent = `FPS: ${fps}`;
-    fpsFrames = 0;
-    fpsLast = now;
-    adaptiveParticleControl(fps);
+    fpsFrames = 0; fpsLast = now; adaptiveParticleControl(fps);
   }
   requestAnimationFrame(updateFPS);
 }
 requestAnimationFrame(updateFPS);
 
-/* ========== Ping (image technique) ========== */
 async function pingHost(){
   if(prefersReducedMotion) return;
   try{
-    const img = new Image(); const start = performance.now();
-    img.onload = img.onerror = ()=>{ const ms = Math.max(1, Math.round(performance.now()-start)); if(pingEl) pingEl.textContent = `PING: ${ms}ms`; };
-    img.src = 'https://www.google.com/favicon.ico?cachebust=' + Math.random();
+    const start = performance.now();
+    // ping worker health endpoint
+    await fetch(WORKER_BASE + '/health?cachebust=' + Math.random(), {cache: 'no-store'});
+    const ms = Math.max(1, Math.round(performance.now()-start));
+    if(pingEl) pingEl.textContent = `PING: ${ms}ms`;
   }catch(e){ if(pingEl) pingEl.textContent = 'PING: --'; }
 }
 setInterval(()=>{ if(!document.hidden) pingHost(); }, 1500);
 pingHost();
 
-/* ========== Time & connection ================================= */
+/* ========== Time & fullscreen/windowed (unchanged behavior) ========== */
 function updateTime(){ if(localTimeEl) localTimeEl.textContent = new Date().toLocaleString(); }
 setInterval(updateTime,1000); updateTime();
 
-/* ========== Fullscreen mode (iframe-only but keep topbar visible) ========== */
 let iframeFull = false;
 const fullscreenBtn = document.getElementById('fullscreen');
 function enterIframeFullscreen(){
   if(iframeFull) return;
   iframeFull = true;
-  document.body.classList.add('iframe-fullscreen');
-  // style frameBox to fill viewport under topbar
   const topbar = document.getElementById('topbar');
   const topH = topbar ? topbar.getBoundingClientRect().height : 60;
   Object.assign(frameBox.style, {
-    position: 'fixed',
-    left: '0',
-    right: '0',
-    top: topH + 'px',
-    bottom: '0',
-    width: '100%',
-    height: `calc(100vh - ${topH}px)`,
-    zIndex: 9998,
-    marginTop: '0',
-    borderRadius: '0'
+    position: 'fixed', left:'0', right:'0', top: topH + 'px', bottom:'0',
+    width:'100%', height: `calc(100vh - ${topH}px)`, zIndex: 9998, marginTop: '0', borderRadius: '0'
   });
-  // hide sidebar to give more space
-  const sidebar = document.getElementById('sidebar');
-  if(sidebar) sidebar.style.display = 'none';
+  const sidebar = document.getElementById('sidebar'); if(sidebar) sidebar.style.display = 'none';
+  frame.setAttribute('tabindex','-1'); frame.focus();
 }
 function exitIframeFullscreen(){
   if(!iframeFull) return;
   iframeFull = false;
-  document.body.classList.remove('iframe-fullscreen');
-  // restore frameBox styles
   Object.assign(frameBox.style, {
-    position: '',
-    left: '',
-    right: '',
-    top: '',
-    bottom: '',
-    width: '',
-    height: '',
-    zIndex: '',
-    marginTop: '',
-    borderRadius: ''
+    position:'', left:'', right:'', top:'', bottom:'', width:'', height:'', zIndex:'', marginTop:'', borderRadius:''
   });
-  const sidebar = document.getElementById('sidebar');
-  if(sidebar) sidebar.style.display = '';
+  const sidebar = document.getElementById('sidebar'); if(sidebar) sidebar.style.display = '';
 }
 if(fullscreenBtn){
-  fullscreenBtn.addEventListener('click', ()=>{
-    if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen();
-  }, {passive:true});
+  fullscreenBtn.addEventListener('click', ()=>{ if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen(); }, {passive:true});
 }
-// exit on ESC
-window.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape' && iframeFull) exitIframeFullscreen();
-});
-
-/* ========== Redirect button behavior ========== */
-if(redirectBtn) redirectBtn.addEventListener('click', ()=>{
-  if(frame && frame.src) window.open(frame.src, '_blank');
-}, {passive:true});
-
-/* ========== Fullscreen fallback: also support double-click on frameBox to toggle ========== */
+window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && iframeFull) exitIframeFullscreen(); });
 frameBox.addEventListener('dblclick', ()=> { if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen(); }, {passive:true});
 
-/* ========== Windowed mode (draggable + resizable) ========== */
-let win = null;
-const winToggle = document.getElementById('windowToggle');
+/* ========== Redirect open-in-new-tab ========= */
+if(redirectBtn) redirectBtn.addEventListener('click', ()=>{ if(frame && frame.src) window.open(frame.src, '_blank'); }, {passive:true});
+
+/* ========== Windowed mode (draggable/resizable) ========== */
+let win = null; const winToggle = document.getElementById('windowToggle');
 if(winToggle) winToggle.addEventListener('click', ()=>{ if(!win) openWindowed(); else closeWindowed(); }, {passive:true});
 function lockScroll(lock){ document.body.style.overflow = lock ? 'hidden' : ''; }
 function openWindowed(){
@@ -479,41 +360,29 @@ function onDragStart(e){ lockScroll(true); dragState={x:e.clientX,y:e.clientY,le
 function onDragMove(e){ if(!dragState) return; const dx=e.clientX-dragState.x, dy=e.clientY-dragState.y; win.style.left = (dragState.left+dx)+'px'; win.style.top = (dragState.top+dy)+'px'; }
 function onDragEnd(){ lockScroll(false); dragState=null; if(win) win.style.cursor='default'; window.removeEventListener('pointermove',onDragMove); window.removeEventListener('pointerup',onDragEnd); }
 
-/* ========== Hover polish ========== */
-if(frameBox){
-  frameBox.addEventListener('mouseenter', ()=> frameBox.style.transform = 'translateY(-6px)');
-  frameBox.addEventListener('mouseleave', ()=> frameBox.style.transform = 'translateY(0)');
-}
+/* hover polish & errors */
+if(frameBox){ frameBox.addEventListener('mouseenter', ()=> frameBox.style.transform = 'translateY(-6px)'); frameBox.addEventListener('mouseleave', ()=> frameBox.style.transform = 'translateY(0)'); }
+if(frame){ frame.addEventListener('error', ()=> { showLoader(false); statusText.textContent='Load failed (may block embed)'; }); }
 
-/* ========== Graceful iframe error ========== */
-if(frame){
-  frame.addEventListener('error', ()=> { showLoader(false); statusText.textContent='Load failed (may block embed)'; });
-}
+/* keyboard nav for proxies */
+window.addEventListener('keydown',(e)=>{ if(e.key==='ArrowRight' || e.key==='ArrowDown'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const next=btns[(idx+1)%btns.length]; if(next) next.click(); } else if(e.key==='ArrowLeft' || e.key==='ArrowUp'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const prev=btns[(idx-1+btns.length)%btns.length]; if(prev) prev.click(); } });
 
-/* ========== Keyboard nav for proxies ========== */
-window.addEventListener('keydown',(e)=>{
-  if(e.key==='ArrowRight' || e.key==='ArrowDown'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const next=btns[(idx+1)%btns.length]; if(next) next.click(); }
-  else if(e.key==='ArrowLeft' || e.key==='ArrowUp'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const prev=btns[(idx-1+btns.length)%btns.length]; if(prev) prev.click(); }
-});
-
-/* ========== Mobile UI helpers ========== */
+/* mobile UI */
 function applyMobileUI(){ if(isMobile()){ if(mobileMenuBtn) mobileMenuBtn.style.display='block'; } else { if(mobileMenuBtn) mobileMenuBtn.style.display='none'; if(mobileMenu) mobileMenu.style.display='none'; document.body.style.overflow=''; } }
 window.addEventListener('resize', applyMobileUI, {passive:true}); applyMobileUI();
 
-/* ========== Visibility / cleanup ========= */
-window.addEventListener('beforeunload', ()=>{
-  if(particleTimer) clearInterval(particleTimer);
-}, {passive:true});
+/* cleanup */
+window.addEventListener('beforeunload', ()=>{ if(particleTimer) clearInterval(particleTimer); }, {passive:true});
 
-/* ========== Small loader helper (exposed) ========= */
-function showLoader(on){
-  if(on) frameBox.classList.add('loading'); else frameBox.classList.remove('loading');
-}
+/* small loader helper */
+function showLoader(on){ if(on) frameBox.classList.add('loading'); else frameBox.classList.remove('loading'); }
 
-/* ========== Start lightweight periodic tasks ========= */
-if(!document.hidden && !prefersReducedMotion){
-  setTimeout(()=>spawnParticles(desiredParticleBurst), 800);
-}
+/* kick off */
+if(!document.hidden && !prefersReducedMotion){ setTimeout(()=>spawnParticles(desiredParticleBurst), 800); }
+
+/* auto-select first */
+const firstBtn = proxyList.querySelector('.proxy-btn');
+if(firstBtn) firstBtn.click();
 </script>
 </body>
 </html>
