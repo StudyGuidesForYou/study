@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- TAB TITLE + FAVICON -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Home</title>
   <link rel="icon" type="image/png" href="https://ssl.gstatic.com/classroom/favicon.png">
 
@@ -21,7 +19,7 @@
       -moz-osx-font-smoothing:grayscale;
     }
 
-    /* Performance hint: GPU promotion for key containers */
+    /* Promote GPU for big moving things */
     .frame-box, .sidebar, .topbar, .ctrl-btn, .window { will-change: transform, opacity; }
 
     /* Particles (behind everything) */
@@ -56,15 +54,21 @@
     /* Main content */
     .main{position:relative;z-index:2;margin-left:72px;height:100vh;padding:20px;display:flex;flex-direction:column;align-items:center}
 
-    /* Topbar */
-    .topbar{width:calc(100% - 160px);max-width:1400px;height:60px;margin-top:4px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;position:relative;border:1px solid rgba(255,255,255,0.04)}
-    .stats{display:flex;gap:18px;font-weight:600;letter-spacing:0.6px}
-    .top-actions{position:absolute;right:14px;display:flex;gap:10px}
+    /* Topbar - reformatted: left (stats), center (status+URL), right (time/state + actions) */
+    .topbar{width:calc(100% - 160px);max-width:1400px;height:60px;margin-top:4px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;position:relative;border:1px solid rgba(255,255,255,0.04);padding:0 12px}
+    .top-left{display:flex;align-items:center;gap:14px;font-weight:600}
+    .top-center{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;margin:0 12px;min-width:0}
+    .top-center .status-row{display:flex;gap:10px;align-items:center;font-size:13px}
+    .top-center .url-row{font-weight:600;max-width:720px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+    .top-right{display:flex;align-items:center;gap:10px}
+    .top-actions{display:flex;gap:10px;align-items:center}
     .ctrl-btn{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.04);transition:transform .15s,box-shadow .15s}
-    .ctrl-btn:hover{transform:scale(1.06);box-shadow:0 10px 30px rgba(70,110,255,0.08)}
+    .ctrl-btn:hover{transform:scale(1.06);box-shadow:0 10px 30px rgba(70,110,255,0.08);}
+
+    .stats{display:flex;gap:10px;align-items:center}
 
     /* Frame area */
-    .frame-box{width:calc(100% - 120px);max-width:1400px;height:calc(100vh - 150px);margin-top:18px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));border:1px solid rgba(138,176,255,0.06);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .frame-box{width:calc(100% - 120px);max-width:1400px;height:calc(100vh - 150px);margin-top:18px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));border:1px solid rgba(138,176,255,0.06);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:all .18s ease}
 
     /* Neon pulsing border */
     .frame-box::after{content:'';position:absolute;inset:3px;border-radius:14px;pointer-events:none;box-shadow:0 0 0 rgba(138,176,255,0);animation:neon 3s ease-in-out infinite}
@@ -72,13 +76,11 @@
 
     iframe{width:100%;height:100%;border:0;background:white}
 
-    /* ======== FIXED LOADER (no-freeze) ======== */
+    /* Loader (fixed, unfrozen) */
     #loader{
       position:absolute;
       z-index:10;
-      width:64px;
-      height:64px;
-      border-radius:50%;
+      width:64px;height:64px;border-radius:50%;
       border:6px solid rgba(255,255,255,0.06);
       border-top-color:#8ab0ff;
       animation:spin 1s linear infinite;
@@ -89,101 +91,83 @@
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); rotate: 0deg; }
-      100% { transform: rotate(360deg); rotate: 360deg; }
-    }
-    .frame-box.loading #loader{
-      opacity:1 !important;
-      transform:translateY(0) !important;
-    }
+    @keyframes spin{0%{transform:rotate(0deg);rotate:0deg}100%{transform:rotate(360deg);rotate:360deg}}
+    .frame-box.loading #loader{opacity:1 !important;transform:translateY(0) !important}
 
     /* Windowed mode */
-    .window{position:absolute;width:80%;height:76%;left:10%;top:8%;border-radius:12px;background:linear-gradient(180deg, rgba(7,22,43,0.6), rgba(6,18,36,0.65));box-shadow:0 30px 80px rgba(4,12,30,0.6);border:1px solid rgba(138,176,255,0.06);z-index:20;display:flex;flex-direction:column;overflow:hidden;resize:both}
+    .window{position:absolute;width:80%;height:76%;left:10%;top:8%;border-radius:12px;background:linear-gradient(180deg, rgba(7,22,43,0.6), rgba(6,18,36,0.65));box-shadow:0 30px 80px rgba(4,12,30,0.6);border:1px solid rgba(138,176,255,0.06);z-index:30;display:flex;flex-direction:column;overflow:hidden;resize:both}
     .win-header{height:44px;display:flex;align-items:center;padding:0 12px;gap:8px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));cursor:grab}
     .win-title{flex:1;font-weight:600}
     .win-controls{display:flex;gap:6px}
     .win-btn{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.03);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
     .resize-handle{position:absolute;right:6px;bottom:6px;width:18px;height:18px;background:transparent;cursor:se-resize}
 
-    /* Bottom status bar */
-    .status-bar{position:fixed;left:72px;right:20px;bottom:12px;height:44px;border-radius:10px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:8;border:1px solid rgba(255,255,255,0.03)}
-    .status-left{display:flex;gap:12px;align-items:center;font-size:13px}
-    .status-right{display:flex;gap:12px;align-items:center;font-size:13px}
+    /* Bottom status bar: hidden; content moved to topbar */
+    .status-bar{display:none}
 
-    /* Mobile: Option C full mobile redesign */
+    /* Mobile adjustments */
     @media (max-width:760px){
-      /* hide desktop sidebar visually (we still keep it in DOM) */
       .sidebar{display:none}
-      /* remove heavy blurs & shadows on mobile for perf */
       .frame-box{backdrop-filter:none;border-radius:0}
-      .topbar{backdrop-filter:none}
+      .topbar{backdrop-filter:none;border-radius:0;height:56px;padding:8px}
       .proxy-btn .icon{box-shadow:none}
-      /* topbar becomes compact with menu button */
-      .topbar{width:100%;height:56px;border-radius:0;margin-top:0;padding:8px 12px;justify-content:flex-start}
-      .stats{margin-left:8px}
-      .top-actions{right:8px}
-      .ctrl-btn{width:40px;height:40px}
-
-      /* make iframe area full */
       .main{margin-left:0;padding:8px}
       .frame-box{width:100%;height:calc(100vh - 56px);margin-top:8px;border-radius:0}
       iframe{border-radius:0}
-
-      /* status-bar moved into compact footer or hidden */
-      .status-bar{left:8px;right:8px;bottom:8px;height:44px;border-radius:8px}
-
-      /* overlay menu (popup) */
-      .mobile-menu-overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(3,8,18,0.9), rgba(3,8,18,0.94));z-index:40;display:flex;flex-direction:column;padding:18px;gap:12px}
-      .mobile-menu-header{display:flex;align-items:center;justify-content:space-between}
-      .mobile-proxy-list{display:flex;flex-direction:column;gap:10px;overflow:auto;padding-top:8px}
-      .mobile-proxy-btn{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);cursor:pointer}
-
-      /* reduce particle intensity on mobile */
-      .particle{display:none}
+      .top-center{display:none} /* keep center minimal on mobile */
+      .top-left{margin-left:6px}
     }
 
-    /* Prefer reduced motion: minimize animations */
+    /* prefers-reduced-motion: cut animations */
     @media (prefers-reduced-motion: reduce){
-      .frame-box::after, .proxy-btn, .ctrl-btn, .particle, #ambient { animation: none !important; transition: none !important; }
+      .frame-box::after, .proxy-btn, .ctrl-btn, .particle, #ambient { animation:none!important; transition:none!important; }
       #loader { animation: none !important; }
     }
 
-    /* Small helpers */
     .label-muted{opacity:0.7;font-weight:500}
+    .small-muted{font-size:12px;opacity:0.7}
   </style>
 </head>
 <body>
   <div id="particles"></div>
-  <div id="ambient"></div>
+  <div id="ambient" aria-hidden="true"></div>
 
-  <!-- Desktop sidebar (hidden on mobile) -->
+  <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <h2>Proxies</h2>
     <div class="proxy-list" id="proxyList"></div>
   </aside>
 
   <main class="main">
-    <div class="topbar">
-      <!-- Mobile menu button (visible on mobile) -->
-      <div id="mobileMenuBtn" style="display:none;cursor:pointer;padding:6px;border-radius:8px;background:rgba(255,255,255,0.02);margin-right:8px">☰</div>
+    <div class="topbar" id="topbar">
+      <div class="top-left">
+        <div class="stats"><div id="fps">FPS: [ ]</div></div>
+        <div class="stats"><div id="ping">PING: [ ]</div></div>
+      </div>
 
-      <div class="stats"><div id="fps">FPS: [ ]</div><div id="ping" style="margin-left:14px">PING: [ ]</div></div>
+      <div class="top-center" id="topCenter">
+        <div class="status-row"><div class="label-muted">Status:</div><div id="statusText">Idle</div></div>
+        <div class="url-row" id="currentURL">No URL loaded</div>
+      </div>
 
-      <div class="top-actions">
-        <div class="ctrl-btn" id="fullscreen" title="Fullscreen">⛶</div>
-        <div class="ctrl-btn" id="redirect" title="Open in new tab">↗</div>
-        <div class="ctrl-btn" id="windowToggle" title="Windowed Mode">▣</div>
+      <div class="top-right">
+        <div class="small-muted" id="localTime">--</div>
+        <div class="label-muted" id="connectionState">Ready</div>
+        <div class="top-actions" id="topActions">
+          <div class="ctrl-btn" id="fullscreen" title="Fullscreen">⛶</div>
+          <div class="ctrl-btn" id="redirect" title="Open in new tab">↗</div>
+          <div class="ctrl-btn" id="windowToggle" title="Windowed Mode">▣</div>
+        </div>
       </div>
     </div>
 
     <section class="frame-box" id="frameBox">
       <div id="loader" aria-hidden="true"></div>
-      <iframe id="frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+      <iframe id="frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" title="Proxy iframe"></iframe>
     </section>
   </main>
 
-  <!-- Mobile overlay menu (Option C) -->
+  <!-- Mobile overlay menu -->
   <div id="mobileMenu" style="display:none">
     <div class="mobile-menu-overlay" id="mobileMenuOverlay">
       <div class="mobile-menu-header">
@@ -194,22 +178,11 @@
     </div>
   </div>
 
-  <div class="status-bar" id="statusBar">
-    <div class="status-left">
-      <div class="label-muted">Status:</div>
-      <div id="statusText">Idle</div>
-      <div style="width:8px"></div>
-      <div class="label-muted">URL:</div>
-      <div id="currentURL" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-    </div>
-    <div class="status-right">
-      <div id="localTime"></div>
-      <div class="label-muted" id="connectionState">Ready</div>
-    </div>
-  </div>
+  <!-- (previous bottom status bar hidden - content moved to topbar) -->
+  <div class="status-bar" id="statusBar" aria-hidden="true" style="display:none"></div>
 
 <script>
-/* ========= DATA & DOM REFS (unchanged) ========= */
+/* ========== DATA (added proxies + previous ones) ========== */
 const proxies = {
   "DayDreamX": "https://study.info.north-kazakhstan.su.cdn.cloudflare.net/",
   "Velera": "https://zearn.buzz.cdn.cloudflare.net/",
@@ -219,10 +192,23 @@ const proxies = {
   "Rosin": "https://lbbjwojcgm.antrak.org.tr/",
   "Nexus": "https://nexus-is.onthewifi.com/",
   "DogeUB": "https://math.linked8.net/indev",
-  "RammerHead": "https://geo.searchgpy.com/"
+  "RammerHead": "https://geo.searchgpy.com/",
+  /* NEW proxies you provided */
+  "CBmagic": "https://soloo.fun",
+  "Axiom": "https://ultralight.mwbread.com",
+  "Quasar": "https://tuition.oneuniversity.info",
+  "Boredom": "https://boredom.global.ssl.fastly.net/?_sm_au_=iHVW0PqgfVNrr60Q7K3CjK60HMLcq",
+  "SomeStuff": "https://wmath.pages.dev/#prxy",
+  "Galaxy": "https://frylight.jumpingcrab.com/&",
+  "Eldardo": "https://eldardo.net/app/"
 };
-const icons = {"DayDreamX":"🌙","Velera":"⚡","Truffled":"🎨","PeteZah":"🐶","UniUB v4":"🏛️","Rosin":"🧪","Nexus":"🔗","DogeUB":"🐕","RammerHead":"🛰️"};
 
+const icons = {
+  "DayDreamX":"🌙","Velera":"⚡","Truffled":"🎨","PeteZah":"🐶","UniUB v4":"🏛️","Rosin":"🧪","Nexus":"🔗","DogeUB":"🐕","RammerHead":"🛰️",
+  "CBmagic":"✨","Axiom":"🌀","Quasar":"🪐","Boredom":"😴","SomeStuff":"📦","Galaxy":"🌌","Eldardo":"🛠️"
+};
+
+/* ========== DOM Refs ========== */
 const proxyList = document.getElementById('proxyList');
 const mobileProxyList = document.getElementById('mobileProxyList');
 const frame = document.getElementById('frame');
@@ -234,10 +220,15 @@ const redirectBtn = document.getElementById('redirect');
 const mobileMenu = document.getElementById('mobileMenu');
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const mobileMenuClose = document.getElementById('mobileMenuClose');
+const fpsEl = document.getElementById('fps');
+const pingEl = document.getElementById('ping');
+const localTimeEl = document.getElementById('localTime');
+const connectionStateEl = document.getElementById('connectionState');
+const topCenter = document.getElementById('topCenter');
 
 let activeName = null;
 
-/* ========= UI: create lists (unchanged) ========= */
+/* ========== UI builders ========== */
 function makeButton(name,url){
   const btn = document.createElement('button');
   btn.className = 'proxy-btn';
@@ -253,17 +244,17 @@ function makeMobileButton(name,url){
   return div;
 }
 Object.entries(proxies).forEach(([name,url])=>{
-  proxyList.appendChild(makeButton(name,url));
+  if(proxyList) proxyList.appendChild(makeButton(name,url));
   if(mobileProxyList) mobileProxyList.appendChild(makeMobileButton(name,url));
 });
 
-/* ========= Switch proxies (unchanged behavior) ========= */
+/* ========== Switch proxy (unchanged behavior) ========== */
 function switchProxy(name,url,btn){
   Array.from(proxyList.children).forEach(n=>n.classList.remove('active'));
   if(btn) btn.classList.add('active');
   activeName = name;
   statusText.textContent = `Loading ${name}...`;
-  currentURL.textContent = url||'';
+  currentURL.textContent = url || '';
   showLoader(true);
 
   frame.style.transition = 'opacity .28s ease';
@@ -284,37 +275,37 @@ function showLoader(show){ if(show){ frameBox.classList.add('loading'); } else {
 const firstBtn = proxyList.querySelector('.proxy-btn');
 if(firstBtn) firstBtn.click();
 
-/* ========= Mobile menu handlers (unchanged) ========= */
+/* ========== Mobile menu handlers ========== */
 function openMobileMenu(){
+  if(!mobileMenu) return;
   mobileMenu.style.display = 'block';
-  mobileMenuBtn.style.display = 'none';
+  if(mobileMenuBtn) mobileMenuBtn.style.display = 'none';
   document.body.style.overflow = 'hidden';
 }
 function closeMobileMenu(){
+  if(!mobileMenu) return;
   mobileMenu.style.display = 'none';
-  mobileMenuBtn.style.display = isMobile()? 'block':'none';
+  if(mobileMenuBtn) mobileMenuBtn.style.display = isMobile()? 'block':'none';
   document.body.style.overflow = '';
 }
-if(mobileMenuBtn) mobileMenuBtn.addEventListener('click',openMobileMenu);
-if(mobileMenuClose) mobileMenuClose.addEventListener('click',closeMobileMenu);
+if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileMenu);
+if(mobileMenuClose) mobileMenuClose.addEventListener('click', closeMobileMenu);
 
-/* ========= PERFORMANCE: Helpers & feature detection ========= */
+/* ========== Performance helpers ========== */
 const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 function isMobile(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
 
-/* ========= PARTICLES: adaptive system ========= */
+/* ========== PARTICLES (adaptive) ========== */
 let particleTimer = null;
-let desiredParticleBurst = 12;        // baseline
+let desiredParticleBurst = 12;
 let PARTICLE_MAX = 28;
 let lastParticleSpawn = 0;
 let particlesPaused = false;
 function spawnParticles(n=12){
   if(particlesPaused || prefersReducedMotion) return;
-  // clamp n
   n = Math.max(0, Math.min(PARTICLE_MAX, n));
   const now = performance.now();
-  // throttle spawn frequency (don't spawn too often)
   if(now - lastParticleSpawn < 600) return;
   lastParticleSpawn = now;
 
@@ -329,52 +320,35 @@ function spawnParticles(n=12){
     document.getElementById('particles').appendChild(p);
     const rise = 10 + Math.random()*40;
     const dur = 6 + Math.random()*12;
-    // use Web Animations API (better control, and removed heavy CSS transitions)
     try{
       const anim = p.animate([{transform:'translateY(0)',opacity:1},{transform:`translateY(-${rise}vh)`,opacity:0}],{duration:dur*1000,easing:'ease-out'});
       anim.onfinish = ()=> p.remove();
     } catch(e){
-      // fallback
       setTimeout(()=>p.remove(), (dur*1000)+100);
     }
   }
 }
-
-/* Adaptive: reduce particles when FPS is low */
 let fpsSamples = [];
 function adaptiveParticleControl(fps){
-  // keep samples
   fpsSamples.push(fps);
   if(fpsSamples.length>8) fpsSamples.shift();
   const avg = fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length;
-  if(avg < 35){
-    PARTICLE_MAX = 8; desiredParticleBurst = 6;
-  } else if(avg < 50){
-    PARTICLE_MAX = 16; desiredParticleBurst = 10;
-  } else {
-    PARTICLE_MAX = 28; desiredParticleBurst = 14;
-  }
+  if(avg < 35){ PARTICLE_MAX = 8; desiredParticleBurst = 6; } else if(avg < 50){ PARTICLE_MAX = 16; desiredParticleBurst = 10; } else { PARTICLE_MAX = 28; desiredParticleBurst = 14; }
 }
-
-/* Pause particles when document hidden */
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){ particlesPaused = true; } else { particlesPaused = false; spawnParticles(desiredParticleBurst); }
 }, {passive:true});
-
-/* start small bursts, but only if allowed */
 if(!isTouch && !prefersReducedMotion){
   spawnParticles(36);
   particleTimer = setInterval(()=>spawnParticles(desiredParticleBurst), 2200);
 }
 
-/* ========= Ambient glow: throttled pointer handling ========= */
+/* ========== Ambient - throttled pointer handling ========== */
 const ambient = document.getElementById('ambient');
 let ambientTick = null;
 let lastPointer = {x:0,y:0};
 function onPointerMove(e){
-  // throttle via requestAnimationFrame
-  lastPointer.x = e.clientX;
-  lastPointer.y = e.clientY;
+  lastPointer.x = e.clientX; lastPointer.y = e.clientY;
   if(ambientTick) return;
   ambientTick = requestAnimationFrame(()=>{
     ambient.style.left = (lastPointer.x - 210) + 'px';
@@ -387,17 +361,16 @@ if(!isTouch && !prefersReducedMotion){
   window.addEventListener('mousemove', onPointerMove, {passive:true});
   window.addEventListener('mouseout', ()=> ambient.style.opacity = 0, {passive:true});
 } else {
-  // hide ambient on touch devices or reduced motion
   if(ambient) ambient.style.display = 'none';
 }
 
-/* ========= FPS counter (optimized) ========= */
+/* ========== FPS counter (optimized) ========== */
 let fpsLast = performance.now(), fpsFrames = 0;
 function updateFPS(now){
   fpsFrames++;
   if(now - fpsLast >= 1000){
     const fps = fpsFrames;
-    document.getElementById('fps').textContent = `FPS: ${fps}`;
+    if(fpsEl) fpsEl.textContent = `FPS: ${fps}`;
     fpsFrames = 0;
     fpsLast = now;
     adaptiveParticleControl(fps);
@@ -406,42 +379,94 @@ function updateFPS(now){
 }
 requestAnimationFrame(updateFPS);
 
-/* ========= Ping (unchanged image technique, low overhead) ========= */
+/* ========== Ping (image technique) ========== */
 async function pingHost(){
   if(prefersReducedMotion) return;
   try{
-    const img = new Image();
-    const start = performance.now();
-    img.onload = img.onerror = ()=>{
-      const ms = Math.max(1, Math.round(performance.now()-start));
-      document.getElementById('ping').textContent = `PING: ${ms}ms`;
-    };
+    const img = new Image(); const start = performance.now();
+    img.onload = img.onerror = ()=>{ const ms = Math.max(1, Math.round(performance.now()-start)); if(pingEl) pingEl.textContent = `PING: ${ms}ms`; };
     img.src = 'https://www.google.com/favicon.ico?cachebust=' + Math.random();
-  }catch(e){ document.getElementById('ping').textContent = 'PING: --'; }
+  }catch(e){ if(pingEl) pingEl.textContent = 'PING: --'; }
 }
 setInterval(()=>{ if(!document.hidden) pingHost(); }, 1500);
 pingHost();
 
-/* ========= Status/time (unchanged) ========= */
-function updateTime(){document.getElementById('localTime').textContent = new Date().toLocaleString();}
+/* ========== Time & connection ================================= */
+function updateTime(){ if(localTimeEl) localTimeEl.textContent = new Date().toLocaleString(); }
 setInterval(updateTime,1000); updateTime();
 
-/* ========= Fullscreen (unchanged) ========= */
-document.getElementById('fullscreen').addEventListener('click', ()=>{
-  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
-  else document.exitFullscreen();
+/* ========== Fullscreen mode (iframe-only but keep topbar visible) ========== */
+let iframeFull = false;
+const fullscreenBtn = document.getElementById('fullscreen');
+function enterIframeFullscreen(){
+  if(iframeFull) return;
+  iframeFull = true;
+  document.body.classList.add('iframe-fullscreen');
+  // style frameBox to fill viewport under topbar
+  const topbar = document.getElementById('topbar');
+  const topH = topbar ? topbar.getBoundingClientRect().height : 60;
+  Object.assign(frameBox.style, {
+    position: 'fixed',
+    left: '0',
+    right: '0',
+    top: topH + 'px',
+    bottom: '0',
+    width: '100%',
+    height: `calc(100vh - ${topH}px)`,
+    zIndex: 9998,
+    marginTop: '0',
+    borderRadius: '0'
+  });
+  // hide sidebar to give more space
+  const sidebar = document.getElementById('sidebar');
+  if(sidebar) sidebar.style.display = 'none';
+}
+function exitIframeFullscreen(){
+  if(!iframeFull) return;
+  iframeFull = false;
+  document.body.classList.remove('iframe-fullscreen');
+  // restore frameBox styles
+  Object.assign(frameBox.style, {
+    position: '',
+    left: '',
+    right: '',
+    top: '',
+    bottom: '',
+    width: '',
+    height: '',
+    zIndex: '',
+    marginTop: '',
+    borderRadius: ''
+  });
+  const sidebar = document.getElementById('sidebar');
+  if(sidebar) sidebar.style.display = '';
+}
+if(fullscreenBtn){
+  fullscreenBtn.addEventListener('click', ()=>{
+    if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen();
+  }, {passive:true});
+}
+// exit on ESC
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && iframeFull) exitIframeFullscreen();
+});
+
+/* ========== Redirect button behavior ========== */
+if(redirectBtn) redirectBtn.addEventListener('click', ()=>{
+  if(frame && frame.src) window.open(frame.src, '_blank');
 }, {passive:true});
 
-/* ========= Windowed mode (unchanged, with scroll lock) ========= */
+/* ========== Fullscreen fallback: also support double-click on frameBox to toggle ========== */
+frameBox.addEventListener('dblclick', ()=> { if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen(); }, {passive:true});
+
+/* ========== Windowed mode (draggable + resizable) ========== */
 let win = null;
 const winToggle = document.getElementById('windowToggle');
-winToggle.addEventListener('click', ()=>{ if(!win) openWindowed(); else closeWindowed(); }, {passive:true});
-
+if(winToggle) winToggle.addEventListener('click', ()=>{ if(!win) openWindowed(); else closeWindowed(); }, {passive:true});
 function lockScroll(lock){ document.body.style.overflow = lock ? 'hidden' : ''; }
-
 function openWindowed(){
   win = document.createElement('div'); win.className='window';
-  win.style.left = '10%'; win.style.top = '8%';
+  win.style.left='10%'; win.style.top='8%';
   win.innerHTML = `<div class="win-header"><div class="win-title">${activeName||'Window'}</div><div class="win-controls"><div class="win-btn" id="dock">Dock</div></div></div><div style="flex:1;overflow:hidden;"><iframe style="width:100%;height:100%;border:0;" src="${frame.src||''}"></iframe></div><div class="resize-handle"></div>`;
   document.body.appendChild(win);
   const header = win.querySelector('.win-header'); header.addEventListener('pointerdown', onDragStart);
@@ -449,43 +474,46 @@ function openWindowed(){
   frame.style.visibility='hidden';
 }
 function closeWindowed(){ if(!win) return; win.remove(); win=null; frame.style.visibility='visible'; lockScroll(false); }
-
 let dragState=null;
 function onDragStart(e){ lockScroll(true); dragState={x:e.clientX,y:e.clientY,left:parseFloat(getComputedStyle(win).left)||0,top:parseFloat(getComputedStyle(win).top)||0}; win.style.cursor='grabbing'; window.addEventListener('pointermove',onDragMove); window.addEventListener('pointerup',onDragEnd); }
 function onDragMove(e){ if(!dragState) return; const dx=e.clientX-dragState.x, dy=e.clientY-dragState.y; win.style.left = (dragState.left+dx)+'px'; win.style.top = (dragState.top+dy)+'px'; }
 function onDragEnd(){ lockScroll(false); dragState=null; if(win) win.style.cursor='default'; window.removeEventListener('pointermove',onDragMove); window.removeEventListener('pointerup',onDragEnd); }
 
-/* ========= Hover polish (unchanged) ========= */
-frameBox.addEventListener('mouseenter', ()=> frameBox.style.transform = 'translateY(-6px)');
-frameBox.addEventListener('mouseleave', ()=> frameBox.style.transform = 'translateY(0)');
+/* ========== Hover polish ========== */
+if(frameBox){
+  frameBox.addEventListener('mouseenter', ()=> frameBox.style.transform = 'translateY(-6px)');
+  frameBox.addEventListener('mouseleave', ()=> frameBox.style.transform = 'translateY(0)');
+}
 
-/* ========= Graceful iframe error (unchanged) ========= */
-frame.addEventListener('error', ()=> { showLoader(false); statusText.textContent='Load failed (may block embed)'; });
+/* ========== Graceful iframe error ========== */
+if(frame){
+  frame.addEventListener('error', ()=> { showLoader(false); statusText.textContent='Load failed (may block embed)'; });
+}
 
-/* ========= Keyboard nav (unchanged) ========= */
+/* ========== Keyboard nav for proxies ========== */
 window.addEventListener('keydown',(e)=>{
   if(e.key==='ArrowRight' || e.key==='ArrowDown'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const next=btns[(idx+1)%btns.length]; if(next) next.click(); }
   else if(e.key==='ArrowLeft' || e.key==='ArrowUp'){ const btns = Array.from(proxyList.children); const idx = btns.findIndex(b=>b.classList.contains('active')); const prev=btns[(idx-1+btns.length)%btns.length]; if(prev) prev.click(); }
 });
 
-/* ========= Mobile helpers (unchanged) ========= */
-function applyMobileUI(){ if(isMobile()){ mobileMenuBtn.style.display='block'; } else { mobileMenuBtn.style.display='none'; mobileMenu.style.display='none'; document.body.style.overflow=''; } }
+/* ========== Mobile UI helpers ========== */
+function applyMobileUI(){ if(isMobile()){ if(mobileMenuBtn) mobileMenuBtn.style.display='block'; } else { if(mobileMenuBtn) mobileMenuBtn.style.display='none'; if(mobileMenu) mobileMenu.style.display='none'; document.body.style.overflow=''; } }
 window.addEventListener('resize', applyMobileUI, {passive:true}); applyMobileUI();
 
-/* ========= Visibility / cleanup ========= */
+/* ========== Visibility / cleanup ========= */
 window.addEventListener('beforeunload', ()=>{
-  // cleanup timers/animations
   if(particleTimer) clearInterval(particleTimer);
 }, {passive:true});
 
-/* ========= Kick off small periodic work responsibly ========= */
-if(!document.hidden && !prefersReducedMotion){
-  // spawn adaptive particle bursts periodically at low priority
-  setTimeout(()=>spawnParticles(desiredParticleBurst), 800);
-  // continued bursts are already scheduled above only if not touch/reduced
+/* ========== Small loader helper (exposed) ========= */
+function showLoader(on){
+  if(on) frameBox.classList.add('loading'); else frameBox.classList.remove('loading');
 }
 
-/* ========= End of script ========= */
+/* ========== Start lightweight periodic tasks ========= */
+if(!document.hidden && !prefersReducedMotion){
+  setTimeout(()=>spawnParticles(desiredParticleBurst), 800);
+}
 </script>
 </body>
 </html>
