@@ -1,236 +1,594 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Classroom Launcher</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Home</title>
+  <link rel="icon" type="image/png" href="https://ssl.gstatic.com/classroom/favicon.png">
 
-<!-- Preconnect for worker performance -->
-<link rel="preconnect" href="https://wild-bonus-f4be.very-cool-email2001-785.workers.dev" crossorigin>
+  <style>
+    /* ---------- BASE + PERFORMANCE HINTS ---------- */
+    :root{
+      --bg-deep:#040612;
+      --bg-mid:#0a1526;
+      --glass-weak: rgba(255,255,255,0.04);
+      --accent: rgba(138,176,255,0.12);
+      --accent-strong: #8ab0ff;
+      --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));
+      --radius-lg: 18px;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-deep),var(--bg-mid));color:#e6eefc;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    *,*::before,*::after{box-sizing:border-box}
+    /* Promote GPU for key containers */
+    .frame-box, .sidebar, .topbar, .ctrl-btn, .window { will-change: transform, opacity; }
 
-<style>
-/* ===== YOUR ORIGINAL DESIGN (PRESERVED EXACTLY) ===== */
-html, body {
-  margin: 0;
-  padding: 0;
-  background: #0d101a;
-  color: white;
-  font-family: Arial, sans-serif;
-  height: 100%;
-  overflow: hidden;
-}
+    /* ---------- LAYOUT ---------- */
+    .sidebar{
+      position:fixed;left:12px;top:12px;bottom:12px;width:56px;border-radius:12px;padding:12px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);display:flex;flex-direction:column;gap:12px;align-items:center;z-index:9;border:1px solid rgba(255,255,255,0.03);
+    }
+    .sidebar h2{display:none;margin:0;font-size:12px;letter-spacing:0.6px}
 
-/* Container */
-#main-shell {
-  position: absolute;
-  top:0; left:0; right:0; bottom:0;
-  display:flex;
-  flex-direction:column;
-  backdrop-filter: blur(25px) brightness(1.1);
-}
+    .main{position:relative;z-index:2;margin-left:72px;height:100vh;padding:20px;display:flex;flex-direction:column;align-items:center;gap:8px}
 
-/* Search bar */
-#topbar {
-  display:flex;
-  padding:10px;
-  background: rgba(255,255,255,0.05);
-  align-items:center;
-  justify-content:space-between;
-}
+    .topbar{
+      width:calc(100% - 160px);max-width:1400px;height:60px;margin-top:4px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;position:relative;border:1px solid rgba(255,255,255,0.04);padding:0 12px;gap:12px;
+    }
+    .top-left{display:flex;align-items:center;gap:14px;font-weight:600}
+    .top-center{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;margin:0 12px;min-width:0}
+    .top-center .status-row{display:flex;gap:10px;align-items:center;font-size:13px}
+    .top-center .url-row{font-weight:600;max-width:720px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+    .top-right{display:flex;align-items:center;gap:10px}
+    .top-actions{display:flex;gap:10px;align-items:center}
 
-#urlInput {
-  width:70%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  outline:none;
-  background:rgba(255,255,255,0.15);
-  color:white;
-}
+    .ctrl-btn{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.04);transition:transform .15s,box-shadow .15s;border:0}
+    .ctrl-btn:hover{transform:scale(1.06);box-shadow:0 10px 30px rgba(70,110,255,0.08);}
 
-/* Buttons */
-.ctrl-btn {
-  cursor:pointer;
-  padding:10px;
-  background:rgba(255,255,255,0.1);
-  border-radius:8px;
-  margin-left:8px;
-  user-select:none;
-}
-.ctrl-btn:hover {
-  background:rgba(255,255,255,0.18);
-}
+    .stats{display:flex;gap:10px;align-items:center;font-weight:600;letter-spacing:0.6px}
 
-/* Iframe area */
-#frame-shell {
-  flex:1;
-  position:relative;
-  overflow:hidden;
-}
+    /* Frame area */
+    .frame-box{
+      width:calc(100% - 120px);max-width:1400px;height:calc(100vh - 150px);margin-top:18px;border-radius:18px;background:var(--card-bg);border:1px solid rgba(138,176,255,0.06);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:all .18s ease;
+    }
+    .frame-box::after{content:'';position:absolute;inset:3px;border-radius:14px;pointer-events:none;box-shadow:0 0 0 rgba(138,176,255,0);animation:neon 3s ease-in-out infinite}
+    @keyframes neon{0%{box-shadow:0 0 0 rgba(138,176,255,0)}50%{box-shadow:0 0 36px rgba(138,176,255,0.12)}100%{box-shadow:0 0 0 rgba(138,176,255,0)}}
 
-#mainFrame {
-  position:absolute;
-  top:0; left:0; right:0; bottom:0;
-  width:100%;
-  height:100%;
-  border:none;
-}
+    iframe{width:100%;height:100%;border:0;background:white;border-radius:12px;display:block}
 
-/* Fallback overlay */
-#fallback-shell {
-  position:absolute;
-  top:0; left:0; right:0; bottom:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:#0d101a;
-  flex-direction:column;
-  text-align:center;
-  padding:20px;
-}
+    /* Loader */
+    #loader{
+      position:absolute;z-index:11;width:64px;height:64px;border-radius:50%;border:6px solid rgba(255,255,255,0.06);border-top-color:var(--accent-strong);animation:spin 1s linear infinite;opacity:0;transform:translateY(10px);transition:opacity .24s,transform .24s;
+    }
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    .frame-box.loading #loader{opacity:1;transform:translateY(0)}
 
-#fallback-shell button {
-  padding:12px 18px;
-  font-size:16px;
-  background:rgba(255,255,255,0.12);
-  border:none;
-  border-radius:10px;
-  color:white;
-  cursor:pointer;
-  margin:5px;
-}
-#fallback-shell button:hover {
-  background:rgba(255,255,255,0.2);
-}
+    /* Windowed mode */
+    .window{position:absolute;width:80%;height:76%;left:10%;top:8%;border-radius:12px;background:linear-gradient(180deg, rgba(7,22,43,0.6), rgba(6,18,36,0.65));box-shadow:0 30px 80px rgba(4,12,30,0.6);border:1px solid rgba(138,176,255,0.06);z-index:30;display:flex;flex-direction:column;overflow:hidden;resize:both}
+    .win-header{height:44px;display:flex;align-items:center;padding:0 12px;gap:8px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));cursor:grab}
+    .win-title{flex:1;font-weight:600}
+    .win-controls{display:flex;gap:6px}
+    .win-btn{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.03);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 
-</style>
+    /* Status bar (desktop hidden, kept for accessibility) */
+    .status-bar{display:none}
+
+    /* Mobile */
+    @media (max-width:760px){
+      .sidebar{display:none}
+      .frame-box{backdrop-filter:none;border-radius:0}
+      .topbar{backdrop-filter:none;border-radius:0;height:56px;padding:8px;width:100%;margin-top:0}
+      .ctrl-btn{width:40px;height:40px}
+      .main{margin-left:0;padding:8px}
+      .frame-box{width:100%;height:calc(100vh - 56px);margin-top:8px;border-radius:0}
+      .top-center{display:none}
+    }
+
+    /* prefer reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .frame-box::after, .proxy-btn, .ctrl-btn, .particle, #ambient { animation: none !important; transition: none !important; }
+      #loader { animation: none !important; }
+    }
+
+    /* helpers */
+    .label-muted{opacity:0.7;font-weight:500}
+    .small-muted{font-size:12px;opacity:0.7}
+    .proxy-list{display:flex;flex-direction:column;gap:8px}
+    .proxy-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .proxy-btn.active{background:linear-gradient(90deg, rgba(138,176,255,0.04), rgba(138,176,255,0.02));box-shadow:0 6px 20px rgba(138,176,255,0.04)}
+    .proxy-icon{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+    .mobile-menu-overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(3,8,18,0.9), rgba(3,8,18,0.94));z-index:40;display:flex;flex-direction:column;padding:18px;gap:12px}
+    .mobile-proxy-btn{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);cursor:pointer}
+    .hidden{display:none!important}
+  </style>
 </head>
 <body>
+  <!-- Particles + Ambient (single instances) -->
+  <div id="particles" aria-hidden="true"></div>
+  <div id="ambient" aria-hidden="true"></div>
 
-<div id="main-shell">
-  
-  <!-- Top Bar -->
-  <div id="topbar">
-    <input id="urlInput" placeholder="Enter a URL..." />
+  <!-- Desktop sidebar (icons / proxies) -->
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar">
+    <div class="proxy-list" id="proxyList" aria-label="Proxy list"></div>
+  </aside>
 
-    <div class="top-actions" style="display:flex;align-items:center;">
-      <div class="ctrl-btn" id="goBtn">Go</div>
-      <div class="ctrl-btn" id="reloadBtn">⟳</div>
-      <div class="ctrl-btn" id="fullscreenBtn">⛶</div>
-      <!-- ADDED: mobile menu btn (fix for your JS) -->
-      <div class="ctrl-btn" id="mobileMenuBtn" title="Menu" style="display:none">☰</div>
+  <main class="main" id="appMain">
+    <!-- Topbar -->
+    <header class="topbar" id="topbar" role="banner" aria-label="Top bar">
+      <div class="top-left">
+        <div class="stats"><div id="fps">FPS: --</div></div>
+        <div class="stats"><div id="ping">PING: --</div></div>
+      </div>
+
+      <div class="top-center" id="topCenter">
+        <div class="status-row"><div class="label-muted">Status:</div><div id="statusText">Idle</div></div>
+        <div class="url-row" id="currentURL" title="Current URL">No URL loaded</div>
+      </div>
+
+      <div class="top-right">
+        <div class="small-muted" id="localTime">--</div>
+        <div class="label-muted" id="connectionState">Ready</div>
+        <div class="top-actions" id="topActions">
+          <button class="ctrl-btn" id="fullscreenBtn" title="Toggle fullscreen">⛶</button>
+          <button class="ctrl-btn" id="redirectBtn" title="Open in new tab">↗</button>
+          <button class="ctrl-btn" id="windowToggleBtn" title="Windowed Mode">▣</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Frame area -->
+    <section class="frame-box" id="frameBox" aria-live="polite">
+      <div id="loader" aria-hidden="true"></div>
+      <iframe id="frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" title="Proxy iframe"></iframe>
+    </section>
+  </main>
+
+  <!-- Mobile menu (hidden by default) -->
+  <div id="mobileMenu" class="hidden" aria-hidden="true">
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-weight:700">Proxies</div>
+        <button id="mobileMenuClose" class="ctrl-btn">✕</button>
+      </div>
+      <div class="mobile-proxy-list" id="mobileProxyList" style="overflow:auto"></div>
     </div>
   </div>
 
-  <!-- Iframe -->
-  <div id="frame-shell">
-    <iframe id="mainFrame"></iframe>
+  <script>
+  /* ========= CONFIG & DATA ========= */
+  const proxies = {
+    "DayDreamX": "https://study.info.north-kazakhstan.su.cdn.cloudflare.net/",
+    "Velera": "https://zearn.buzz.cdn.cloudflare.net/",
+    "Truffled": "https://truffled.example/",
+    "PeteZah": "https://pete.example/",
+    "UniUB v4": "https://university.example/",
+    "Rosin": "https://lbbjwojcgm.antrak.org.tr/",
+    "Nexus": "https://nexus-is.onthewifi.com/",
+    "DogeUB": "https://math.linked8.net/indev",
+    "RammerHead": "https://geo.searchgpy.com/",
+    "CBmagic": "https://soloo.fun/",
+    "Axiom": "https://ultralight.mwbread.com/",
+    "Quasar": "https://tuition.oneuniversity.info/",
+    "Boredom": "https://boredom.global.ssl.fastly.net/?_sm_au_=iHVW0PqgfVNrr60Q7K3CjK60HMLcq",
+    "SomeStuff": "https://wmath.pages.dev/#prxy",
+    "Galaxy": "https://frylight.jumpingcrab.com/",
+    "Eldardo": "https://eldardo.net/app/"
+  };
 
-    <!-- Fallback -->
-    <div id="fallback-shell">
-      <h2>Site failed to load</h2>
-      <p id="fallbackUrl"></p>
-      <button id="openOriginal">Open original</button>
-      <button id="openWorker">Open via worker</button>
-    </div>
-  </div>
+  const icons = {
+    "DayDreamX":"🌙","Velera":"⚡","Truffled":"🎨","PeteZah":"🐶","UniUB v4":"🏛️","Rosin":"🧪","Nexus":"🔗","DogeUB":"🐕","RammerHead":"🛰️",
+    "CBmagic":"✨","Axiom":"🌀","Quasar":"🪐","Boredom":"😴","SomeStuff":"📦","Galaxy":"🌌","Eldardo":"🛠️"
+  };
 
-</div>
+  /* ========= DOM REFS ========= */
+  const proxyList = document.getElementById('proxyList');
+  const mobileProxyList = document.getElementById('mobileProxyList');
+  const frame = document.getElementById('frame');
+  const frameBox = document.getElementById('frameBox');
+  const loader = document.getElementById('loader');
+  const statusText = document.getElementById('statusText');
+  const currentURL = document.getElementById('currentURL');
+  const fpsEl = document.getElementById('fps');
+  const pingEl = document.getElementById('ping');
+  const localTimeEl = document.getElementById('localTime');
+  const connectionStateEl = document.getElementById('connectionState');
 
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const redirectBtn = document.getElementById('redirectBtn');
+  const windowToggleBtn = document.getElementById('windowToggleBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileMenuClose = document.getElementById('mobileMenuClose');
 
-<script>
-/* ============= SETTINGS ============= */
-const WORKER_BASE = "https://wild-bonus-f4be.very-cool-email2001-785.workers.dev";
-const LOAD_TIMEOUT_MS = window.innerWidth < 800 ? 5000 : 6500;
+  let activeName = null;
+  let iframeFull = false;
+  let win = null;
 
-/* UI refs */
-const frame = document.getElementById("mainFrame");
-const input = document.getElementById("urlInput");
-const fallback = document.getElementById("fallback-shell");
-const fallbackUrl = document.getElementById("fallbackUrl");
-
-/* Convert URL to worker proxied version */
-function toProxy(u) {
-  return WORKER_BASE + "/proxy?target=" + encodeURIComponent(u);
-}
-
-/* Normalizer */
-function normalizeUrl(u) {
-  try {
-    if (!/^https?:\/\//i.test(u)) return "https://" + u;
-    return u;
-  } catch {
-    return "https://" + u;
+  /* ========= UTIL: safe element creation ========= */
+  function el(tag, attrs = {}, ...children){
+    const d = document.createElement(tag);
+    for(const k in attrs){
+      if(k === 'class') d.className = attrs[k];
+      else if(k === 'style') d.style.cssText = attrs[k];
+      else d.setAttribute(k, attrs[k]);
+    }
+    for(const ch of children) {
+      if(typeof ch === 'string') d.appendChild(document.createTextNode(ch));
+      else if(ch) d.appendChild(ch);
+    }
+    return d;
   }
-}
 
-/* Open URL in iframe with fallback */
-async function loadURL(raw) {
-  fallback.style.display = "none";
+  /* ========= BUILD UI LISTS ========= */
+  function makeButton(name, url){
+    const btn = el('button',{class:'proxy-btn', title:name, type:'button'});
+    const ico = el('div',{class:'proxy-icon'}, icons[name] || '🔗');
+    const label = el('div', {style:'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'}, name);
+    btn.appendChild(ico);
+    btn.appendChild(label);
+    btn.addEventListener('click', ()=> switchProxy(name, url, btn), {passive:true});
+    return btn;
+  }
 
-  const original = normalizeUrl(raw);
-  const workerURL = toProxy(original);
+  function makeMobileButton(name, url){
+    const btn = el('div',{class:'mobile-proxy-btn', role:'button'});
+    const ico = el('div',{class:'proxy-icon'}, icons[name] || '🔗');
+    const label = el('div',{}, name);
+    btn.appendChild(ico);
+    btn.appendChild(label);
+    btn.addEventListener('click', ()=> { closeMobileMenu(); switchProxy(name, url, null); }, {passive:true});
+    return btn;
+  }
 
-  input.value = original;
-  frame.src = original;
+  function populateLists(){
+    proxyList.innerHTML = '';
+    mobileProxyList.innerHTML = '';
+    Object.entries(proxies).forEach(([name,url])=>{
+      const btn = makeButton(name,url);
+      proxyList.appendChild(btn);
+      mobileProxyList.appendChild(makeMobileButton(name,url));
+    });
+  }
 
-  const loadPromise = new Promise((resolve, reject) => {
-    let done = false;
+  /* ========= SWITCH PROXY / IFRAME LOADING ========= */
+  function showLoader(on){
+    if(on) frameBox.classList.add('loading'); else frameBox.classList.remove('loading');
+  }
 
-    const timer = setTimeout(() => {
-      if (!done) {
-        done = true;
-        reject();
+  async function switchProxy(name, url, btn){
+    // guard
+    if(!url) return;
+    // make active button highlight
+    Array.from(proxyList.children).forEach(n=>n.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+
+    activeName = name;
+    statusText.textContent = `Loading ${name}...`;
+    currentURL.textContent = url;
+    showLoader(true);
+
+    // set iframe src (use direct src; rely on proxy worker if needed)
+    // To avoid CSP/framebusting host issues, optionally prepend your worker proxy: ?target=<encoded>
+    //const proxied = `/proxy?target=${encodeURIComponent(url)}`; frame.src = proxied;
+
+    // Try direct first
+    try {
+      frame.style.opacity = '0';
+      await new Promise((res, rej) => {
+        const onload = ()=> { frame.removeEventListener('load', onload); res(); };
+        const onerror = ()=> { frame.removeEventListener('error', onerror); rej(); };
+        frame.addEventListener('load', onload);
+        frame.addEventListener('error', onerror);
+        // set src last
+        frame.src = url;
+        // If iframe has same-origin, we may be able to access content; otherwise we only trust load/error events
+        // add a timeout fallback
+        setTimeout(()=> res(), 6000);
+      });
+      statusText.textContent = `Loaded ${name}`;
+    } catch (err) {
+      // fallback to worker UV or other proxy if direct load fails
+      const fallback = `https://uv.holy.hack/?target=${encodeURIComponent(url)}`;
+      frame.src = fallback;
+      statusText.textContent = `Loaded ${name} (fallback)`;
+    } finally {
+      // reveal frame
+      frame.style.transition = 'opacity .28s ease';
+      frame.style.opacity = '1';
+      showLoader(false);
+    }
+  }
+
+  /* ========= INITIALIZE ========= */
+  populateLists();
+  // auto-click first available
+  const firstBtn = proxyList.querySelector('.proxy-btn');
+  if(firstBtn) firstBtn.click();
+
+  /* ========= MOBILE MENU ========= */
+  function openMobileMenu(){ mobileMenu.classList.remove('hidden'); mobileMenu.setAttribute('aria-hidden','false'); }
+  function closeMobileMenu(){ mobileMenu.classList.add('hidden'); mobileMenu.setAttribute('aria-hidden','true'); }
+  if(mobileMenuClose) mobileMenuClose.addEventListener('click', closeMobileMenu, {passive:true});
+
+  /* ========= PARTICLES (lightweight, adaptive) ========= */
+  const particlesRoot = document.getElementById('particles');
+  let particleTimer = null;
+  let PARTICLE_MAX = 28;
+  let desiredParticleBurst = 12;
+  let lastParticleSpawn = 0;
+  let particlesPaused = false;
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+  function spawnParticle(){
+    if(particlesPaused || prefersReducedMotion) return;
+    if(!particlesRoot) return;
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.position = 'absolute';
+    p.style.left = (10 + Math.random()*80) + '%';
+    p.style.bottom = '-4vh';
+    p.style.pointerEvents = 'none';
+    p.style.opacity = '0.9';
+    p.style.fontSize = (10 + Math.random()*12) + 'px';
+    p.textContent = '•';
+    particlesRoot.appendChild(p);
+    const rise = 10 + Math.random()*40;
+    const dur = 6 + Math.random()*8;
+    try {
+      const anim = p.animate([{transform:'translateY(0)',opacity:1},{transform:`translateY(-${rise}vh)`,opacity:0}],{duration:dur*1000,easing:'ease-out'});
+      anim.onfinish = ()=> p.remove();
+    } catch(e){
+      setTimeout(()=> p.remove(), (dur*1000)+100);
+    }
+  }
+
+  function spawnParticles(n=12){
+    if(prefersReducedMotion) return;
+    const now = performance.now();
+    if(now - lastParticleSpawn < 600) return;
+    lastParticleSpawn = now;
+    n = Math.max(0, Math.min(PARTICLE_MAX, n));
+    for(let i=0;i<n;i++) setTimeout(spawnParticle, i * 80);
+  }
+
+  function adaptiveParticleControl(fps){
+    if(!fps) return;
+    if(fps < 35){ PARTICLE_MAX = 8; desiredParticleBurst = 6; }
+    else if(fps < 50){ PARTICLE_MAX = 16; desiredParticleBurst = 10; }
+    else { PARTICLE_MAX = 28; desiredParticleBurst = 14; }
+  }
+
+  if(!isTouch && !prefersReducedMotion){
+    spawnParticles(12);
+    particleTimer = setInterval(()=>spawnParticles(desiredParticleBurst), 2200);
+  }
+
+  document.addEventListener('visibilitychange', ()=> {
+    if(document.hidden){ particlesPaused = true; } else { particlesPaused = false; spawnParticles(desiredParticleBurst); }
+  }, {passive:true});
+
+  /* ========= AMBIENT GLOW (throttled) ========= */
+  const ambient = document.getElementById('ambient');
+  let ambientTick = null;
+  let lastPointer = {x:0,y:0};
+  function onPointerMove(e){
+    lastPointer.x = e.clientX;
+    lastPointer.y = e.clientY;
+    if(ambientTick) return;
+    ambientTick = requestAnimationFrame(()=>{
+      if(ambient){
+        ambient.style.position = 'absolute';
+        ambient.style.left = (lastPointer.x - 210) + 'px';
+        ambient.style.top = (lastPointer.y - 210) + 'px';
+        ambient.style.width = '420px';
+        ambient.style.height = '420px';
+        ambient.style.borderRadius = '50%';
+        ambient.style.opacity = '0.09';
+        ambient.style.pointerEvents = 'none';
+        ambient.style.background = 'radial-gradient(circle at 40% 30%, rgba(138,176,255,0.16), rgba(3,8,18,0))';
       }
-    }, LOAD_TIMEOUT_MS);
+      ambientTick = null;
+    });
+  }
+  if(!isTouch && !prefersReducedMotion){
+    window.addEventListener('mousemove', onPointerMove, {passive:true});
+    window.addEventListener('mouseout', ()=> { if(ambient) ambient.style.opacity = 0; }, {passive:true});
+  } else {
+    if(ambient) ambient.style.display = 'none';
+  }
 
-    frame.onload = () => {
-      if (!done) {
-        done = true;
-        resolve();
+  /* ========= FPS counter ========= */
+  let fpsLast = performance.now(), fpsFrames = 0;
+  let fpsSamples = [];
+  function updateFPS(now){
+    fpsFrames++;
+    if(now - fpsLast >= 1000){
+      const fps = fpsFrames;
+      if(fpsEl) fpsEl.textContent = `FPS: ${fps}`;
+      fpsFrames = 0;
+      fpsLast = now;
+      adaptiveParticleControl(fps);
+      fpsSamples.push(fps);
+      if(fpsSamples.length > 8) fpsSamples.shift();
+    }
+    requestAnimationFrame(updateFPS);
+  }
+  requestAnimationFrame(updateFPS);
+
+  /* ========= PING (lightweight image method) ========= */
+  async function pingHost(){
+    if(prefersReducedMotion) return;
+    try {
+      const img = new Image();
+      const start = performance.now();
+      img.onload = img.onerror = ()=> {
+        const ms = Math.max(1, Math.round(performance.now()-start));
+        if(pingEl) pingEl.textContent = `PING: ${ms}ms`;
+      };
+      img.src = 'https://www.google.com/favicon.ico?cachebust=' + Math.random();
+      // timeout safety
+      setTimeout(()=> { if(!img.complete) { if(pingEl) pingEl.textContent = 'PING: --'; } }, 3000);
+    } catch(e){
+      if(pingEl) pingEl.textContent = 'PING: --';
+    }
+  }
+  setInterval(()=>{ if(!document.hidden) pingHost(); }, 1500);
+  pingHost();
+
+  /* ========= TIME & CONNECTION ========= */
+  function updateTime(){ if(localTimeEl) localTimeEl.textContent = (new Date()).toLocaleString(); }
+  setInterval(updateTime, 1000); updateTime();
+
+  /* ========= FULLSCREEN / IFRAME FULLSCREEN ========= */
+  function enterIframeFullscreen(){
+    if(iframeFull) return;
+    iframeFull = true;
+    document.body.classList.add('iframe-fullscreen');
+    const topH = (document.getElementById('topbar') || {}).getBoundingClientRect ? document.getElementById('topbar').getBoundingClientRect().height : 60;
+    Object.assign(frameBox.style, {
+      position: 'fixed',
+      left: '0',
+      right: '0',
+      top: topH + 'px',
+      bottom: '0',
+      width: '100%',
+      height: `calc(100vh - ${topH}px)`,
+      zIndex: 9998,
+      marginTop: '0',
+      borderRadius: '0'
+    });
+    const sidebar = document.getElementById('sidebar');
+    if(sidebar) sidebar.style.display = 'none';
+  }
+
+  function exitIframeFullscreen(){
+    if(!iframeFull) return;
+    iframeFull = false;
+    document.body.classList.remove('iframe-fullscreen');
+    Object.assign(frameBox.style, {
+      position: '',
+      left: '',
+      right: '',
+      top: '',
+      bottom: '',
+      width: '',
+      height: '',
+      zIndex: '',
+      marginTop: '',
+      borderRadius: ''
+    });
+    const sidebar = document.getElementById('sidebar');
+    if(sidebar) sidebar.style.display = '';
+  }
+
+  // Fullscreen button toggles element fullscreen if supported; fallback to iframe-full layout
+  fullscreenBtn.addEventListener('click', async ()=>{
+    try {
+      if(!document.fullscreenElement){
+        // prefer element fullscreen for whole page
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
       }
-    };
+    } catch(e){
+      // fallback: toggle iframe fullscreen mode
+      if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen();
+    }
+  }, {passive:true});
+
+  // ESC handling to exit iframe-fullscreen
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && iframeFull) exitIframeFullscreen();
   });
 
-  try {
-    await loadPromise;
-  } catch {
-    // show fallback UI
-    fallback.style.display = "flex";
-    fallbackUrl.textContent = original;
+  /* ========= REDIRECT BUTTON ========= */
+  redirectBtn.addEventListener('click', ()=> {
+    try {
+      if(frame && frame.src) window.open(frame.src, '_blank');
+    } catch(e){
+      console.warn('Redirect failed', e);
+    }
+  }, {passive:true});
 
-    document.getElementById("openOriginal").onclick = () =>
-      window.open(original, "_blank", "noopener,noreferrer");
-
-    document.getElementById("openWorker").onclick = () =>
-      window.open(workerURL, "_blank", "noopener,noreferrer");
+  /* ========= WINDOWED MODE (draggable + resizable) ========= */
+  function openWindowed(){
+    if(win) return;
+    win = document.createElement('div'); win.className = 'window';
+    win.style.left = '10%'; win.style.top = '8%';
+    win.innerHTML = `<div class="win-header"><div class="win-title">${activeName||'Window'}</div><div class="win-controls"><div class="win-btn" id="dockBtn">Dock</div></div></div><div style="flex:1;overflow:hidden;"><iframe style="width:100%;height:100%;border:0;" src="${frame.src||''}" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" title="Detached window"></iframe></div><div class="resize-handle"></div>`;
+    document.body.appendChild(win);
+    const header = win.querySelector('.win-header');
+    const dock = win.querySelector('#dockBtn');
+    header.addEventListener('pointerdown', onDragStart);
+    dock.addEventListener('click', closeWindowed);
+    frame.style.visibility = 'hidden';
+    lockScroll(true);
   }
-}
 
-/* ============= EVENTS ============= */
-document.getElementById("goBtn").onclick = () => loadURL(input.value);
-document.getElementById("reloadBtn").onclick = () => {
-  if (frame.src) frame.src = frame.src;
-};
-document.getElementById("fullscreenBtn").onclick = () => {
-  if (frame.requestFullscreen) frame.requestFullscreen();
-};
-
-/* MOBILE MENU HANDLER — fixes the bug */
-const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-mobileMenuBtn.onclick = () => alert("Mobile menu coming soon");
-
-/* Show mobile menu button only on phones */
-function adjustMobile() {
-  if (window.innerWidth < 760) {
-    mobileMenuBtn.style.display = "block";
-  } else {
-    mobileMenuBtn.style.display = "none";
+  function closeWindowed(){
+    if(!win) return;
+    win.remove(); win = null; frame.style.visibility = 'visible'; lockScroll(false);
   }
-}
-window.onresize = adjustMobile;
-adjustMobile();
 
-</script>
+  windowToggleBtn.addEventListener('click', ()=> { if(!win) openWindowed(); else closeWindowed(); }, {passive:true});
+
+  let dragState = null;
+  function onDragStart(e){
+    lockScroll(true);
+    dragState = {x:e.clientX,y:e.clientY,left:parseFloat(getComputedStyle(win).left)||0,top:parseFloat(getComputedStyle(win).top)||0};
+    win.style.cursor = 'grabbing';
+    window.addEventListener('pointermove', onDragMove);
+    window.addEventListener('pointerup', onDragEnd);
+  }
+  function onDragMove(e){
+    if(!dragState) return;
+    const dx = e.clientX - dragState.x, dy = e.clientY - dragState.y;
+    win.style.left = (dragState.left + dx) + 'px';
+    win.style.top = (dragState.top + dy) + 'px';
+  }
+  function onDragEnd(){ lockScroll(false); dragState = null; if(win) win.style.cursor='default'; window.removeEventListener('pointermove', onDragMove); window.removeEventListener('pointerup', onDragEnd); }
+  function lockScroll(lock){ document.body.style.overflow = lock ? 'hidden' : ''; }
+
+  /* ========= FRAME HOVER POLISH ========= */
+  if(frameBox){
+    frameBox.addEventListener('mouseenter', ()=> frameBox.style.transform = 'translateY(-6px)');
+    frameBox.addEventListener('mouseleave', ()=> frameBox.style.transform = 'translateY(0)');
+    frameBox.addEventListener('dblclick', ()=> { if(!iframeFull) enterIframeFullscreen(); else exitIframeFullscreen(); }, {passive:true});
+  }
+
+  /* ========= IFRAME ERROR HANDLING ========= */
+  if(frame){
+    frame.addEventListener('error', ()=> { showLoader(false); statusText.textContent='Load failed (may block embed)'; });
+    frame.addEventListener('load', ()=> { showLoader(false); /* keep status handled in switchProxy */ });
+  }
+
+  /* ========= KEYBOARD NAV ========= */
+  window.addEventListener('keydown',(e)=>{
+    if(!proxyList) return;
+    const btns = Array.from(proxyList.children);
+    if(e.key==='ArrowRight' || e.key==='ArrowDown'){
+      const idx = btns.findIndex(b=>b.classList.contains('active')); const next = btns[(idx+1)%btns.length]; if(next) next.click();
+    } else if(e.key==='ArrowLeft' || e.key==='ArrowUp'){
+      const idx = btns.findIndex(b=>b.classList.contains('active')); const prev = btns[(idx-1+btns.length)%btns.length]; if(prev) prev.click();
+    }
+    // quick mobile menu toggle
+    if(e.key === 'm') openMobileMenu();
+  }, {passive:true});
+
+  /* ========= RESIZE / MOBILE HELPERS ========= */
+  function isMobile(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
+  function applyMobileUI(){ if(isMobile()){ if(mobileMenuClose) mobileMenuClose.style.display = 'inline-block'; } else { if(mobileMenuClose) mobileMenuClose.style.display = 'none'; mobileMenu.classList.add('hidden'); } }
+  window.addEventListener('resize', applyMobileUI, {passive:true}); applyMobileUI();
+
+  /* ========= CLEANUP ========= */
+  window.addEventListener('beforeunload', ()=>{
+    if(particleTimer) clearInterval(particleTimer);
+  }, {passive:true});
+
+  /* ========= STARTUP TASKS ========= */
+  // small delayed burst
+  setTimeout(()=>spawnParticles(desiredParticleBurst), 800);
+  // safety: if first load didn't run due to missing events, ensure ping/time update
+  pingHost(); updateTime();
+
+  </script>
 </body>
 </html>
